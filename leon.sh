@@ -468,6 +468,78 @@ restart_the_server() {
 	esac
 }
 
+# 函数：根据系统的发行版设置一个变量 xxx 的值，调用 f2b_status_xxx 函数来处理相应的操作
+f2b_sshd() {
+	if grep -q 'Alpine' /etc/issue; then
+		xxx=alpine-sshd
+		f2b_status_xxx
+	elif grep -qi 'CentOS' /etc/redhat-release; then
+		xxx=centos-sshd
+		f2b_status_xxx
+	else
+		xxx=linux-sshd
+		f2b_status_xxx
+	fi
+}
+
+# 函数：通过 Docker 容器内的 fail2ban-client 工具来获取特定服务的状态信息
+f2b_status_xxx() {
+	docker exec -it fail2ban fail2ban-client status $xxx
+}
+
+# 函数：检查系统中是否已经安装了 docker 和 docker-compose
+install_docker() {
+	if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
+		install_add_docker
+	else
+		echo "Docker环境已经安装"
+	fi
+}
+
+# 函数：在 Docker 中运行 fail2ban 容器，并根据系统类型添加适当的配置文件以保护 SSH 服务
+f2b_install_sshd() {
+
+	docker run -d \
+		--name=fail2ban \
+		--net=host \
+		--cap-add=NET_ADMIN \
+		--cap-add=NET_RAW \
+		-e PUID=1000 \
+		-e PGID=1000 \
+		-e TZ=Etc/UTC \
+		-e VERBOSITY=-vv \
+		-v /path/to/fail2ban/config:/config \
+		-v /var/log:/var/log:ro \
+		-v /home/web/log/nginx/:/remotelogs/nginx:ro \
+		--restart unless-stopped \
+		lscr.io/linuxserver/fail2ban:latest
+
+	sleep 3
+	if grep -q 'Alpine' /etc/issue; then
+		cd /path/to/fail2ban/config/fail2ban/filter.d
+		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd.conf
+		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd-ddos.conf
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-ssh.conf
+	elif grep -qi 'CentOS' /etc/redhat-release; then
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/centos-ssh.conf
+	else
+		install rsyslog
+		systemctl start rsyslog
+		systemctl enable rsyslog
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/linux-ssh.conf
+	fi
+}
+
+# 函数：重新启动 fail2ban 容器，并使用 fail2ban-client 工具获取 fail2ban 服务的状态信息
+f2b_status() {
+	 docker restart fail2ban
+	 sleep 3
+	 docker exec -it fail2ban fail2ban-client status
+}
+
 while true; do
 	clear
 
@@ -650,7 +722,7 @@ while true; do
 				echo "12. ranger 文件管理工具"
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
-				echo "15. speedtest™ 网络带宽测速"
+				echo "15. speedtest 网络带宽测速"
 				echo "------------------------"
 				echo "21. cmatrix 黑客帝国屏保"
 				echo "22. sl 跑火车屏保"
@@ -1811,30 +1883,780 @@ while true; do
 
 					# 设置 BBR3 加速
 					16)
+						root_use
+
+						# 判断是否安装了 linux-xanmod 包
+						if dpkg -l | grep -q 'linux-xanmod'; then
+							while true; do
+
+								# 获取当前系统的内核版本信息
+								kernel_version=$(uname -r)
+								echo "您已安装 xanmod 的 BBRv3 内核"
+								echo "当前内核版本: $kernel_version"
+
+								echo ""
+								echo "内核管理"
+								echo "------------------------"
+								echo "1. 更新BBRv3内核              2. 卸载BBRv3内核"
+								echo "------------------------"
+								echo "0. 返回上一级选单"
+								echo "------------------------"
+								read -p "请输入你的选择: " sub_choice
+
+								case $sub_choice in
+									1)
+										apt purge -y 'linux-*xanmod1*'
+
+										# 更新 grub 引导加载程序的配置文件
+										update-grub
+
+										wget -qO - https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+
+										# 步骤3：添加存储库
+										echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
+
+										version=$(wget -q https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+
+										apt update -y
+										apt install -y linux-xanmod-x64v$version
+
+										echo "XanMod内核已更新。重启后生效"
+										rm -f /etc/apt/sources.list.d/xanmod-release.list
+										rm -f check_x86-64_psabi.sh*
+
+										server_reboot
+										;;
+
+									2)
+										apt purge -y 'linux-*xanmod1*'
+										update-grub
+										echo "XanMod 内核已卸载。重启后生效"
+										server_reboot
+										;;
+
+									0)
+										break  # 跳出循环，退出菜单
+										;;
+
+									*)
+										break  # 跳出循环，退出菜单
+										;;
+
+								esac
+
+							done
+
+						else
+							clear
+							echo "请备份数据，将为你升级 Linux 内核开启 BBR3"
+							echo "官网介绍: https://xanmod.org/"
+							echo "------------------------------------------------"
+							echo "仅支持 Debian/Ubuntu 仅支持 x86_64 架构"
+							echo "VPS 是 512M内 存的，请提前添加 1G 虚拟内存，防止因内存不足失联！"
+							echo "------------------------------------------------"
+							read -p "确定继续吗？(Y/N): " choice
+
+							case "$choice" in
+								[Yy])
+									if [ -r /etc/os-release ]; then
+										. /etc/os-release
+										if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
+											echo "当前环境不支持，仅支持 Debian 和 Ubuntu 系统"
+											break
+										fi
+									else
+										echo "无法确定操作系统类型"
+										break
+									fi
+
+									# 检查系统架构
+									arch=$(dpkg --print-architecture)
+
+									if [ "$arch" != "amd64" ]; then
+										echo "当前环境不支持，仅支持 x86_64 架构"
+										break
+									fi
+
+									new_swap=1024
+									add_swap
+									install wget gnupg
+
+									wget -qO - https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+
+									# 步骤3：添加存储库
+									echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
+
+									version=$(wget -q https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+
+									apt update -y
+									apt install -y linux-xanmod-x64v$version
+
+									# 步骤5：启用 BBR3
+									cat > /etc/sysctl.conf << EOF
+net.core.default_qdisc=fq_pie
+net.ipv4.tcp_congestion_control=bbr
+EOF
+									sysctl -p
+									echo "XanMod 内核安装并 BBR3 启用成功。重启后生效"
+									rm -f /etc/apt/sources.list.d/xanmod-release.list
+									rm -f check_x86-64_psabi.sh*
+									server_reboot
+
+									;;
+
+								[Nn])
+									echo "已取消"
+									;;
+
+								*)
+									echo "无效的选择，请输入 Y 或 N。"
+									;;
+							esac
+
+						fi
 						;;
 
 					# 防火墙高级管理器
 					17)
+						root_use
+
+						# 判断是否安装了名为 iptables-persistent 的软件包
+						if dpkg -l | grep -q iptables-persistent; then
+							while true; do
+								echo "防火墙已安装"
+								echo "------------------------"
+								iptables -L INPUT
+
+								echo ""
+								echo "防火墙管理"
+								echo "------------------------"
+								echo "1. 开放指定端口              2. 关闭指定端口"
+								echo "3. 开放所有端口              4. 关闭所有端口"
+								echo "------------------------"
+								echo "5. IP 白名单                  6. IP 黑名单"
+								echo "7. 清除指定 IP"
+								echo "------------------------"
+								echo "9. 卸载防火墙"
+								echo "------------------------"
+								echo "0. 返回上一级选单"
+								echo "------------------------"
+								read -p "请输入你的选择: " sub_choice
+
+								case $sub_choice in
+									# 开放指定端口
+									1)
+										read -p "请输入开放的端口号: " o_port
+										sed -i "/COMMIT/i -A INPUT -p tcp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
+										sed -i "/COMMIT/i -A INPUT -p udp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# 关闭指定端口
+									2)
+										read -p "请输入关闭的端口号: " c_port
+										sed -i "/--dport $c_port/d" /etc/iptables/rules.v4
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# 开放所有端口
+									3)
+										# 从 SSH 配置文件中找到定义的端口号
+										current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+
+										cat > /etc/iptables/rules.v4 << EOF
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A FORWARD -i lo -j ACCEPT
+-A INPUT -p tcp --dport $current_port -j ACCEPT
+COMMIT
+EOF
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# 关闭所有端口
+									4)
+										current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+
+										cat > /etc/iptables/rules.v4 << EOF
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A FORWARD -i lo -j ACCEPT
+-A INPUT -p tcp --dport $current_port -j ACCEPT
+COMMIT
+EOF
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# IP 白名单
+									5)
+										read -p "请输入放行的IP: " o_ip
+										sed -i "/COMMIT/i -A INPUT -s $o_ip -j ACCEPT" /etc/iptables/rules.v4
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# IP黑名单
+									6)
+										read -p "请输入封锁的IP: " c_ip
+										sed -i "/COMMIT/i -A INPUT -s $c_ip -j DROP" /etc/iptables/rules.v4
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# 清除指定IP
+									7)
+										read -p "请输入清除的IP: " d_ip
+										sed -i "/-A INPUT -s $d_ip/d" /etc/iptables/rules.v4
+										iptables-restore < /etc/iptables/rules.v4
+										;;
+
+									# 卸载防火墙
+									9)
+										remove iptables-persistent
+										rm /etc/iptables/rules.v4
+										break
+										;;
+
+									0)
+										break  # 跳出循环，退出菜单
+										;;
+
+									*)
+										break  # 跳出循环，退出菜单
+										;;
+								esac
+
+							done
+
+						else
+							clear
+							echo "将为你安装防火墙，该防火墙仅支持 Debian/Ubuntu"
+							echo "------------------------------------------------"
+							read -p "确定继续吗？(Y/N): " choice
+
+							case "$choice" in
+								[Yy])
+									if [ -r /etc/os-release ]; then
+										. /etc/os-release
+										if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
+											echo "当前环境不支持，仅支持 Debian 和 Ubuntu 系统"
+											break
+										fi
+									else
+										echo "无法确定操作系统类型"
+										break
+									fi
+
+									clear
+									# 开放所有端口
+									open_all_ports
+									remove iptables-persistent ufw
+									rm /etc/iptables/rules.v4
+
+									apt update -y && apt install -y iptables-persistent
+
+									current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+
+								 	cat > /etc/iptables/rules.v4 << EOF
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A FORWARD -i lo -j ACCEPT
+-A INPUT -p tcp --dport $current_port -j ACCEPT
+COMMIT
+EOF
+									iptables-restore < /etc/iptables/rules.v4
+									systemctl enable netfilter-persistent
+									echo -e "${GREEN}防火墙安装完成${PLAIN}"
+									;;
+
+								[Nn])
+									echo "已取消"
+									;;
+
+								*)
+									echo "无效的选择，请输入 Y 或 N。"
+									;;
+
+							esac
+
+						fi
+
 						;;
 
 					# 修改主机名
 					18)
+						root_use
+
+						current_hostname=$(hostname)
+            echo "当前主机名: $current_hostname"
+            read -p "是否要更改主机名？(y/n): " answer
+            if [[ "${answer,,}" == "y" ]]; then
+							# 获取新的主机名
+							read -p "请输入新的主机名: " new_hostname
+							if [ -n "$new_hostname" ]; then
+								if [ -f /etc/alpine-release ]; then
+									# Alpine
+									echo "$new_hostname" > /etc/hostname
+									hostname "$new_hostname"
+								else
+									# 其他系统，如 Debian, Ubuntu, CentOS 等
+									hostnamectl set-hostname "$new_hostname"
+									sed -i "s/$current_hostname/$new_hostname/g" /etc/hostname
+									systemctl restart systemd-hostnamed
+								fi
+								echo "主机名已更改为: $new_hostname"
+							else
+								echo "无效的主机名。未更改主机名。"
+								exit 1
+							fi
+
+						else
+							echo "未更改主机名。"
+						fi
 						;;
 
 					# 切换系统更新源
 					19)
+						root_use
+
+						# 获取系统信息
+            source /etc/os-release
+
+            # 定义 Ubuntu 更新源
+						aliyun_ubuntu_source="http://mirrors.aliyun.com/ubuntu/"
+						official_ubuntu_source="http://archive.ubuntu.com/ubuntu/"
+						initial_ubuntu_source=""
+
+						# 定义 Debian 更新源
+						aliyun_debian_source="http://mirrors.aliyun.com/debian/"
+						official_debian_source="http://deb.debian.org/debian/"
+						initial_debian_source=""
+
+						# 定义 CentOS 更新源
+						aliyun_centos_source="http://mirrors.aliyun.com/centos/"
+						official_centos_source="http://mirror.centos.org/centos/"
+						initial_centos_source=""
+
+						# 获取当前更新源并设置初始源
+
+						case "$ID" in
+              ubuntu)
+								initial_ubuntu_source=$(grep -E '^deb ' /etc/apt/sources.list | head -n 1 | awk '{print $2}')
+								;;
+              debian)
+								initial_debian_source=$(grep -E '^deb ' /etc/apt/sources.list | head -n 1 | awk '{print $2}')
+								;;
+              centos)
+								initial_centos_source=$(awk -F= '/^baseurl=/ {print $2}' /etc/yum.repos.d/CentOS-Base.repo | head -n 1 | tr -d ' ')
+								;;
+              *)
+								echo "未知系统，无法执行切换源脚本"
+								exit 1
+								;;
+	          esac
+
+	          # 函数：备份当前源
+						backup_sources() {
+							case "$ID" in
+								ubuntu)
+									cp /etc/apt/sources.list /etc/apt/sources.list.bak
+									;;
+
+								debian)
+									cp /etc/apt/sources.list /etc/apt/sources.list.bak
+									;;
+
+								centos)
+									if [ ! -f /etc/yum.repos.d/CentOS-Base.repo.bak ]; then
+										cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
+									else
+										echo "备份已存在，无需重复备份"
+									fi
+									;;
+
+									*)
+										echo "未知系统，无法执行备份操作"
+										exit 1
+										;;
+							esac
+
+							echo -e "${GREEN}已备份当前更新源为 /etc/apt/sources.list.bak 或 /etc/yum.repos.d/CentOS-Base.repo.bak${PLAIN}"
+						}
+
+					 	# 函数：还原初始更新源
+						restore_initial_source() {
+							case "$ID" in
+								ubuntu)
+									cp /etc/apt/sources.list.bak /etc/apt/sources.list
+									;;
+
+								debian)
+									cp /etc/apt/sources.list.bak /etc/apt/sources.list
+									;;
+
+								centos)
+									cp /etc/yum.repos.d/CentOS-Base.repo.bak /etc/yum.repos.d/CentOS-Base.repo
+									;;
+
+								*)
+									echo "未知系统，无法执行还原操作"
+									exit 1
+									;;
+							esac
+							echo -e "${GREEN}已还原初始更新源${PLAIN}"
+						}
+
+						# 函数：切换更新源
+            switch_source() {
+							case "$ID" in
+								ubuntu)
+									sed -i 's|'"$initial_ubuntu_source"'|'"$1"'|g' /etc/apt/sources.list
+									;;
+
+								debian)
+									sed -i 's|'"$initial_debian_source"'|'"$1"'|g' /etc/apt/sources.list
+									;;
+
+								centos)
+									sed -i "s|^baseurl=.*$|baseurl=$1|g" /etc/yum.repos.d/CentOS-Base.repo
+									;;
+
+								*)
+									echo "未知系统，无法执行切换操作"
+									exit 1
+									;;
+							esac
+						}
+
+						# 主菜单
+            while true; do
+            	case "$ID" in
+								ubuntu)
+									echo "Ubuntu 更新源切换脚本"
+									echo "------------------------"
+									;;
+
+								debian)
+									echo "Debian 更新源切换脚本"
+									echo "------------------------"
+									;;
+
+								centos)
+									echo "CentOS 更新源切换脚本"
+									echo "------------------------"
+									;;
+
+								*)
+									echo "未知系统，无法执行脚本"
+									exit 1
+									;;
+              esac
+
+              echo "1. 切换到阿里云源"
+							echo "2. 切换到官方源"
+							echo "------------------------"
+							echo "3. 备份当前更新源"
+							echo "4. 还原初始更新源"
+							echo "------------------------"
+							echo "0. 返回上一级"
+							echo "------------------------"
+							read -p "请选择操作: " choice
+
+							case $choice in
+								1)
+									backup_sources
+
+									case "$ID" in
+										ubuntu)
+											switch_source $aliyun_ubuntu_source
+											;;
+
+										debian)
+											switch_source $aliyun_debian_source
+											;;
+
+										centos)
+											switch_source $aliyun_centos_source
+											;;
+
+										*)
+											echo "未知系统，无法执行切换操作"
+											exit 1
+											;;
+								esac
+								echo -e "${GREEN}已切换到阿里云源${PLAIN}"
+								;;
+
+							2)
+								backup_sources
+
+								case "$ID" in
+									ubuntu)
+										switch_source $official_ubuntu_source
+										;;
+
+									debian)
+										switch_source $official_debian_source
+										;;
+
+									centos)
+										switch_source $official_centos_source
+										;;
+
+									*)
+										echo "未知系统，无法执行切换操作"
+										exit 1
+										;;
+								esac
+								echo -e "${GREEN}已切换到官方源${PLAIN}"
+								;;
+
+							3)
+								backup_sources
+								case "$ID" in
+									ubuntu)
+										switch_source $initial_ubuntu_source
+										;;
+
+									debian)
+										switch_source $initial_debian_source
+										;;
+
+									centos)
+										switch_source $initial_centos_source
+										;;
+
+									*)
+										echo "未知系统，无法执行切换操作"
+										exit 1
+										;;
+								esac
+								echo -e "${GREEN}已切换到初始更新源${PLAIN}"
+								;;
+
+							4)
+								restore_initial_source
+								;;
+
+							0)
+								break
+								;;
+
+							*)
+								echo "无效的选择，请重新输入"
+								;;
+
+							esac
+            	break_end
+            done
 						;;
 
 					# 定时任务管理
 					20)
+						while true; do
+							clear
+							echo "定时任务列表"
+							crontab -l
+							echo ""
+							echo "操作"
+							echo "------------------------"
+							echo "1. 添加定时任务              2. 删除定时任务"
+							echo "------------------------"
+							echo "0. 返回上一级选单"
+							echo "------------------------"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								1)
+									read -p "请输入新任务的执行命令: " newquest
+									echo "------------------------"
+									echo "1. 每周任务                 2. 每天任务"
+									read -p "请输入你的选择: " dingshi
+
+									case $dingshi in
+										1)
+											read -p "选择周几执行任务？ (0-6，0代表星期日): " weekday
+											(crontab -l ; echo "0 0 * * $weekday $newquest") | crontab - > /dev/null 2>&1
+											;;
+
+										2)
+											read -p "选择每天几点执行任务？（小时，0-23）: " hour
+											(crontab -l ; echo "0 $hour * * * $newquest") | crontab - > /dev/null 2>&1
+											;;
+
+										*)
+											break  # 跳出
+											;;
+									esac
+									;;
+
+								2)
+									read -p "请输入需要删除任务的关键字: " kquest
+									crontab -l | grep -v "$kquest" | crontab -
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
+						done
 						;;
 
 					# 本机 host 解析
 					21)
+						root_use
+
+						while true; do
+							echo "本机 host 解析列表"
+							echo "如果你在这里添加解析匹配，将不再使用动态解析了"
+							cat /etc/hosts
+							echo ""
+							echo "操作"
+							echo "------------------------"
+							echo "1. 添加新的解析              2. 删除解析地址"
+							echo "------------------------"
+							echo "0. 返回上一级选单"
+							echo "------------------------"
+							read -p "请输入你的选择: " host_dns
+
+							case $host_dns in
+								1)
+									read -p "请输入新的解析记录 格式: 110.25.5.33 kejilion.pro : " addhost
+									echo "$addhost" >> /etc/hosts
+									;;
+
+								2)
+									read -p "请输入需要删除的解析内容关键字: " delhost
+									sed -i "/$delhost/d" /etc/hosts
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+									*)
+										break  # 跳出循环，退出菜单
+										;;
+							esac
+						done
 						;;
 
 					# fail2banSSH 防御程序
 					22)
+						root_use
+
+						if docker inspect fail2ban &>/dev/null ; then
+            	while true; do
+								clear
+								echo "SSH 防御程序已启动"
+								echo "------------------------"
+								echo "1. 查看 SSH 拦截记录"
+								echo "2. 日志实时监控"
+								echo "------------------------"
+								echo "9. 卸载防御程序"
+								echo "------------------------"
+								echo "0. 退出"
+								echo "------------------------"
+								read -p "请输入你的选择: " sub_choice
+								case $sub_choice in
+									1)
+										echo "------------------------"
+										f2b_sshd
+										echo "------------------------"
+										;;
+
+									2)
+										tail -f /path/to/fail2ban/config/log/fail2ban/fail2ban.log
+										break
+										;;
+
+									9)
+										docker rm -f fail2ban
+										rm -rf /path/to/fail2ban
+										echo "Fail2Ban防御程序已卸载"
+
+										break
+										;;
+
+									0)
+										break
+										;;
+
+									*)
+										echo "无效的选择，请重新输入。"
+										;;
+                esac
+								break_end
+
+              done
+
+            elif [ -x "$(command -v fail2ban-client)" ] ; then
+							clear
+							echo "卸载旧版 fail2ban"
+							read -p "确定继续吗？(Y/N): " choice
+
+							case "$choice" in
+								[Yy])
+									remove fail2ban
+									rm -rf /etc/fail2ban
+									echo "Fail2Ban 防御程序已卸载"
+									;;
+
+								[Nn])
+									echo "已取消"
+									;;
+
+								*)
+									echo "无效的选择，请输入 Y 或 N。"
+									;;
+							esac
+
+						else
+
+							clear
+							echo "fail2ban 是一个 SSH 防止暴力破解工具"
+							echo "官网介绍: https://github.com/fail2ban/fail2ban"
+							echo "------------------------------------------------"
+							echo "工作原理：研判非法 IP 恶意高频访问 SSH 端口，自动进行 IP 封锁"
+							echo "------------------------------------------------"
+							read -p "确定继续吗？(Y/N): " choice
+
+							case "$choice" in
+								[Yy])
+									clear
+									install_docker
+									f2b_install_sshd
+
+									cd ~
+									f2b_status
+									echo "Fail2Ban防御程序已开启"
+									;;
+
+								[Nn])
+									echo "已取消"
+									;;
+								*)
+									echo "无效的选择，请输入 Y 或 N。"
+									;;
+							esac
+						fi
 						;;
 
 					# 限流自动关机
