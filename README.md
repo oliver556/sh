@@ -22,5 +22,5 @@ apt update -y  && apt install -y curl
 ### 一键脚本
 
 ```bash
-curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh
+curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh && ./leon.sh
 ```

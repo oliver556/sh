@@ -487,6 +487,7 @@ while true; do
 	echo "5. BBR 管理 ▶"
 	echo "6. Docker 管理 ▶ "
 	echo "8. 测试脚本合集 ▶ "
+	echo "11. 面板工具 ▶ "
 	echo "13. 系统工具 ▶ "
 	echo "------------------------"
 	echo "00. 脚本更新"
