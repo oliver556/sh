@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.4"
+sh_v="1.0.5"
 
 # 重置颜色为白色
 PLAIN='\033[0m'
@@ -1332,6 +1332,11 @@ while true; do
 				echo ""
 				echo "----网络测试-----------"
 				echo "11. speedtest 网络带宽测速"
+				echo ""
+				echo "----综合性测试-----------"
+				echo "41. 杜甫性能测试"
+				echo "42. bench 性能测试"
+				echo ""
 				echo "------------------------"
 				echo "0. 返回主菜单"
 				echo "------------------------"
@@ -1354,6 +1359,18 @@ while true; do
 					11)
 						clear
 						speed_test_tool
+						;;
+
+					# 杜甫性能测试
+					41)
+						clear
+						curl -l https://raw.githubusercontent.com/oliver556/sh/main/A.sh chmod +x A.sh && ./A.sh
+						;;
+
+					# bench 性能测试
+					42)
+						clear
+						curl -Lso- bench.sh | bash
 						;;
 
 					0)
