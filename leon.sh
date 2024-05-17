@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.2"
+sh_v="1.0.3"
 
 # 重置颜色为白色
 PLAIN='\033[0m'
@@ -517,19 +517,21 @@ f2b_install_sshd() {
 	sleep 3
 	if grep -q 'Alpine' /etc/issue; then
 		cd /path/to/fail2ban/config/fail2ban/filter.d
-		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd.conf
-		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd-ddos.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
+
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-ssh.conf
+
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
 	elif grep -qi 'CentOS' /etc/redhat-release; then
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/centos-ssh.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
 	else
 		install rsyslog
 		systemctl start rsyslog
 		systemctl enable rsyslog
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/linux-ssh.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
 	fi
 }
 
@@ -540,8 +542,41 @@ f2b_status() {
 	 docker exec -it fail2ban fail2ban-client status
 }
 
+# 函数：添加密钥
+add_sshkey() {
+
+	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
+
+	cat ~/.ssh/sshkey.pub >> ~/.ssh/authorized_keys
+	chmod 600 ~/.ssh/authorized_keys
+
+	# 获取服务器 IPV4、IPV6 公网地址
+	ip_address
+
+	echo -e "私钥信息已生成，务必复制保存，可保存成 ${YELLOW}${ipv4_address}_ssh.key${PLAIN} 文件，用于以后的 SSH 登录"
+	echo "--------------------------------"
+	cat ~/.ssh/sshkey
+	echo "--------------------------------"
+
+	sed -i -e 's/^\s*#\?\s*PermitRootLogin .*/PermitRootLogin prohibit-password/' \
+  	     -e 's/^\s*#\?\s*PasswordAuthentication .*/PasswordAuthentication no/' \
+    	   -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
+      	 -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
+	echo -e "${GREY}ROOT私钥登录已开启，已关闭ROOT密码登录，重连将会生效${PLAIN}"
+}
+
 while true; do
 	clear
+
+#	echo -e "${GREEN}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #"
+#	echo "# _    ____  ____ _  _                                        #"
+#	echo "# |    |___  |  | |\ |                                        #"
+#	echo -e "# |___ |___  |__| | \|    ${YELLOW}v$sh_v${PLAIN}                              ${GREEN}#${PLAIN}"
+#	echo -e "${GREEN}#                                                             #${PLAIN}"
+#	echo -e "${GREEN}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}  ${GREEN}#${PLAIN}"
+#	echo -e "${GREEN}# 输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}                                    ${GREEN}#${PLAIN}"
+#	echo -e "${GREEN}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #${PLAIN}"
 
 	echo -e "${GREEN}========================================================= "
 	echo "_    ____  ____ _  _ "
@@ -1910,12 +1945,12 @@ while true; do
 										# 更新 grub 引导加载程序的配置文件
 										update-grub
 
-										wget -qO - https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+										wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 										# 步骤3：添加存储库
 										echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-										version=$(wget -q https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+										version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 										apt update -y
 										apt install -y linux-xanmod-x64v$version
@@ -1981,12 +2016,12 @@ while true; do
 									add_swap
 									install wget gnupg
 
-									wget -qO - https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+									wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 									# 步骤3：添加存储库
 									echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-									version=$(wget -q https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+									version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 									apt update -y
 									apt install -y linux-xanmod-x64v$version
@@ -2538,7 +2573,7 @@ EOF
 
 							case $host_dns in
 								1)
-									read -p "请输入新的解析记录 格式: 110.25.5.33 kejilion.pro : " addhost
+									read -p "请输入新的解析记录 格式: 142.251.42.238 google.com : " addhost
 									echo "$addhost" >> /etc/hosts
 									;;
 
@@ -2713,6 +2748,27 @@ EOF
 
 					# ROOT 私钥登录模式
 					24)
+						root_use
+
+						echo -e "${SKYBLUE}ROOT私钥登录模式${PLAIN}"
+						echo "------------------------------------------------"
+						echo "将会生成密钥对，更安全的方式 SSH 登录"
+						read -p "确定继续吗？(Y/N): " choice
+
+						case "$choice" in
+							[Yy])
+								clear
+								add_sshkey
+								;;
+							[Nn])
+								echo "已取消"
+								;;
+							*)
+								echo "无效的选择，请输入 Y 或 N。"
+								;;
+						esac
+
+
 						;;
 
 					# 重启服务
@@ -2759,7 +2815,7 @@ EOF
 						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
 						echo -e "${GREEN}脚本已更新到最新版本！${YELLOW}v$sh_v_new${PLAIN}"
 						break_end
-						kejilion
+						leon
 						;;
 					[Nn])
 						echo "已取消"
