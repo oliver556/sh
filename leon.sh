@@ -768,7 +768,7 @@ while true; do
 	echo -e "${green}${bold}# ==========================================================="
 	echo -e "${green}# _    ____  ____ _  _ "
 	echo -e "${green}# |    |___  |  | |\ | "
-	echo -e "${green}# |___ |___  |__| | \|   ${cyan}v1.0.0${normal}"
+	echo -e "${green}# |___ |___  |__| | \|   ${cyan}v$sh_v${normal}"
 	echo -e "${green}${bold}# "
 	echo -e "${green}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${normal}"
 	echo -e "${green}${bold}# 输入${yellow} n ${green}可快速启动此脚本 ${normal}"
