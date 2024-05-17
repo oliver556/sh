@@ -566,6 +566,166 @@ add_sshkey() {
 	echo -e "${GREY}ROOT私钥登录已开启，已关闭ROOT密码登录，重连将会生效${PLAIN}"
 }
 
+# 函数：检查端口
+check_port() {
+	# 定义要检测的端口
+	PORT=443
+
+	# 检查端口占用情况
+	result=$(ss -tulpn | grep ":$PORT")
+
+	# 判断结果并输出相应信息
+	if [ -n "$result" ]; then
+		is_nginx_container=$(docker ps --format '{{.Names}}' | grep 'nginx')
+
+		# 判断是否是 Nginx 容器占用端口
+		if [ -n "$is_nginx_container" ]; then
+			echo ""
+		else
+			clear
+			echo -e "${RED}端口 ${YELLOW}$PORT${RED} 已被占用，无法安装环境，卸载以下程序后重试！${PLAIN}"
+			echo "$result"
+			break_end
+			leon
+
+		fi
+	else
+		echo ""
+	fi
+}
+
+# 函数：安装依赖（wget socat unzip tar）
+install_dependency() {
+	clear
+	install wget socat unzip tar
+}
+
+# 函数：安装 certbot 工具
+install_certbot() {
+	install certbot
+
+	# 切换到一个一致的目录（例如，家目录）
+	cd ~ || exit
+
+	# 下载并使脚本可执行
+	curl -O https://raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
+	chmod +x auto_cert_renewal.sh
+
+	# 设置定时任务字符串
+	cron_job="0 0 * * * ~/auto_cert_renewal.sh"
+
+	# 检查是否存在相同的定时任务
+	existing_cron=$(crontab -l 2>/dev/null | grep -F "$cron_job")
+
+	# 如果不存在，则添加定时任务
+	if [ -z "$existing_cron" ]; then
+		(crontab -l 2>/dev/null; echo "$cron_job") | crontab -
+		echo "续签任务已添加"
+	else
+		echo "续签任务已存在，无需添加"
+	fi
+}
+
+# 函数：创建自签名的 SSL 证书并将其存储在指定的目录中
+default_server_ssl() {
+	install openssl
+	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+}
+
+# 函数：获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
+ldnmp_v() {
+	# 获取 nginx 版本
+	nginx_version=$(docker exec nginx nginx -v 2>&1)
+	nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+" || echo "未安装")
+	echo -n -e "nginx : ${YELLOW}v$nginx_version${PLAIN}"
+
+	# 获取 mysql 版本
+  dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml 2>/dev/null | tr -d '[:space:]' || echo "未安装")
+  mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1) && mysql_version="v$mysql_version" || mysql_version="未安装"
+  echo -n -e "            mysql : ${YELLOW}$mysql_version${PLAIN}"
+
+
+
+	# 获取 php 版本
+	php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+"  || echo "未安装")
+	echo -n -e "            php : ${YELLOW}v$php_version${PLAIN}"
+
+	# 获取 redis 版本
+	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+"  || echo "未安装")
+	echo -e "            redis : ${YELLOW}v$redis_version${PLAIN}"
+
+	echo "------------------------"
+	echo ""
+}
+
+# 函数：获取 SSL/TLS 证书
+install_ssltls() {
+	docker stop nginx > /dev/null 2>&1
+	iptables_open
+	cd ~
+	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+	cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/web/certs/${yuming}_cert.pem
+	cp /etc/letsencrypt/live/$yuming/privkey.pem /home/web/certs/${yuming}_key.pem
+	docker start nginx > /dev/null 2>&1
+}
+
+# 函数：Nginx 环境检查
+nginx_install_status() {
+	if docker inspect "nginx" &>/dev/null; then
+		echo "nginx 环境已安装，开始部署 $web_name"
+	else
+		echo -e "${YELLOW}nginx 未安装，请先安装 nginx 环境，再部署网站${PLAIN}"
+	break_end
+	leon
+
+	fi
+}
+
+# 函数：获取 IP，及收集用户输入要解析的域名
+add_yuming() {
+	ip_address
+	echo -e "先将域名解析到本机 IP: ${YELLOW}$ipv4_address  $ipv6_address${PLAIN}"
+	read -p "请输入你解析的域名: " yuming
+}
+
+# 函数：输出建站 IP
+nginx_web_on() {
+	clear
+	echo "您的 $web_name 搭建好了！"
+	echo "https://$yuming"
+}
+
+# 函数：检查 docker、证书申请 状态
+nginx_status() {
+	sleep 1
+
+	nginx_container_name="nginx"
+
+	# 获取容器的状态
+	container_status=$(docker inspect -f '{{.State.Status}}' "$nginx_container_name" 2>/dev/null)
+
+	# 获取容器的重启状态
+	container_restart_count=$(docker inspect -f '{{.RestartCount}}' "$nginx_container_name" 2>/dev/null)
+
+	# 检查容器是否在运行，并且没有处于"Restarting"状态
+	if [ "$container_status" == "running" ]; then
+		echo ""
+	else
+		rm -r /home/web/html/$yuming >/dev/null 2>&1
+		rm /home/web/conf.d/$yuming.conf >/dev/null 2>&1
+		rm /home/web/certs/${yuming}_key.pem >/dev/null 2>&1
+		rm /home/web/certs/${yuming}_cert.pem >/dev/null 2>&1
+		docker restart nginx >/dev/null 2>&1
+
+		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $dbname;" 2> /dev/null
+
+		echo -e "${RED}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${PLAIN}"
+	fi
+}
+
+#=======================================================================================================================================
+
 while true; do
 	clear
 
@@ -578,15 +738,24 @@ while true; do
 #	echo -e "${GREEN}# 输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}                                    ${GREEN}#${PLAIN}"
 #	echo -e "${GREEN}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #${PLAIN}"
 
-	echo -e "${GREEN}========================================================= "
-	echo "_    ____  ____ _  _ "
-	echo "|    |___  |  | |\ | "
-	echo -e "|___ |___  |__| | \|   ${YELLOW}v$sh_v${PLAIN}"
+	echo -e "${GREEN}# ==========================================================="
+	echo "# _    ____  ____ _  _ "
+	echo "# |    |___  |  | |\ | "
+	echo -e "# |___ |___  |__| | \|   ${YELLOW}v$sh_v${PLAIN}"
+	echo -e "${GREEN}# "
+  echo -e "${GREEN}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}"
+	echo -e "${GREEN}# 输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}"
+	echo -e "${GREEN}# ===========================================================${PLAIN}"
 	echo ""
-	echo -e "${GREEN}Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}"
-	echo -e "${GREEN}输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}"
-	echo -e "${GREEN}=========================================================${PLAIN}"
-	echo ""
+#	echo -e "${GREEN}========================================================= "
+#	echo "_    ____  ____ _  _ "
+#	echo "|    |___  |  | |\ | "
+#	echo -e "|___ |___  |__| | \|   ${YELLOW}v$sh_v${PLAIN}"
+#	echo ""
+#	echo -e "${GREEN}Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}"
+#	echo -e "${GREEN}输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}"
+#	echo -e "${GREEN}=========================================================${PLAIN}"
+#	echo ""
 	echo "1. 系统信息查询"
 	echo "2. 系统更新"
 	echo "3. 系统清理"
@@ -594,6 +763,7 @@ while true; do
 	echo "5. BBR 管理 ▶"
 	echo "6. Docker 管理 ▶ "
 	echo "8. 测试脚本合集 ▶ "
+	echo -e "${YELLOW}10. LDNMP 建站 ▶ ${PLAIN}"
 	echo "11. 面板工具 ▶ "
 	echo "13. 系统工具 ▶ "
 	echo "------------------------"
@@ -1193,6 +1363,340 @@ while true; do
 				esac
 					break_end
 				done
+			;;
+
+		# LDNMP 建站
+		10)
+			while true; do
+				clear
+				echo -e "${SKYBLUE}LDNMP 建站${PLAIN}"
+				echo  "------------------------"
+				echo  "1. 安装 LDNMP 环境"
+				echo  "------------------------"
+				echo  "21. 仅安装 nginx"
+				echo  "22. 站点重定向"
+				echo  "23. 站点反向代理"
+				echo  "24. 自定义静态站点"
+				echo  "------------------------"
+				echo  "31. 站点数据管理"
+				echo  "------------------------"
+				echo  "0. 返回主菜单"
+				echo  "------------------------"
+
+				read -p "请输入你的选择: " sub_choice
+
+				case $sub_choice in
+					# 仅安装 nginx
+					21)
+						root_use
+						# 检查端口
+						check_port
+						# 安装依赖（wget socat unzip tar）
+						install_dependency
+						# 安装 docker
+						install_docker
+						# 安装 certbot 工具
+						install_certbot
+
+						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx
+
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+						# 创建自签名的 SSL 证书
+						default_server_ssl
+						docker rm -f nginx >/dev/null 2>&1
+						docker rmi nginx nginx:alpine >/dev/null 2>&1
+						docker run -d --name nginx --restart always -p 80:80 -p 443:443 -p 443:443/udp -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx:alpine
+
+						clear
+						nginx_version=$(docker exec nginx nginx -v 2>&1)
+						nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+						echo -e "${GREEN}nginx 已安装完成${PLAIN}"
+						echo -e "当前版本: ${YELLOW}v$nginx_version${PLAIN}"
+						echo ""
+						;;
+
+					# 站点重定向
+					22)
+						clear
+						web_name="站点重定向"
+						# Nginx 环境检查
+						nginx_install_status
+						# 公网 IP 查询
+						ip_address
+						# 获取 IP，及收集用户输入要解析的域名
+						add_yuming
+						read -p "请输入跳转域名: " reverseproxy
+
+						# 获取 SSL/TLS 证书
+						install_ssltls
+
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/rewrite.conf
+						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+						sed -i "s/baidu.com/$reverseproxy/g" /home/web/conf.d/$yuming.conf
+
+						docker restart nginx
+
+						# 输出建站 IP
+						nginx_web_on
+						# 检查 docker、证书申请 状态
+						nginx_status
+						;;
+
+					# 站点反向代理
+					23)
+						clear
+						web_name="站点反向代理"
+						# Nginx 环境检查
+						nginx_install_status
+						# 公网 IP 查询
+						ip_address
+						# 获取 IP，及收集用户输入要解析的域名
+						add_yuming
+						read -p "请输入你的反代 IP: " reverseproxy
+						read -p "请输入你的反代端口: " port
+
+						# 获取 SSL/TLS 证书
+						install_ssltls
+
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
+						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+						sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
+						sed -i "s/0000/$port/g" /home/web/conf.d/$yuming.conf
+
+						docker restart nginx
+
+						# 输出建站 IP
+						nginx_web_on
+						# 检查 docker、证书申请 状态
+						nginx_status
+						;;
+
+					# 自定义静态站点
+					24)
+						clear
+						web_name="静态站点"
+						# Nginx 环境检查
+						nginx_install_status
+						# 获取 IP，及收集用户输入要解析的域名
+						add_yuming
+						# 获取 SSL/TLS 证书
+						install_ssltls
+
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/html.conf
+						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+
+						cd /home/web/html
+						mkdir $yuming
+						cd $yuming
+
+						clear
+						echo "-------------"
+						echo -e "目前只允许上传 zip 格式的源码包，请将源码包放到 ${YELLOW}/home/web/html/${yuming}目录下${PLAIN}"
+						read -p "也可以输入下载链接，远程下载源码包，直接回车将跳过远程下载： " url_download
+
+						if [ -n "$url_download" ]; then
+							wget "$url_download"
+						fi
+
+						unzip $(ls -t *.zip | head -n 1)
+						rm -f $(ls -t *.zip | head -n 1)
+
+						clear
+
+						echo -e "${SKYBLUE}index.html所在路径${PLAIN}"
+						echo "-------------"
+						find "$(realpath .)" -name "index.html" -print
+
+						read -p "请输入 index.html 的路径，类似（/home/web/html/$yuming/wordpress/）： " index_lujing
+
+						sed -i "s#root /var/www/html/$yuming/#root $index_lujing#g" /home/web/conf.d/$yuming.conf
+						sed -i "s#/home/web/#/var/www/#g" /home/web/conf.d/$yuming.conf
+
+						docker exec nginx chmod -R 777 /var/www/html
+						docker restart nginx
+
+						# 输出建站 IP
+						nginx_web_on
+						# 检查 docker、证书申请 状态
+						nginx_status
+						;;
+
+					# 站点数据管理
+					31)
+						root_use
+						while true;do
+							clear
+							echo -e "${SKYBLUE}LDNMP 环境${PLAIN}"
+							echo "------------------------"
+							# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
+							ldnmp_v
+
+							echo "站点信息                      证书到期时间"
+							echo "------------------------"
+							for cert_file in /home/web/certs/*_cert.pem; do
+								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
+								if [ -n "$domain" ]; then
+									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
+									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
+									printf "%-30s%s\n" "$domain" "$formatted_date"
+								fi
+							done
+
+							echo "------------------------"
+							echo ""
+							echo "数据库信息"
+							echo "------------------------"
+							dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+							docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
+
+							echo "------------------------"
+							echo ""
+							echo "站点目录"
+							echo "------------------------"
+							echo -e "数据 ${GREY}/home/web/html${PLAIN}     证书 ${GREY}/home/web/certs${PLAIN}     配置 ${GREY}/home/web/conf.d${PLAIN}"
+							echo "------------------------"
+							echo ""
+							echo "操作"
+							echo "------------------------"
+							echo -e "1. 申请/更新域名证书               ${GREY}2. 更换站点域名${PLAIN}"
+							echo "3. 清理站点缓存                    4. 查看站点分析报告"
+							echo "5. 查看全局配置                    6. 查看站点配置"
+							echo "------------------------"
+							echo "7. 删除指定站点                    8. 删除指定数据库"
+							echo "------------------------"
+							echo "0. 返回上一级选单"
+							echo "------------------------"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								# 申请/更新域名证书
+								1)
+									read -p "请输入你的域名: " yuming
+									# 获取 SSL/TLS 证书
+									install_ssltls
+									;;
+
+								# 更换站点域名
+								2)
+									read -p "请输入旧域名: " oddyuming
+									read -p "请输入新域名: " yuming
+									install_ssltls
+									mv /home/web/conf.d/$oddyuming.conf /home/web/conf.d/$yuming.conf
+									sed -i "s/$oddyuming/$yuming/g" /home/web/conf.d/$yuming.conf
+									mv /home/web/html/$oddyuming /home/web/html/$yuming
+
+									rm /home/web/certs/${oddyuming}_key.pem
+									rm /home/web/certs/${oddyuming}_cert.pem
+
+									docker restart nginx
+									;;
+
+								# 清理站点缓存
+								3)
+									docker exec -it nginx rm -rf /var/cache/nginx
+									docker restart nginx
+									docker exec php php -r 'opcache_reset();'
+									docker restart php
+									docker exec php74 php -r 'opcache_reset();'
+									docker restart php74
+									;;
+
+								# 查看站点分析报告
+								4)
+									install goaccess
+									goaccess --log-format=COMBINED /home/web/log/nginx/access.log
+									;;
+
+								# 查看全局配置
+								5)
+									install nano
+									nano /home/web/nginx.conf
+									docker restart nginx
+									;;
+
+								# 查看站点配置
+								6)
+									read -p "查看站点配置，请输入你的域名: " yuming
+									install nano
+									nano /home/web/conf.d/$yuming.conf
+									docker restart nginx
+									;;
+
+								# 删除指定站点
+								7)
+									read -p "删除站点数据目录，请输入你的域名: " yuming
+									rm -r /home/web/html/$yuming
+									rm /home/web/conf.d/$yuming.conf
+									rm /home/web/certs/${yuming}_key.pem
+									rm /home/web/certs/${yuming}_cert.pem
+									docker restart nginx
+									;;
+
+								# 删除指定数据库
+								8)
+									read -p "删除站点数据库，请输入数据库名: " shujuku
+									dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+									docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $shujuku;" 2> /dev/null
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
+
+
+						done
+						;;
+
+					0)
+						leon
+						;;
+
+					*)
+						echo "无效的输入!"
+				esac
+
+				break_end
+
+			done
+
+			;;
+
+		# 面板工具
+		11)
+			while true; do
+				clear
+				echo -e "${SKYBLUE}▶ 面板工具${PLAIN}"
+				echo "------------------------"
+				echo "7. 哪吒探针 VPS 监控面板"
+				echo "------------------------"
+				echo "0. 返回主菜单"
+				echo "------------------------"
+				read -p "请输入你的选择: " sub_choice
+
+				case $sub_choice in
+					# 哪吒探针 VPS 监控面板
+					7)
+						curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
+						./nezha.sh
+						;;
+
+					0)
+						leon
+						;;
+
+					*)
+						echo "无效的输入!"
+						;;
+				esac
+
+				break_end
+
+			done
 			;;
 
 		# 系统工具
