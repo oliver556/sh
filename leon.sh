@@ -3,34 +3,60 @@
 # 脚本版本
 sh_v="1.0.5"
 
-# 重置颜色为白色
-PLAIN='\033[0m'
-# 红色
-RED='\033[0;31m'
-# 黄色
-YELLOW='\033[0;33m'
-# 绿色
-GREEN='\033[0;32m'
-# 天蓝色
-SKYBLUE='\033[0;36m'
-# 灰色
-GREY='\e[37m'
+
+# 颜色 --------------------------------------------------------------------------------------------------------
+# 文本颜色 -----------------------------------------------------------------------------------------------------
+# 黑色										 # 红色						 	   # 绿色                 	# 黄色								    # 蓝色 (青色)
+black=$(tput setaf 0)  ; red=$(tput setaf 1) ; green=$(tput setaf 2); yellow=$(tput setaf 3); blue=$(tput setaf 4);
+# 品红色									 # 青色 (天蓝色)			   # 白色									# 灰色
+magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7); grey=$(tput setaf 8);
+# 重置正常文本属性					 # 加粗字体
+normal=$(tput sgr0)	   ; bold=$(tput bold)   ;
+
+
+# -----------------------------------------------背景颜色------------------------------------------------------
+# 黑色背景									# 红色背景											 # 绿色背景								 # 黄色背景
+on_black=$(tput setab 0); on_red=$(tput setab 1)       ; on_green=$(tput setab 2); on_yellow=$(tput setab 3)
+# 蓝色背景									# 品红色背景										 # 青色背景							 	 # 白色背景
+on_blue=$(tput setab 4) ; on_magenta=$(tput setab 5)   ; on_cyan=$(tput setab 6) ; on_white=$(tput setab 7)
+
+# ---------------------------------------------特定的文本属性---------------------------------------------------
+# 闪烁（不是所有终端都支持）	  # 隐藏光标										 	# 恢复光标							 	# 加粗
+shanshuo=$(tput blink)    ; wuguangbiao=$(tput civis)   ; guangbiao=$(tput cnorm); jiacu=${normal}${bold}
+# 下划线开始								  # 重置下划线									  # 变暗
+underline=$(tput smul)    ; reset_underline=$(tput rmul); dim=$(tput dim)
+# 突出显示（翻转前景色和背景色） # 重置突出显示									# 使用突出显示来作为标题
+standout=$(tput smso)     ; reset_standout=$(tput rmso) ; title=${standout}
+
+# ----------------------------------------------字体加背景色----------------------------------------------------
+# 白黄色													 # 白蓝色											 # 白绿色
+baihuangse=${white}${on_yellow}; bailanse=${white}${on_blue} ; bailvse=${white}${on_green}
+
+# 白青色													 # 白红色											 # 白紫色
+baiqingse=${white}${on_cyan}   ; baihongse=${white}${on_red} ; baizise=${white}${on_magenta}
+
+# 黑白色													 # 黑黄色
+heibaise=${black}${on_white}   ; heihuangse=${on_yellow}${black}
+
+# -----------------------------------------------提示字样------------------------------------------------------
+# 表示 "ERROR" 的提示											 # 表示"ATTENTION"的提示												# 表示"WARNING"的提示
+CW="${bold}${baihongse} ERROR ${jiacu}"; ZY="${baihongse}${bold} ATTENTION ${jiacu}"; JG="${baihongse}${bold} WARNING ${jiacu}"
 
 
 # 复制将当前目录下的 leon.sh 文件复制到 /usr/local/bin 目录，并将其重命名为 n。
 # 复制过程中所有的输出信息和错误信息都被重定向到 /dev/null，因此不会在终端显示任何输出。这通常用于静默执行命令，避免输出干扰。
 cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
 
-# 函数：提示用户按任意键继续
+# 函数: 提示用户按任意键继续
 break_end() {
-	echo -e "${GREEN}操作完成${PLAIN}"
+	echo -e "${green}操作完成${normal}"
 	echo "按任意键继续..."
 	read -n 1 -s -r -p ""
 	echo ""
 	clear
 }
 
-# 函数：重头执行函数
+# 函数: 重头执行函数
 leon() {
 	n
 	exit
@@ -42,7 +68,7 @@ ip_address() {
   ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
 }
 
-# 函数：获取服务器流量统计状态，格式化输出（单位保留 GB）
+# 函数: 获取服务器流量统计状态，格式化输出（单位保留 GB）
 output_status() {
   output=$(awk 'BEGIN { rx_total = 0; tx_total = 0 }
 		NR > 2 { rx_total += $2; tx_total += $10 }
@@ -61,7 +87,7 @@ output_status() {
 		}' /proc/net/dev)
 }
 
-# 函数：系统更新
+# 函数: 系统更新
 linux_update() {
     # Update system on Debian-based systems
     if [ -f "/etc/debian_version" ]; then
@@ -80,7 +106,7 @@ linux_update() {
 
 }
 
-# 函数：清理不同 Linux 发行版（Debian、Red Hat、Alpine）系统的函数。它根据系统版本使用不同的清理命令，
+# 函数: 清理不同 Linux 发行版（Debian、Red Hat、Alpine）系统的函数。它根据系统版本使用不同的清理命令，
 # 包括清理软件包缓存、日志和内核文件，以释放磁盘空间。
 linux_clean() {
 
@@ -147,7 +173,7 @@ linux_clean() {
 	fi
 }
 
-# 函数：启用 BBR 拥塞控制算法
+# 函数: 启用 BBR 拥塞控制算法
 bbr_on() {
 # 将以下内容覆盖写入 /etc/sysctl.conf 文件中
 cat > /etc/sysctl.conf << EOF
@@ -158,7 +184,7 @@ EOF
 sysctl -p
 }
 
-# 函数：判断服务器系统类型
+# 函数: 判断服务器系统类型
 detect_system() {
 	if [ -f /etc/os-release ]; then
 		. /etc/os-release
@@ -180,7 +206,7 @@ detect_system() {
 	fi
 }
 
-# 函数：speedtest 测速工具
+# 函数: speedtest 测速工具
 speed_test_tool() {
 	# 判断系统类型
 	detect_system
@@ -250,7 +276,7 @@ speed_test_tool() {
 
 }
 
-# 函数：安装更新 Docker 环境
+# 函数: 安装更新 Docker 环境
 install_add_docker() {
 	#  Alpine Linux 使用 apk 包管理器进行安装
 	if [ -f "/etc/alpine-release" ]; then
@@ -271,13 +297,13 @@ install_add_docker() {
 	sleep 2
 }
 
-# 函数：是否以 root 用户身份运行
+# 函数: 是否以 root 用户身份运行
 root_use() {
 	clear
-	[ "$EUID" -ne 0 ] && echo -e "${RED}请注意，该功能需要 root 用户 才能运行！${PLAIN}" && break_end && leon
+	[ "$EUID" -ne 0 ] && echo -e "${red}请注意，该功能需要 root 用户 才能运行！${normal}" && break_end && leon
 }
 
-# 函数：设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码
+# 函数: 设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码
 add_root_ssh() {
 	echo "设置你的 ROOT 密码"
 	# 提示用户输入两次密码，用于设置 ROOT 用户的密码
@@ -288,15 +314,15 @@ add_root_ssh() {
 	sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config;
 	# 清理 SSH 配置目录下的临时文件
 	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
-	# 函数：根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
+	# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
 	restart_ssh
 	# 显示消息，表示 ROOT 登录设置完成
-	echo -e "${GREEN}ROOT登录设置完毕！${PLAIN}"
-	# 函数：询问用户是否要重启服务器
+	echo -e "${green}ROOT登录设置完毕！${normal}"
+	# 函数: 询问用户是否要重启服务器
 	server_reboot
 }
 
-# 函数：根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
+# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
 restart_ssh() {
 	if command -v dnf &>/dev/null; then
 		systemctl restart sshd
@@ -312,10 +338,10 @@ restart_ssh() {
 	fi
 }
 
-# 函数：询问用户是否要重启服务器
+# 函数: 询问用户是否要重启服务器
 server_reboot() {
 	# 输入是否要重启服务器，用户可以输入 "Y" 或 "N" 来回答
-	read -p "$(echo -e "${YELLOW}现在重启服务器吗？(Y/N): ${PLAIN}")" rboot
+	read -p "$(echo -e "${yellow}现在重启服务器吗？(Y/N): ${normal}")" rboot
 	case "$rboot" in
 		[Yy])
 			echo "已重启"
@@ -330,7 +356,7 @@ server_reboot() {
 	esac
 }
 
-# 函数：开放所有端口
+# 函数: 开放所有端口
 open_all_ports() {
 	# iptables 和 ip6tables 的默认策略设置为接受（ACCEPT），并清空所有防火墙规则，
 
@@ -345,7 +371,7 @@ open_all_ports() {
 	ip6tables -F
 }
 
-# 函数：修改 SSH 连接端口
+# 函数: 修改 SSH 连接端口
 new_ssh_port() {
 	# 备份 SSH 配置文件
 	cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
@@ -370,7 +396,7 @@ new_ssh_port() {
 	remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 }
 
-# 函数：配置 DNS 解析器
+# 函数: 配置 DNS 解析器
 configure_dns_resolvers() {
 	# 定义 Cloudflare、Google 的 IPv4 和 IPv6 DNS 地址
 	cloudflare_ipv4="1.1.1.1"
@@ -397,7 +423,7 @@ configure_dns_resolvers() {
 		echo "nameserver $google_ipv6" >> /etc/resolv.conf
 	fi
 
-	echo -e "${GREEN}DNS 地址已更新${PLAIN}"
+	echo -e "${green}DNS 地址已更新${normal}"
 	echo "------------------------"
 	cat /etc/resolv.conf
 	echo "------------------------"
@@ -424,7 +450,7 @@ add_swap() {
 	# 删除旧的 /swapfile
 	rm -f /swapfile
 
-	# 创建新的 swap 文件：
+	# 创建新的 swap 文件:
 	dd if=/dev/zero of=/swapfile bs=1M count=$new_swap
 	chmod 600 /swapfile
 	mkswap /swapfile
@@ -440,10 +466,10 @@ add_swap() {
 		echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 	fi
 
-	echo -e "虚拟内存大小已调整为${YELLOW}${new_swap}${PLAIN} MB"
+	echo -e "虚拟内存大小已调整为${yellow}${new_swap}${normal} MB"
 }
 
-# 函数：获取当前系统时区
+# 函数: 获取当前系统时区
 current_timezone() {
 	if grep -q 'Alpine' /etc/issue; then
 	 :
@@ -452,9 +478,9 @@ current_timezone() {
 	fi
 }
 
-# 函数：重启服务器
+# 函数: 重启服务器
 restart_the_server() {
-	read -p "$(echo -e "${YELLOW}现在重启服务器吗？(Y/N): ${PLAIN}")" rboot
+	read -p "$(echo -e "${yellow}现在重启服务器吗？(Y/N): ${normal}")" rboot
 	case "$rboot" in
 		[Yy])
 			echo "已重启"
@@ -469,7 +495,7 @@ restart_the_server() {
 	esac
 }
 
-# 函数：根据系统的发行版设置一个变量 xxx 的值，调用 f2b_status_xxx 函数来处理相应的操作
+# 函数: 根据系统的发行版设置一个变量 xxx 的值，调用 f2b_status_xxx 函数来处理相应的操作
 f2b_sshd() {
 	if grep -q 'Alpine' /etc/issue; then
 		xxx=alpine-sshd
@@ -483,12 +509,12 @@ f2b_sshd() {
 	fi
 }
 
-# 函数：通过 Docker 容器内的 fail2ban-client 工具来获取特定服务的状态信息
+# 函数: 通过 Docker 容器内的 fail2ban-client 工具来获取特定服务的状态信息
 f2b_status_xxx() {
 	docker exec -it fail2ban fail2ban-client status $xxx
 }
 
-# 函数：检查系统中是否已经安装了 docker 和 docker-compose
+# 函数: 检查系统中是否已经安装了 docker 和 docker-compose
 install_docker() {
 	if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
 		install_add_docker
@@ -497,7 +523,7 @@ install_docker() {
 	fi
 }
 
-# 函数：在 Docker 中运行 fail2ban 容器，并根据系统类型添加适当的配置文件以保护 SSH 服务
+# 函数: 在 Docker 中运行 fail2ban 容器，并根据系统类型添加适当的配置文件以保护 SSH 服务
 f2b_install_sshd() {
 
 	docker run -d \
@@ -536,14 +562,14 @@ f2b_install_sshd() {
 	fi
 }
 
-# 函数：重新启动 fail2ban 容器，并使用 fail2ban-client 工具获取 fail2ban 服务的状态信息
+# 函数: 重新启动 fail2ban 容器，并使用 fail2ban-client 工具获取 fail2ban 服务的状态信息
 f2b_status() {
 	 docker restart fail2ban
 	 sleep 3
 	 docker exec -it fail2ban fail2ban-client status
 }
 
-# 函数：添加密钥
+# 函数: 添加密钥
 add_sshkey() {
 
 	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
@@ -554,7 +580,7 @@ add_sshkey() {
 	# 获取服务器 IPV4、IPV6 公网地址
 	ip_address
 
-	echo -e "私钥信息已生成，务必复制保存，可保存成 ${YELLOW}${ipv4_address}_ssh.key${PLAIN} 文件，用于以后的 SSH 登录"
+	echo -e "私钥信息已生成，务必复制保存，可保存成 ${yellow}${ipv4_address}_ssh.key${normal} 文件，用于以后的 SSH 登录"
 	echo "--------------------------------"
 	cat ~/.ssh/sshkey
 	echo "--------------------------------"
@@ -564,10 +590,10 @@ add_sshkey() {
     	   -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
       	 -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
 	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
-	echo -e "${GREY}ROOT私钥登录已开启，已关闭ROOT密码登录，重连将会生效${PLAIN}"
+	echo -e "${grey}ROOT私钥登录已开启，已关闭ROOT密码登录，重连将会生效${normal}"
 }
 
-# 函数：检查端口
+# 函数: 检查端口
 check_port() {
 	# 定义要检测的端口
 	PORT=443
@@ -584,7 +610,7 @@ check_port() {
 			echo ""
 		else
 			clear
-			echo -e "${RED}端口 ${YELLOW}$PORT${RED} 已被占用，无法安装环境，卸载以下程序后重试！${PLAIN}"
+			echo -e "${red}端口 ${yellow}$PORT${red} 已被占用，无法安装环境，卸载以下程序后重试！${normal}"
 			echo "$result"
 			break_end
 			leon
@@ -595,13 +621,13 @@ check_port() {
 	fi
 }
 
-# 函数：安装依赖（wget socat unzip tar）
+# 函数: 安装依赖（wget socat unzip tar）
 install_dependency() {
 	clear
 	install wget socat unzip tar
 }
 
-# 函数：安装 certbot 工具
+# 函数: 安装 certbot 工具
 install_certbot() {
 	install certbot
 
@@ -627,39 +653,39 @@ install_certbot() {
 	fi
 }
 
-# 函数：创建自签名的 SSL 证书并将其存储在指定的目录中
+# 函数: 创建自签名的 SSL 证书并将其存储在指定的目录中
 default_server_ssl() {
 	install openssl
 	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
 }
 
-# 函数：获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
+# 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 ldnmp_v() {
 	# 获取 nginx 版本
 	nginx_version=$(docker exec nginx nginx -v 2>&1)
 	nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+" || echo "未安装")
-	echo -n -e "nginx : ${YELLOW}v$nginx_version${PLAIN}"
+	echo -n -e "nginx : ${yellow}v$nginx_version${normal}"
 
 	# 获取 mysql 版本
   dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml 2>/dev/null | tr -d '[:space:]' || echo "未安装")
   mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1) && mysql_version="v$mysql_version" || mysql_version="未安装"
-  echo -n -e "            mysql : ${YELLOW}$mysql_version${PLAIN}"
+  echo -n -e "            mysql : ${yellow}$mysql_version${normal}"
 
 
 
 	# 获取 php 版本
 	php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+"  || echo "未安装")
-	echo -n -e "            php : ${YELLOW}v$php_version${PLAIN}"
+	echo -n -e "            php : ${yellow}v$php_version${normal}"
 
 	# 获取 redis 版本
 	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+"  || echo "未安装")
-	echo -e "            redis : ${YELLOW}v$redis_version${PLAIN}"
+	echo -e "            redis : ${yellow}v$redis_version${normal}"
 
 	echo "------------------------"
 	echo ""
 }
 
-# 函数：获取 SSL/TLS 证书
+# 函数: 获取 SSL/TLS 证书
 install_ssltls() {
 	docker stop nginx > /dev/null 2>&1
 	iptables_open
@@ -670,33 +696,33 @@ install_ssltls() {
 	docker start nginx > /dev/null 2>&1
 }
 
-# 函数：Nginx 环境检查
+# 函数: Nginx 环境检查
 nginx_install_status() {
 	if docker inspect "nginx" &>/dev/null; then
 		echo "nginx 环境已安装，开始部署 $web_name"
 	else
-		echo -e "${YELLOW}nginx 未安装，请先安装 nginx 环境，再部署网站${PLAIN}"
+		echo -e "${yellow}nginx 未安装，请先安装 nginx 环境，再部署网站${normal}"
 	break_end
 	leon
 
 	fi
 }
 
-# 函数：获取 IP，及收集用户输入要解析的域名
+# 函数: 获取 IP，及收集用户输入要解析的域名
 add_yuming() {
 	ip_address
-	echo -e "先将域名解析到本机 IP: ${YELLOW}$ipv4_address  $ipv6_address${PLAIN}"
+	echo -e "先将域名解析到本机 IP: ${yellow}$ipv4_address  $ipv6_address${normal}"
 	read -p "请输入你解析的域名: " yuming
 }
 
-# 函数：输出建站 IP
+# 函数: 输出建站 IP
 nginx_web_on() {
 	clear
 	echo "您的 $web_name 搭建好了！"
 	echo "https://$yuming"
 }
 
-# 函数：检查 docker、证书申请 状态
+# 函数: 检查 docker、证书申请 状态
 nginx_status() {
 	sleep 1
 
@@ -721,7 +747,7 @@ nginx_status() {
 		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
 		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $dbname;" 2> /dev/null
 
-		echo -e "${RED}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${PLAIN}"
+		echo -e "${red}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${normal}"
 	fi
 }
 
@@ -730,33 +756,35 @@ nginx_status() {
 while true; do
 	clear
 
-#	echo -e "${GREEN}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #"
+#	echo -e "${green}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #"
 #	echo "# _    ____  ____ _  _                                        #"
 #	echo "# |    |___  |  | |\ |                                        #"
-#	echo -e "# |___ |___  |__| | \|    ${YELLOW}v$sh_v${PLAIN}                              ${GREEN}#${PLAIN}"
-#	echo -e "${GREEN}#                                                             #${PLAIN}"
-#	echo -e "${GREEN}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}  ${GREEN}#${PLAIN}"
-#	echo -e "${GREEN}# 输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}                                    ${GREEN}#${PLAIN}"
-#	echo -e "${GREEN}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #${PLAIN}"
+#	echo -e "# |___ |___  |__| | \|    ${yellow}v$sh_v${normal}                              ${green}#${normal}"
+#	echo -e "${green}#                                                             #${normal}"
+#	echo -e "${green}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${normal}  ${green}#${normal}"
+#	echo -e "${green}# 输入${yellow} n ${green}可快速启动此脚本 ${normal}                                    ${green}#${normal}"
+#	echo -e "${green}# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## #${normal}"
 
-	echo -e "${GREEN}# ==========================================================="
-	echo "# _    ____  ____ _  _ "
-	echo "# |    |___  |  | |\ | "
-	echo -e "# |___ |___  |__| | \|   ${YELLOW}v$sh_v${PLAIN}"
-	echo -e "${GREEN}# "
-  echo -e "${GREEN}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}"
-	echo -e "${GREEN}# 输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}"
-	echo -e "${GREEN}# ===========================================================${PLAIN}"
+	echo -e "${green}${bold}# ==========================================================="
+	echo -e "${green}# _    ____  ____ _  _ "
+	echo -e "${green}# |    |___  |  | |\ | "
+	echo -e "${green}# |___ |___  |__| | \|   ${cyan}v1.0.0${normal}"
+	echo -e "${green}${bold}# "
+	echo -e "${green}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${normal}"
+	echo -e "${green}${bold}# 输入${yellow} n ${green}可快速启动此脚本 ${normal}"
+	echo -e "${green}${bold}# ===========================================================${jiacu}"
 	echo ""
-#	echo -e "${GREEN}========================================================= "
+
+#	echo -e "${green}========================================================= "
 #	echo "_    ____  ____ _  _ "
 #	echo "|    |___  |  | |\ | "
-#	echo -e "|___ |___  |__| | \|   ${YELLOW}v$sh_v${PLAIN}"
+#	echo -e "|___ |___  |__| | \|   ${yellow}v$sh_v${normal}"
 #	echo ""
-#	echo -e "${GREEN}Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${PLAIN}"
-#	echo -e "${GREEN}输入${YELLOW} n ${GREEN}可快速启动此脚本 ${PLAIN}"
-#	echo -e "${GREEN}=========================================================${PLAIN}"
+#	echo -e "${green}Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${normal}"
+#	echo -e "${green}输入${yellow} n ${green}可快速启动此脚本 ${normal}"
+#	echo -e "${green}=========================================================${normal}"
 #	echo ""
+
 	echo "1. 系统信息查询"
 	echo "2. 系统更新"
 	echo "3. 系统清理"
@@ -764,7 +792,7 @@ while true; do
 	echo "5. BBR 管理 ▶"
 	echo "6. Docker 管理 ▶ "
 	echo "8. 测试脚本合集 ▶ "
-	echo -e "${YELLOW}10. LDNMP 建站 ▶ ${PLAIN}"
+	echo "10. LDNMP 建站 ▶ "
 	echo "11. 面板工具 ▶ "
 	echo "13. 系统工具 ▶ "
 	echo "------------------------"
@@ -778,7 +806,7 @@ while true; do
 		# 信息系统查询
 		1)
 			clear
-			# 执行函数：获取 IPv4 和 IPv6 地址
+			# 执行函数: 获取 IPv4 和 IPv6 地址
 			ip_address
 
 			# ------------------------
@@ -863,14 +891,15 @@ while true; do
 			# 获取系统时间
 			current_time=$(date "+%Y-%m-%d %I:%M %p")
 
-			# 执行函数：
+			# 执行函数:
 			output_status
 
 			echo ""
-			echo -e "${SKYBLUE}系统信息查询${PLAIN}"
+			# echo -e "${cyan}{normal}"
+			echo -e "${baizise}${bold}    			系统信息查询			    ${jiacu}"
 			echo "------------------------"
-			echo "主机名：$host_name"
-			echo "运营商：$isp_info"
+			echo "主机名: $host_name"
+			echo "运营商: $isp_info"
 			echo "------------------------"
 			echo "系统版本: $os_info"
 			echo "Linux 版本: $kernel_version"
@@ -952,7 +981,7 @@ while true; do
 						clear
 						install curl
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						curl --help
 						;;
 
@@ -961,7 +990,7 @@ while true; do
 						clear
 						install wget
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						wget --help
 						;;
 
@@ -970,7 +999,7 @@ while true; do
 						clear
 						install sudo
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						sudo --help
 						;;
 
@@ -979,7 +1008,7 @@ while true; do
 						clear
 						install socat
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						socat -h
 						;;
 
@@ -1004,7 +1033,7 @@ while true; do
 						clear
 						install unzip
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						unzip
 						;;
 
@@ -1013,7 +1042,7 @@ while true; do
 						clear
 						install tar
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						tar --help
 						;;
 
@@ -1022,7 +1051,7 @@ while true; do
 						clear
 						install tmux
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						tmux --help
 						;;
 
@@ -1031,7 +1060,7 @@ while true; do
 						clear
 						install ffmpeg
 						clear
-						echo "工具已安装，使用方法如下："
+						echo "工具已安装，使用方法如下: "
 						ffmpeg --help
 						;;
 
@@ -1211,7 +1240,7 @@ while true; do
 		6)
 			while true; do
 				clear
-				echo -e "${SKYBLUE}▶ Docker 管理器${PLAIN}"
+				echo -e "${cyan}▶ Docker 管理器${normal}"
 				echo "------------------------"
 				echo "1. 安装更新 Docker 环境"
 				echo "------------------------"
@@ -1240,24 +1269,24 @@ while true; do
 					# 查看 Docker 全局状态
 					2)
 						clear
-						echo -e "${SKYBLUE}Docker 版本${PLAIN}"
+						echo -e "${cyan}Docker 版本${normal}"
 						echo "------------------------"
 						docker --version
 						docker-compose --version
 						echo ""
-						echo -e "${SKYBLUE}Docker 镜像列表${PLAIN}"
+						echo -e "${cyan}Docker 镜像列表${normal}"
 						echo "------------------------"
 						docker image ls
 						echo ""
-						echo -e "${SKYBLUE}Docker 容器列表${PLAIN}"
+						echo -e "${cyan}Docker 容器列表${normal}"
 						echo "------------------------"
 						docker ps -a
 						echo ""
-						echo -e "${SKYBLUE}Docker 卷列表${PLAIN}"
+						echo -e "${cyan}Docker 卷列表${normal}"
 						echo "------------------------"
 						docker volume ls
 						echo ""
-						echo -e "${SKYBLUE}Docker 网络列表${PLAIN}"
+						echo -e "${cyan}Docker 网络列表${normal}"
 						echo "------------------------"
 						docker network ls
 						echo ""
@@ -1265,11 +1294,11 @@ while true; do
 
 					# Docker 容器管理
 					# ToDo docker 容器管理未完成
-					# 需求：查看（日志、网络）、创建、更新、重启、停止、删除，
+					# 需求: 查看（日志、网络）、创建、更新、重启、停止、删除，
 					3)
 						while true; do
 							clear
-							echo -e "${SKYBLUE}Docker 容器列表${PLAIN}"
+							echo -e "${cyan}Docker 容器列表${normal}"
 							docker ps -a
 							echo ""
 							echo "容器操作"
@@ -1290,7 +1319,7 @@ while true; do
 							case $sub_choice in
 								# 创建新的容器
 								1)
-									read -p "请输入创建命令：" docker_name
+									read -p "请输入创建命令: " docker_name
 									$docker_name
 									;;
 
@@ -1334,7 +1363,7 @@ while true; do
 				echo "11. speedtest 网络带宽测速"
 				echo ""
 				echo "----综合性测试-----------"
-				echo "41. 杜甫性能测试"
+				echo "41. Disk Test 硬盘&系统综合测试"
 				echo "42. bench 性能测试"
 				echo ""
 				echo "------------------------"
@@ -1364,7 +1393,7 @@ while true; do
 					# 杜甫性能测试
 					41)
 						clear
-						curl -l https://raw.githubusercontent.com/oliver556/sh/main/A.sh chmod +x A.sh && ./A.sh
+            curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/A.sh && chmod +x A.sh && ./A.sh
 						;;
 
 					# bench 性能测试
@@ -1389,7 +1418,7 @@ while true; do
 		10)
 			while true; do
 				clear
-				echo -e "${SKYBLUE}LDNMP 建站${PLAIN}"
+				echo -e "${cyan}LDNMP 建站${normal}"
 				echo  "------------------------"
 				echo  "1. 安装 LDNMP 环境"
 				echo  "------------------------"
@@ -1431,8 +1460,8 @@ while true; do
 						clear
 						nginx_version=$(docker exec nginx nginx -v 2>&1)
 						nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-						echo -e "${GREEN}nginx 已安装完成${PLAIN}"
-						echo -e "当前版本: ${YELLOW}v$nginx_version${PLAIN}"
+						echo -e "${green}nginx 已安装完成${normal}"
+						echo -e "当前版本: ${yellow}v$nginx_version${normal}"
 						echo ""
 						;;
 
@@ -1512,8 +1541,8 @@ while true; do
 
 						clear
 						echo "-------------"
-						echo -e "目前只允许上传 zip 格式的源码包，请将源码包放到 ${YELLOW}/home/web/html/${yuming}目录下${PLAIN}"
-						read -p "也可以输入下载链接，远程下载源码包，直接回车将跳过远程下载： " url_download
+						echo -e "目前只允许上传 zip 格式的源码包，请将源码包放到 ${yellow}/home/web/html/${yuming}目录下${normal}"
+						read -p "也可以输入下载链接，远程下载源码包，直接回车将跳过远程下载:  " url_download
 
 						if [ -n "$url_download" ]; then
 							wget "$url_download"
@@ -1524,11 +1553,11 @@ while true; do
 
 						clear
 
-						echo -e "${SKYBLUE}index.html所在路径${PLAIN}"
+						echo -e "${cyan}index.html所在路径${normal}"
 						echo "-------------"
 						find "$(realpath .)" -name "index.html" -print
 
-						read -p "请输入 index.html 的路径，类似（/home/web/html/$yuming/wordpress/）： " index_lujing
+						read -p "请输入 index.html 的路径，类似（/home/web/html/$yuming/wordpress/）:  " index_lujing
 
 						sed -i "s#root /var/www/html/$yuming/#root $index_lujing#g" /home/web/conf.d/$yuming.conf
 						sed -i "s#/home/web/#/var/www/#g" /home/web/conf.d/$yuming.conf
@@ -1547,7 +1576,7 @@ while true; do
 						root_use
 						while true;do
 							clear
-							echo -e "${SKYBLUE}LDNMP 环境${PLAIN}"
+							echo -e "${cyan}LDNMP 环境${normal}"
 							echo "------------------------"
 							# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 							ldnmp_v
@@ -1574,12 +1603,12 @@ while true; do
 							echo ""
 							echo "站点目录"
 							echo "------------------------"
-							echo -e "数据 ${GREY}/home/web/html${PLAIN}     证书 ${GREY}/home/web/certs${PLAIN}     配置 ${GREY}/home/web/conf.d${PLAIN}"
+							echo -e "数据 ${grey}/home/web/html${normal}     证书 ${grey}/home/web/certs${normal}     配置 ${grey}/home/web/conf.d${normal}"
 							echo "------------------------"
 							echo ""
 							echo "操作"
 							echo "------------------------"
-							echo -e "1. 申请/更新域名证书               ${GREY}2. 更换站点域名${PLAIN}"
+							echo -e "1. 申请/更新域名证书               ${grey}2. 更换站点域名${normal}"
 							echo "3. 清理站点缓存                    4. 查看站点分析报告"
 							echo "5. 查看全局配置                    6. 查看站点配置"
 							echo "------------------------"
@@ -1690,7 +1719,7 @@ while true; do
 		11)
 			while true; do
 				clear
-				echo -e "${SKYBLUE}▶ 面板工具${PLAIN}"
+				echo -e "${cyan}▶ 面板工具${normal}"
 				echo "------------------------"
 				echo "7. 哪吒探针 VPS 监控面板"
 				echo "------------------------"
@@ -1723,7 +1752,7 @@ while true; do
 		13)
 			while true; do
 				clear
-				echo -e "${SKYBLUE}▶ 系统工具${PLAIN}"
+				echo -e "${cyan}▶ 系统工具${normal}"
 				echo "------------------------"
 				echo "1. 设置脚本启动快捷键"
 				echo "------------------------"
@@ -1787,9 +1816,9 @@ while true; do
 						# 系统检测
 						OS=$(cat /etc/os-release | grep -o -E "Debian|Ubuntu|CentOS" | head -n 1)
 					 	if [[ $OS == "Debian" || $OS == "Ubuntu" || $OS == "CentOS" ]]; then
-							echo -e "检测到你的系统是 ${YELLOW}${OS}${PLAIN}"
+							echo -e "检测到你的系统是 ${yellow}${OS}${normal}"
 								else
-							echo -e "${RED}很抱歉，你的系统不受支持！${PLAIN}"
+							echo -e "${red}很抱歉，你的系统不受支持！${normal}"
 								exit 1
 						fi
 
@@ -1801,7 +1830,7 @@ while true; do
 
 						# 卸载 Python3 旧版本
 						if [[ $VERSION == "3"* ]]; then
-							echo -e "${YELLOW}你的 Python3 版本是${PLAIN}${RED}${VERSION}${PLAIN}，${YELLOW}最新版本是${PLAIN}${RED}${PY_VERSION}${PLAIN}"
+							echo -e "${yellow}你的 Python3 版本是${normal}${red}${VERSION}${normal}，${yellow}最新版本是${normal}${red}${PY_VERSION}${normal}"
 							read -p "是否确认升级最新版 Python3？默认不升级 [y/N]: " CONFIRM
 
 							if [[ $CONFIRM == "y" ]]; then
@@ -1813,16 +1842,16 @@ while true; do
 									rm-rf /usr/local/python3*
 								fi
 							else
-								echo -e "${YELLOW}已取消升级 Python3${PLAIN}"
+								echo -e "${yellow}已取消升级 Python3${normal}"
 								exit 1
 							fi
 						else
-							echo -e "${RED}检测到没有安装 Python3。${PLAIN}"
+							echo -e "${red}检测到没有安装 Python3。${normal}"
 							read -p "是否确认安装最新版 Python3？默认安装 [Y/n]: " CONFIRM
 							if [[ $CONFIRM != "n" ]]; then
-								echo -e "${GREEN}开始安装最新版 Python3...${PLAIN}"
+								echo -e "${green}开始安装最新版 Python3...${normal}"
 							else
-								echo -e "${YELLOW}已取消安装 Python3${PLAIN}"
+								echo -e "${yellow}已取消安装 Python3${normal}"
 								exit 1
 							fi
 						fi
@@ -1851,10 +1880,10 @@ while true; do
 							ln -sf /usr/local/python3/bin/python3 /usr/bin/python3
 							ln -sf /usr/local/python3/bin/pip3 /usr/bin/pip3
 							clear
-							echo -e "${YELLOW}Python3 安装${GREEN}成功，${PLAIN}版本为: ${PLAIN}${GREEN}${PY_VERSION}${PLAIN}"
+							echo -e "${yellow}Python3 安装${green}成功，${normal}版本为: ${normal}${green}${PY_VERSION}${normal}"
 						else
 							clear
-							echo -e "${RED}Python3 安装失败！${PLAIN}"
+							echo -e "${red}Python3 安装失败！${normal}"
 							exit 1
 						fi
 						cd /root/ && rm -rf Python-${PY_VERSION}.tgz && rm -rf Python-${PY_VERSION}
@@ -1866,7 +1895,7 @@ while true; do
 						root_use
 						open_all_ports
 						remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
-						echo -e "${GREEN}端口已全部开放${PLAIN}"
+						echo -e "${green}端口已全部开放${normal}"
 						;;
 
 					# 修改 SSH 连接端口
@@ -1893,7 +1922,7 @@ while true; do
 					# 优化 DNS 地址
 					7)
 						root_use
-						echo -e "${SKYBLUE}当前 DNS 地址${PLAIN}"
+						echo -e "${cyan}当前 DNS 地址${normal}"
 						echo "------------------------"
 						cat /etc/resolv.conf
 						echo "------------------------"
@@ -1913,29 +1942,29 @@ while true; do
 					8)
 
 						dd_xitong_2() {
-							echo -e "任意键继续，重装后初始用户名: ${YELLOW}root${PLAIN}  初始密码: ${YELLOW}LeitboGi0ro${PLAIN}  初始端口: ${YELLOW}22${PLAIN}"
+							echo -e "任意键继续，重装后初始用户名: ${yellow}root${normal}  初始密码: ${yellow}LeitboGi0ro${normal}  初始端口: ${yellow}22${normal}"
 							read -n 1 -s -r -p ""
 							install wget
 							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
 						}
 
 						dd_xitong_3() {
-							echo -e "任意键继续，重装后初始用户名: ${YELLOW}Administrator${PLAIN}  初始密码: ${YELLOW}Teddysun.com${PLAIN}  初始端口: ${YELLOW}3389${PLAIN}"
+							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}Teddysun.com${normal}  初始端口: ${yellow}3389${normal}"
 							read -n 1 -s -r -p ""
 							install wget
 							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
 						}
 
 						dd_xitong_4() {
-							echo -e "任意键继续，重装后初始用户名: ${YELLOW}Administrator${PLAIN}  初始密码: ${YELLOW}123@@@${PLAIN}  初始端口: ${YELLOW}3389${PLAIN}"
+							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}123@@@${normal}  初始端口: ${yellow}3389${normal}"
 							read -n 1 -s -r -p ""
 							install wget
 							curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
 						}
 
 						root_use
-						echo -e "${RED}请备份数据${PLAIN}，将为你重装系统，预计花费 15 分钟。"
-						echo -e "${GREY}感谢 MollyLau 的脚本支持！${PLAIN}"
+						echo -e "${red}请备份数据${normal}，将为你重装系统，预计花费 15 分钟。"
+						echo -e "${grey}感谢 MollyLau 的脚本支持！${normal}"
 						read -p "确定继续吗？(Y/N): " choice
 
 						case "$choice" in
@@ -2239,7 +2268,7 @@ while true; do
 							root_use
 
 							# 显示所有用户、用户权限、用户组、是否在 sudoers 中
-							echo -e "${SKYBLUE}用户列表${PLAIN}"
+							echo -e "${cyan}用户列表${normal}"
 							echo "----------------------------------------------------------------------------"
 							printf "%-24s %-34s %-20s %-10s\n" "用户名" "用户权限" "用户组" "sudo 权限"
 							while IFS=: read -r username _ userid groupid _ _ homedir shell; do
@@ -2249,7 +2278,7 @@ while true; do
 								done < /etc/passwd
 
 							echo ""
-							echo -e "${SKYBLUE}账户操作${PLAIN}"
+							echo -e "${cyan}账户操作${normal}"
 							echo "------------------------"
 							echo "1. 创建普通账户             2. 创建高级账户"
 							echo "------------------------"
@@ -2271,7 +2300,7 @@ while true; do
 								useradd -m -s /bin/bash "$new_username"
 								passwd "$new_username"
 
-								echo -e "${GREEN}操作已完成。${PLAIN}"
+								echo -e "${green}操作已完成。${normal}"
 								;;
 
 							# 创建高级账户
@@ -2286,7 +2315,7 @@ while true; do
 								# 赋予新用户 sudo 权限
 								echo "$new_username ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
 
-								echo -e "${GREEN}操作已完成。${PLAIN}"
+								echo -e "${green}操作已完成。${normal}"
 								;;
 
 							# 赋予最高权限
@@ -2327,7 +2356,7 @@ while true; do
 					14)
 						clear
 
-						echo -e "${SKYBLUE}随机用户名${PLAIN}"
+						echo -e "${cyan}随机用户名${normal}"
 						echo "------------------------"
 						for i in {1..5}; do
 								username="user$(< /dev/urandom tr -dc _a-z0-9 | head -c6)"
@@ -2335,7 +2364,7 @@ while true; do
 						done
 
 						echo ""
-						echo -e "${SKYBLUE}随机姓名${PLAIN}"
+						echo -e "${cyan}随机姓名${normal}"
 						echo "------------------------"
 						first_names=("John" "Jane" "Michael" "Emily" "David" "Sophia" "William" "Olivia" "James" "Emma" "Ava" "Liam" "Mia" "Noah" "Isabella")
 						last_names=("Smith" "Johnson" "Brown" "Davis" "Wilson" "Miller" "Jones" "Garcia" "Martinez" "Williams" "Lee" "Gonzalez" "Rodriguez" "Hernandez")
@@ -2349,7 +2378,7 @@ while true; do
 						done
 
 						echo ""
-						echo -e "${SKYBLUE}随机 UUID${PLAIN}"
+						echo -e "${cyan}随机 UUID${normal}"
 						echo "------------------------"
 						for i in {1..5}; do
 							uuid=$(cat /proc/sys/kernel/random/uuid)
@@ -2357,7 +2386,7 @@ while true; do
 						done
 
             echo ""
-            echo -e "${SKYBLUE}16位随机密码${PLAIN}"
+            echo -e "${cyan}16位随机密码${normal}"
             echo "------------------------"
             for i in {1..5}; do
                 password=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
@@ -2365,7 +2394,7 @@ while true; do
             done
 
             echo ""
-            echo -e "${SKYBLUE}32位随机密码${PLAIN}"
+            echo -e "${cyan}32位随机密码${normal}"
             echo "------------------------"
             for i in {1..5}; do
                 password=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)
@@ -2380,7 +2409,7 @@ while true; do
 						root_use
 
 						while true; do
-							echo -e "${SKYBLUE}系统时间信息${PLAIN}"
+							echo -e "${cyan}系统时间信息${normal}"
 
 							# 获取当前系统时区
 							timezone=$(current_timezone)
@@ -2389,8 +2418,8 @@ while true; do
 							current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
 							# 显示时区和时间
-							echo "当前系统时区：$timezone"
-							echo "当前系统时间：$current_time"
+							echo "当前系统时区: $timezone"
+							echo "当前系统时间: $current_time"
 
 							echo ""
 							echo "时区切换"
@@ -2471,7 +2500,7 @@ while true; do
 
 										wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
-										# 步骤3：添加存储库
+										# 步骤3: 添加存储库
 										echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
 										version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
@@ -2542,7 +2571,7 @@ while true; do
 
 									wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
-									# 步骤3：添加存储库
+									# 步骤3: 添加存储库
 									echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
 									version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
@@ -2550,7 +2579,7 @@ while true; do
 									apt update -y
 									apt install -y linux-xanmod-x64v$version
 
-									# 步骤5：启用 BBR3
+									# 步骤5: 启用 BBR3
 									cat > /etc/sysctl.conf << EOF
 net.core.default_qdisc=fq_pie
 net.ipv4.tcp_congestion_control=bbr
@@ -2738,7 +2767,7 @@ COMMIT
 EOF
 									iptables-restore < /etc/iptables/rules.v4
 									systemctl enable netfilter-persistent
-									echo -e "${GREEN}防火墙安装完成${PLAIN}"
+									echo -e "${green}防火墙安装完成${normal}"
 									;;
 
 								[Nn])
@@ -2827,7 +2856,7 @@ EOF
 								;;
 	          esac
 
-	          # 函数：备份当前源
+	          # 函数: 备份当前源
 						backup_sources() {
 							case "$ID" in
 								ubuntu)
@@ -2852,10 +2881,10 @@ EOF
 										;;
 							esac
 
-							echo -e "${GREEN}已备份当前更新源为 /etc/apt/sources.list.bak 或 /etc/yum.repos.d/CentOS-Base.repo.bak${PLAIN}"
+							echo -e "${green}已备份当前更新源为 /etc/apt/sources.list.bak 或 /etc/yum.repos.d/CentOS-Base.repo.bak${normal}"
 						}
 
-					 	# 函数：还原初始更新源
+					 	# 函数: 还原初始更新源
 						restore_initial_source() {
 							case "$ID" in
 								ubuntu)
@@ -2875,10 +2904,10 @@ EOF
 									exit 1
 									;;
 							esac
-							echo -e "${GREEN}已还原初始更新源${PLAIN}"
+							echo -e "${green}已还原初始更新源${normal}"
 						}
 
-						# 函数：切换更新源
+						# 函数: 切换更新源
             switch_source() {
 							case "$ID" in
 								ubuntu)
@@ -2956,7 +2985,7 @@ EOF
 											exit 1
 											;;
 								esac
-								echo -e "${GREEN}已切换到阿里云源${PLAIN}"
+								echo -e "${green}已切换到阿里云源${normal}"
 								;;
 
 							2)
@@ -2980,7 +3009,7 @@ EOF
 										exit 1
 										;;
 								esac
-								echo -e "${GREEN}已切换到官方源${PLAIN}"
+								echo -e "${green}已切换到官方源${normal}"
 								;;
 
 							3)
@@ -3003,7 +3032,7 @@ EOF
 										exit 1
 										;;
 								esac
-								echo -e "${GREEN}已切换到初始更新源${PLAIN}"
+								echo -e "${green}已切换到初始更新源${normal}"
 								;;
 
 							4)
@@ -3193,7 +3222,7 @@ EOF
 							echo "fail2ban 是一个 SSH 防止暴力破解工具"
 							echo "官网介绍: https://github.com/fail2ban/fail2ban"
 							echo "------------------------------------------------"
-							echo "工作原理：研判非法 IP 恶意高频访问 SSH 端口，自动进行 IP 封锁"
+							echo "工作原理: 研判非法 IP 恶意高频访问 SSH 端口，自动进行 IP 封锁"
 							echo "------------------------------------------------"
 							read -p "确定继续吗？(Y/N): " choice
 
@@ -3222,7 +3251,7 @@ EOF
 					23)
 						root_use
 
-						echo -e "${SKYBLUE}当月流量使用情况，重启服务器流量计算会清零！"
+						echo -e "${cyan}当月流量使用情况，重启服务器流量计算会清零！"
 						output_status
 						echo "$output"
 
@@ -3231,9 +3260,9 @@ EOF
 							# 获取 threshold_gb 的值
 							threshold_gb=$(grep -oP 'threshold_gb=\K\d+' ~/Limiting_Shut_down.sh)
 							threshold_tb=$((threshold_gb / 1024))
-							echo -e "当前设置的限流阈值为 ${YELLOW}${threshold_gb}${PLAIN} GB / ${YELLOW}${threshold_tb}${PLAIN} TB"
+							echo -e "当前设置的限流阈值为 ${yellow}${threshold_gb}${normal} GB / ${yellow}${threshold_tb}${normal} TB"
             else
-							echo -e "${GREY}当前未启用限流关机功能${PLAIN}"
+							echo -e "${grey}当前未启用限流关机功能${normal}"
             fi
 
             echo ""
@@ -3245,7 +3274,7 @@ EOF
 							1)
 								# 输入新的虚拟内存大小
 								echo "如果实际服务器就 100G 流量，可设置阈值为 95G，提前关机，以免出现流量误差或溢出"
-								read -p "请输入流量阈值（单位为：GB）：" threshold_gb
+								read -p "请输入流量阈值（单位为: GB）: " threshold_gb
 								cd ~
 								curl -Ss -O https://raw.githubusercontent.com/oliver556/sh/main/Limiting_Shut_down.sh
 								chmod +x ~/Limiting_Shut_down.sh
@@ -3274,7 +3303,7 @@ EOF
 					24)
 						root_use
 
-						echo -e "${SKYBLUE}ROOT私钥登录模式${PLAIN}"
+						echo -e "${cyan}ROOT私钥登录模式${normal}"
 						echo "------------------------------------------------"
 						echo "将会生成密钥对，更安全的方式 SSH 登录"
 						read -p "确定继续吗？(Y/N): " choice
@@ -3317,9 +3346,9 @@ EOF
 		00)
 			cd ~
 			clear
-			echo -e "${SKYBLUE}更新日志${PLAIN}"
+			echo -e "${cyan}更新日志${normal}"
 			echo "------------------------"
-			echo "全部日志：https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt"
+			echo "全部日志: https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt"
 			echo "------------------------"
 			curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt | tail -n 35
 			echo ""
@@ -3327,17 +3356,17 @@ EOF
 			sh_v_new=$(curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
 			if [ "$sh_v" = "$sh_v_new" ]; then
-				echo -e "${GREEN}你已经是最新版本！${YELLOW}v$sh_v${PLAIN}"
+				echo -e "${green}你已经是最新版本！${yellow}v$sh_v${normal}"
 			else
 				echo "发现新版本！"
-				echo -e "当前版本 v$sh_v        最新版本 ${YELLOW}v$sh_v_new${PLAIN}"
+				echo -e "当前版本 v$sh_v        最新版本 ${yellow}v$sh_v_new${normal}"
 				echo "------------------------"
 				read -p "确定更新脚本吗？(Y/N): " choice
 				case "$choice" in
 					[Yy])
 						clear
 						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
-						echo -e "${GREEN}脚本已更新到最新版本！${YELLOW}v$sh_v_new${PLAIN}"
+						echo -e "${green}脚本已更新到最新版本！${yellow}v$sh_v_new${normal}"
 						break_end
 						leon
 						;;
