@@ -1330,7 +1330,7 @@ while true; do
 				echo "1. ChatGPT 解锁状态检测"
 				echo "2. Region 流媒体解锁测试"
 				echo ""
-				echo "----IP及解锁状态检测-----------"
+				echo "----网络测试-----------"
 				echo "11. speedtest 网络带宽测速"
 				echo "------------------------"
 				echo "0. 返回主菜单"
@@ -1351,7 +1351,7 @@ while true; do
 						;;
 
 					# speedtest Server network 网络测速工具
-					15)
+					11)
 						clear
 						speed_test_tool
 						;;
