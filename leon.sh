@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.3"
+sh_v="1.0.4"
 
 # 重置颜色为白色
 PLAIN='\033[0m'
@@ -209,7 +209,8 @@ speed_test_tool() {
 				echo ""
 				echo "------------------------"
 				echo "安装已完成"
-				echo "运行 speedtest 来进行测试"
+				echo "正在运行 speedtest 进行测试"
+				speedtest
 		else
 				# 如果已安装，直接运行 speedtest
 				clear
@@ -927,7 +928,6 @@ while true; do
 				echo "12. ranger 文件管理工具"
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
-				echo "15. speedtest 网络带宽测速"
 				echo "------------------------"
 				echo "21. cmatrix 黑客帝国屏保"
 				echo "22. sl 跑火车屏保"
@@ -1071,12 +1071,6 @@ while true; do
 						clear
 						fzf
 						cd ~
-						;;
-
-					# speedtest Server network 网络测速工具
-					15)
-						clear
-						speed_test_tool
 						;;
 
 					# ------------------------
@@ -1336,6 +1330,8 @@ while true; do
 				echo "1. ChatGPT 解锁状态检测"
 				echo "2. Region 流媒体解锁测试"
 				echo ""
+				echo "----IP及解锁状态检测-----------"
+				echo "11. speedtest 网络带宽测速"
 				echo "------------------------"
 				echo "0. 返回主菜单"
 				echo "------------------------"
@@ -1353,6 +1349,13 @@ while true; do
 						clear
 						bash <(curl -L -s check.unlock.media)
 						;;
+
+					# speedtest Server network 网络测速工具
+					15)
+						clear
+						speed_test_tool
+						;;
+
 					0)
 						leon
 						;;
