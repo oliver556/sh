@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.8"
+sh_v="1.0.9"
 
 
 # 颜色 --------------------------------------------------------------------------------------------------------
@@ -83,7 +83,8 @@ output_status() {
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "MB"; }
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "GB"; }
 
-			printf("总接收: %.2f %s\n总发送: %.2f %s\n", rx_total, rx_units, tx_total, tx_units);
+			printf("总接收:\t\t%.2f %s\n总发送:\t\t%.2f %s\n", rx_total, rx_units, tx_total, tx_units);
+
 		}' /proc/net/dev)
 }
 
@@ -190,6 +191,7 @@ detect_system() {
 		. /etc/os-release
 		if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ]; then
 			echo "This is a Debian or Ubuntu based system"
+			echo "这是基于 Debian 或 Ubuntu 的系统"
 		elif [ "$ID" = "centos" ]; then
 			echo "This is a CentOS based system"
 		else
@@ -216,6 +218,7 @@ speed_test_tool() {
 		# 检查 curl 是否已安装
 		if ! command -v curl &> /dev/null; then
 			echo "curl 未安装，开始安装..."
+			sudo apt-get update
 			# 安装 curl
 			sudo apt-get install curl
 		fi
@@ -235,7 +238,7 @@ speed_test_tool() {
 				echo ""
 				echo "------------------------"
 				echo "安装已完成"
-				echo "正在运行 speedtest 进行测试"
+				echo "正在运行 Speedtest"
 				speedtest
 		else
 				# 如果已安装，直接运行 speedtest
@@ -248,6 +251,7 @@ speed_test_tool() {
 	fi
 
 	# Centos
+	# ToDo 需要在 centos 上验证
 	if [ "$ID" = "centos" ]; then
   		# 使用 curl 安装 speedtest-cli
   		if ! command -v speedtest-cli &> /dev/null; then
@@ -263,7 +267,8 @@ speed_test_tool() {
   				echo ""
   				echo "------------------------"
   				echo "安装已完成"
-  				echo "运行 speedtest 来进行测试"
+  				echo "正在运行 Speedtest"
+  				speedtest
   		else
   				# 如果已安装，直接运行 speedtest
   				clear
@@ -624,12 +629,12 @@ check_port() {
 # 函数: 安装依赖（wget socat unzip tar）
 install_dependency() {
 	clear
-	install wget socat unzip tar
+	install_package wget socat unzip tar
 }
 
 # 函数: 安装 certbot 工具
 install_certbot() {
-	install certbot
+	install_package certbot
 
 	# 切换到一个一致的目录（例如，家目录）
 	cd ~ || exit
@@ -681,7 +686,7 @@ ldnmp_v() {
 	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+"  || echo "未安装")
 	echo -e "            redis : ${yellow}v$redis_version${normal}"
 
-	echo "------------------------"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 	echo ""
 }
 
@@ -751,6 +756,51 @@ nginx_status() {
 	fi
 }
 
+# 函数: 根据系统类型使用不同的包管理器进行安装
+install_package() {
+	# 遍历所有传递进来的软件包列表，逐个安装
+	for package_name in "$@"; do
+		if [ -x "$(command -v apt-get)" ]; then
+			sudo apt-get install -y $package_name
+		elif [ -x "$(command -v yum)" ]; then
+			sudo yum install -y $package_name
+		else
+			echo -e "${CW} 不支持的软件包管理器${normal}"
+			return 1
+		fi
+	done
+}
+
+
+# 函数: 根据系统类型使用不同的包管理器进行卸载
+uninstall_packages() {
+	# 遍历所有传递进来的软件包列表，逐个卸载
+	for package_name in "$@"
+	do
+		if [ -x "$(command -v apt-get)" ]; then
+			sudo apt-get remove -y $package_name
+		elif [ -x "$(command -v yum)" ]; then
+			sudo yum remove -y $package_name
+		else
+			echo -e "${CW} 不支持的软件包管理器${normal}"
+			return 1
+		fi
+	done
+}
+
+# 函数: 函数用于检查命令是否已安装，未安装的进行安装
+check_command() {
+	local command_name="$1"  # 将输入的命令名保存到变量
+
+	if ! command -v "$command_name" &>/dev/null; then
+		echo "$command_name 未安装，正在进行安装..."
+		install_package "$command_name"  # 使用引号包围变量以正确传递参数
+	fi
+}
+
+
+
+
 #=======================================================================================================================================
 
 while true; do
@@ -795,6 +845,7 @@ while true; do
 	echo "10. LDNMP 建站 ▶ "
 	echo "11. 面板工具 ▶ "
 	echo "13. 系统工具 ▶ "
+	echo "14. VPS 集群控制 ▶ "
 	echo "------------------------"
 	echo "00. 脚本更新"
 	echo "------------------------"
@@ -806,6 +857,9 @@ while true; do
 		# 信息系统查询
 		1)
 			clear
+
+			echo -e "${cyan}查询中，请稍后，很快就好......${jiacu}"
+
 			# 执行函数: 获取 IPv4 和 IPv6 地址
 			ip_address
 
@@ -854,10 +908,10 @@ while true; do
 			# CPU 占用率
 			if [ -f /etc/alpine-release ]; then
 					# Alpine Linux 使用以下命令获取 CPU 使用率
-					cpu_usage_percent=$(top -bn1 | grep '^CPU' | awk '{print " "$4}' | cut -c 1-2)
+					cpu_usage_percent=$(top -bn1 | grep '^CPU' | awk '{print ""$4}' | cut -c 1-2)
 			else
 					# 其他系统使用以下命令获取 CPU 使用率
-					cpu_usage_percent=$(top -bn1 | grep "Cpu(s)" | awk '{print " "$2}')
+					cpu_usage_percent=$(top -bn1 | grep "Cpu(s)" | awk '{print""$2}')
 			fi
 
 			# 获取物理内存
@@ -894,35 +948,36 @@ while true; do
 			# 执行函数:
 			output_status
 
+			clear
+
 			echo ""
-			# echo -e "${cyan}{normal}"
-			echo -e "${baizise}${bold}    			系统信息查询			    ${jiacu}"
-			echo "------------------------"
-			echo "主机名: $host_name"
-			echo "运营商: $isp_info"
-			echo "------------------------"
-			echo "系统版本: $os_info"
-			echo "Linux 版本: $kernel_version"
-			echo "------------------------"
-			echo "CPU 架构: $cpu_arch"
-			echo "CPU 型号: $cpu_info"
-			echo "CPU 核心数: $cpu_cores"
-			echo "------------------------"
-			echo "CPU 占用: $cpu_usage_percent%"
-			echo "物理内存: $mem_info"
-			echo "虚拟内存: $swap_info"
-			echo "硬盘占用: $disk_info"
-			echo "------------------------"
+			echo -e "${baizise}${bold}		 	系统信息查询			${jiacu}"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "主机名:		$host_name"
+			echo "运营商:		$isp_info"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "系统版本:	$os_info"
+			echo "Linux 版本:	$kernel_version"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "CPU 架构:	$cpu_arch"
+			echo "CPU 型号:	$cpu_info"
+			echo "CPU 核心数:	$cpu_cores"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "CPU 占用:	$cpu_usage_percent%"
+			echo "物理内存:	$mem_info"
+			echo "虚拟内存:	$swap_info"
+			echo "硬盘占用:	$disk_info"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "$output"
-			echo "------------------------"
-			echo "网络拥堵算法: $congestion_algorithm $queue_algorithm"
-			echo "------------------------"
-			echo "公网 IPv4 地址: $ipv4_address"
-			echo "公网 IPv6 地址: $ipv6_address"
-			echo "------------------------"
-			echo "地理位置: $country $city"
-			echo "系统时间: $current_time"
-			echo "------------------------"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "网络拥堵算法:	$congestion_algorithm $queue_algorithm"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "公网 IPv4 地址:	$ipv4_address"
+			echo "公网 IPv6 地址:	$ipv6_address"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "地理位置:	$country $city"
+			echo "系统时间:	$current_time"
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 		;;
 
 		# 系统更新
@@ -941,8 +996,8 @@ while true; do
 		4)
 			while true; do
 			 	clear
-			 	echo "▶ 安装常用工具"
-			 	echo "------------------------"
+			 	echo -e "${baizise}${bold}		 	▶ 安装常用工具			 ${jiacu}"
+			 	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			 	echo "1. curl 下载工具"
 			 	echo "2. wget 下载工具"
 				echo "3. sudo 超级管理权限工具"
@@ -953,69 +1008,73 @@ while true; do
 				echo "8. tar GZ压缩解压工具"
 				echo "9. tmux 多路后台运行工具"
 				echo "10. ffmpeg 视频编码直播推流工具"
-				echo "11. btop 现代化监控工具"
-				echo "12. ranger 文件管理工具"
+#				echo "11. btop 现代化监控工具"
+#				echo "12. ranger 文件管理工具"
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "21. cmatrix 黑客帝国屏保"
 				echo "22. sl 跑火车屏保"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "26. 俄罗斯方块小游戏"
 				echo "27. 贪吃蛇小游戏"
 				echo "28. 太空入侵者小游戏"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "31. 全部安装"
 				echo "32. 全部卸载"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "41. 安装指定工具"
 				echo "42. 卸载指定工具"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			 	echo "0. 返回主菜单"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
 					# curl 下载工具
 					1)
 						clear
-						install curl
+						install_package curl
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						curl --help
 						;;
 
 					# wget 下载工具
 					2)
 						clear
-						install wget
+						install_package wget
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						wget --help
 						;;
 
 					# sudo 超级管理权限工具
 					3)
 						clear
-						install sudo
+						install_package sudo
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						sudo --help
 						;;
 
 					# socat 通信连接工具 （申请域名证书必备）
 					4)
 						clear
-						install socat
+						install_package socat
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						socat -h
 						;;
 
 					# htop 系统监控工具
 					5)
 						clear
-						install htop
+						install_package htop
 						clear
 						htop
 						;;
@@ -1023,7 +1082,7 @@ while true; do
 					# iftop 网络流量监控工具
 					6)
 						clear
-						install iftop
+						install_package iftop
 						clear
 						iftop
 						;;
@@ -1031,61 +1090,87 @@ while true; do
 					# unzip ZIP压缩解压工具
 					7)
 						clear
-						install unzip
+						install_package unzip
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						unzip
 						;;
 
 					# tar GZ压缩解压工具
 					8)
 						clear
-						install tar
+						install_package tar
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						tar --help
 						;;
 
 					# tmux 多路后台运行工具
 					9)
 						clear
-						install tmux
+						install_package tmux
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						tmux --help
 						;;
 
 					# ffmpeg 视频编码直播推流工具
 					10)
 						clear
-						install ffmpeg
+						install_package ffmpeg
 						clear
-						echo "工具已安装，使用方法如下: "
+						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						ffmpeg --help
 						;;
 
 					# btop 现代化监控工具
-					11)
-						clear
-						install btop
-						clear
-						btop
-						;;
+					# ToDo 安装有问题，需要 Python 环境
+					# 1. 确认 btop 是否安装成功：
+					# pip3 show btop
+					# 如果成功安装，你应该能够看到 btop 的信息和安装路径。
+					# 2. 确认安装路径是否在系统路径中：
+          # 确保 btop 的安装路径在系统的 PATH 变量中。你可以使用以下命令来查看当前的 PATH 变量：
+          # echo $PATH
+          # 如果 btop 的安装路径不在其中，你可以手动将其添加到 PATH 变量中。
+          # 3. 尝试重新安装：
+          # 你可以尝试重新安装 btop，可能安装过程中出现了一些问题：
+          # pip3 install btop
+#					11)
+#						clear
+#						install_package btop
+#						clear
+#						btop
+#						;;
 
 					# ranger 文件管理工具
-					12)
-						clear
-						install ranger
-						cd /
-						clear
-						ranger
-						cd ~
-						;;
+					# ToDo 安装有问题，需要 Python 环境
+					# 1. 确认 ranger 是否安装：
+					# 使用以下命令来检查 ranger 是否已经正确安装：
+					# which ranger
+					# 2. 尝试重新安装 ranger：
+					# 如果 ranger 未安装或出现问题，可以尝试重新安装它：
+					# sudo apt-get install ranger   # 如果系统是基于 Debian/Ubuntu 的
+					# 3. 检查 Python 环境：
+					# ranger 是基于 Python 编写的，确保你的系统具有正确的 Python 环境，并且可能需要安装一些 Python 依赖项。
+					# 4. 手动安装依赖：
+					# 如果 ranger 依赖的模块确实缺失，你可以尝试手动安装它们。例如，如果提示缺少名为 'ranger' 的模块，你可以使用以下命令进行安装：
+#					12)
+#						clear
+#						install_package ranger
+#						cd /
+#						clear
+#						ranger
+#						cd ~
+#						;;
 
 					# gdu 磁盘占用查看工具
 					13)
 						clear
-						install gdu
+						install_package gdu
 						cd /
 						clear
 						gdu
@@ -1095,7 +1180,8 @@ while true; do
 					# fzf 全局搜索工具
 					14)
 						clear
-						install fzf
+						install_package fzf
+#						apt-get install fzf
 						cd /
 						clear
 						fzf
@@ -1107,7 +1193,8 @@ while true; do
 					# cmatrix 黑客帝国屏保
 					21)
 						clear
-						install cmatrix
+#						apt-get install cmatrix
+						install_package cmatrix
 						clear
 						cmatrix
 						;;
@@ -1115,7 +1202,7 @@ while true; do
 					# sl 跑火车屏保
 					22)
 						clear
-						install sl
+						install_package sl
 						clear
 						/usr/games/sl
 						;;
@@ -1125,7 +1212,7 @@ while true; do
 					# 俄罗斯方块小游戏
 					26)
 						clear
-						install bastet
+						install_package bastet
 						clear
 						/usr/games/bastet
 						;;
@@ -1133,7 +1220,7 @@ while true; do
 					# 贪吃蛇小游戏
 					27)
 						clear
-						install nsnake
+						install_package nsnake
 						clear
 						/usr/games/nsnake
 						;;
@@ -1141,7 +1228,7 @@ while true; do
 					# 太空入侵者小游戏
 					28)
 						clear
-						install ninvaders
+						install_package ninvaders
 						clear
 						/usr/games/ninvaders
 						;;
@@ -1151,13 +1238,15 @@ while true; do
 					# 全部安装
 					31)
 						clear
-						install curl wget sudo socat htop iftop unzip tar tmux ffmpeg btop ranger gdu fzf cmatrix sl bastet nsnake ninvaders
+						# btop ranger
+						install_package curl wget sudo socat htop iftop unzip tar tmux ffmpeg gdu fzf cmatrix sl bastet nsnake ninvaders
 						;;
 
 					# 全部卸载
 					32)
 						clear
-						remove htop iftop unzip tmux ffmpeg btop ranger gdu fzf cmatrix sl bastet nsnake ninvaders
+						# btop ranger
+						uninstall_packages htop iftop unzip tmux ffmpeg gdu fzf cmatrix sl bastet nsnake ninvaders
 						;;
 
 					# ------------------------
@@ -1166,14 +1255,14 @@ while true; do
 					41)
 						clear
 						read -p "请输入安装的工具名（wget curl sudo htop）: " installname
-						install $installname
+						install_package $installname
 						;;
 
 					# 卸载指定工具
 					42)
 						clear
 						read -p "请输入卸载的工具名（htop ufw tmux cmatrix）: " removename
-						remove $removename
+						uninstall_packages $removename
 						;;
 
 					# ------------------------
@@ -1353,23 +1442,27 @@ while true; do
 			while true;do
 				clear
 				echo
-				echo "▶ 测试脚本合集"
+				echo -e "${baizise}${bold}		 ▶ 测试脚本合集			${jiacu}"
 				echo ""
-				echo "----IP及解锁状态检测-----------"
-				echo "1. ChatGPT 解锁状态检测"
-				echo "2. Region 流媒体解锁测试"
-				echo ""
-				echo "----网络测试-----------"
-				echo "11. speedtest 网络带宽测速"
-				echo ""
-				echo "----综合性测试-----------"
-				echo "41. Disk Test 硬盘&系统综合测试"
-				echo "42. bench 性能测试"
-				echo ""
-				echo "------------------------"
-				echo "0. 返回主菜单"
-				echo "------------------------"
-				read -p "请输入你的选择: " sub_choice
+        echo -e "${cyan}${bold}-------------IP 及解锁状态检测----------------${jiacu}"
+        echo "1. ChatGPT 解锁状态检测"
+        echo "2. Region 流媒体解锁测试"
+        echo ""
+        echo -e "${cyan}${bold}-------------网络测试-------------------------${jiacu}"
+        echo "11. speedtest 网络带宽测速"
+        echo ""
+        echo -e "${cyan}${bold}-------------硬件性能测试---------------------${jiacu}"
+        echo "21. yabs 性能测试"
+        echo "22. icu/gb5 CPU 性能测试脚本"
+        echo ""
+        echo -e "${cyan}${bold}-------------综合性测试-----------------------${jiacu}"
+        echo "41. Disk Test 硬盘&系统综合测试"
+        echo "42. bench 性能测试"
+        echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo "0. 返回主菜单"
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
 					# ChatGPT 解锁状态检测
@@ -1388,6 +1481,22 @@ while true; do
 					11)
 						clear
 						speed_test_tool
+						;;
+
+					# yabs 性能测试
+					21)
+						clear
+						new_swap=1024
+						add_swap
+						curl -sL yabs.sh | bash -s -- -i -5
+						;;
+
+					# icu/gb5 CPU 性能测试脚本
+					22)
+						clear
+						new_swap=1024
+						add_swap
+						bash <(curl -sL bash.icu/gb5)
 						;;
 
 					# 杜甫性能测试
@@ -1418,23 +1527,34 @@ while true; do
 		10)
 			while true; do
 				clear
-				echo -e "${cyan}LDNMP 建站${normal}"
-				echo  "------------------------"
-				echo  "1. 安装 LDNMP 环境"
-				echo  "------------------------"
-				echo  "21. 仅安装 nginx"
-				echo  "22. 站点重定向"
-				echo  "23. 站点反向代理"
-				echo  "24. 自定义静态站点"
-				echo  "------------------------"
-				echo  "31. 站点数据管理"
-				echo  "------------------------"
-				echo  "0. 返回主菜单"
-				echo  "------------------------"
+				echo -e "${baizise}${bold}		 LDNMP 建站			${jiacu}"
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo  "1. 安装 LDNMP 环境"
+        echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo  "21. 仅安装 nginx"
+        echo  "22. 站点重定向"
+        echo  "23. 站点反向代理"
+        echo  "24. 自定义静态站点"
+        echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo  "31. 站点数据管理"
+        echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo  "0. 返回主菜单"
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
 				read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
+					# 安装 LDNMP 环境
+					1)
+						root_use
+						check_port
+						install_dependency
+						install_docker
+						;;
+
 					# 仅安装 nginx
 					21)
 						root_use
@@ -1553,7 +1673,7 @@ while true; do
 
 						clear
 
-						echo -e "${cyan}index.html所在路径${normal}"
+						echo -e "${cyan}index.html 所在路径${normal}"
 						echo "-------------"
 						find "$(realpath .)" -name "index.html" -print
 
@@ -1576,13 +1696,13 @@ while true; do
 						root_use
 						while true;do
 							clear
-							echo -e "${cyan}LDNMP 环境${normal}"
-							echo "------------------------"
+							echo -e "${baizise}${bold}		 LDNMP 环境			${jiacu}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 							ldnmp_v
 
-							echo "站点信息                      证书到期时间"
-							echo "------------------------"
+							echo "${green}站点信息                      证书到期时间${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							for cert_file in /home/web/certs/*_cert.pem; do
 								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
 								if [ -n "$domain" ]; then
@@ -1591,31 +1711,30 @@ while true; do
 									printf "%-30s%s\n" "$domain" "$formatted_date"
 								fi
 							done
-
-							echo "------------------------"
 							echo ""
-							echo "数据库信息"
-							echo "------------------------"
+
+							echo -e "${green}数据库信息${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
 							docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
 
-							echo "------------------------"
 							echo ""
-							echo "站点目录"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo -e "${green}站点目录${jiacu}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo -e "数据 ${grey}/home/web/html${normal}     证书 ${grey}/home/web/certs${normal}     配置 ${grey}/home/web/conf.d${normal}"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo ""
-							echo "操作"
-							echo "------------------------"
-							echo -e "1. 申请/更新域名证书               ${grey}2. 更换站点域名${normal}"
+							echo -e "${green}操作${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "1. 申请/更新域名证书               2. 更换站点域名"
 							echo "3. 清理站点缓存                    4. 查看站点分析报告"
 							echo "5. 查看全局配置                    6. 查看站点配置"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "7. 删除指定站点                    8. 删除指定数据库"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请输入你的选择: " sub_choice
 
 							case $sub_choice in
@@ -3340,6 +3459,120 @@ EOF
 				esac
 					break_end
 			done
+			;;
+
+		# VPS 集群控制
+		14)
+			clear
+				while true; do
+				echo -e "${baizise}${bold}		 ▶ VPS 集群控制			${jiacu}"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "1. 安装集群环境"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo ""
+				echo "11. Dedicated-Seedbox Vt Qb 一键工具 ▶"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo ""
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "0. 返回主菜单"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				read -p "请输入你的选择: " sub_choice
+
+				case $sub_choice in
+					11)
+						while true; do
+							clear
+							echo ""
+							echo "具体参数可以查看: "
+							echo "https://github.com/jerry048/Dedicated-Seedbox/blob/main/README-zh.md"
+							echo ""
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "默认执行参数: 用户名: seedbox 密码: seedbox 缓存大小: 3GB qBittorrent: v4.3.9 libtorrent: v1.2.19 vertex 启用 BBRx"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "1. 默认参数安装"
+							echo "2. 自定义参数安装"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "0. 返回上一级选单"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								1)
+									clear
+									check_command wget
+									bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+									;;
+
+								2)
+									clear
+									check_command wget
+									read -p "请输入用户名 (默认: admin): " username
+									username=${username:-admin}
+									read -p "请输入密码 (默认: admin): " password
+									password=${password:-admin}
+									read -p "请输入缓存大小（单位：MB，默认: 3072）: " cache_size
+									cache_size=${cache_size:-3072}
+									read -p "是否安装 autobrr？ (y/n, 默认: n): " install_autobrr
+									install_autobrr=${install_autobrr:-n}
+									read -p "是否安装 vertex？ (y/n, 默认: y): " install_vertex
+									install_vertex=${install_vertex:-y}
+									read -p "是否安装 autoremove-torrents？ (y/n, 默认: n): " install_autoremove
+									install_autoremove=${install_autoremove:-n}
+									read -p "是否启动 BBR V3？ (y/n, 默认: n): " enable_bbr_v3
+									enable_bbr_v3=${enable_bbr_v3:-n}
+									read -p "是否启动 BBRx？ (y/n, 默认: y): " enable_bbrx
+									enable_bbrx=${enable_bbrx:-y}
+									read -p "请输入自定义端口号（不需要输入则留空）: " custom_port
+
+									# 构建参数字符串
+									params="-u $username -p $password -c $cache_size"
+									if [ "$install_autobrr" == "y" ]; then
+										params="$params -b"
+									fi
+									if [ "$install_vertex" == "y" ]; then
+										params="$params -v"
+									fi
+									if [ "$install_autoremove" == "y" ]; then
+										params="$params -r"
+									fi
+									if [ "$enable_bbr_v3" == "y" ]; then
+										params="$params -3"
+									fi
+									if [ "$enable_bbrx" == "y" ]; then
+										params="$params -x"
+									fi
+									if [ -n "$custom_port" ]; then
+										params="$params -o $custom_port"
+									fi
+
+									# 执行安装脚本，并传入用户输入的参数
+									bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
+
+						done
+						;;
+
+					0)
+						leon
+						;;
+					*)
+						echo "无效的输入！"
+						;;
+				esac
+
+				break_end
+				done
+
 			;;
 
 		# 脚本更新
