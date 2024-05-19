@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.9"
+sh_v="1.0.10"
 
 
 # 颜色 --------------------------------------------------------------------------------------------------------
@@ -181,8 +181,8 @@ cat > /etc/sysctl.conf << EOF
 net.core.default_qdisc=fq_pie
 net.ipv4.tcp_congestion_control=bbr
 EOF
-# 重新加载
-sysctl -p
+	# 重新加载
+	sysctl -p
 }
 
 # 函数: 判断服务器系统类型
@@ -218,9 +218,11 @@ speed_test_tool() {
 		# 检查 curl 是否已安装
 		if ! command -v curl &> /dev/null; then
 			echo "curl 未安装，开始安装..."
-			sudo apt-get update
-			# 安装 curl
-			sudo apt-get install curl
+			install_package curl
+
+		else
+			# 更新一下
+			install_package curl
 		fi
 
 		# 使用 curl 安装 speedtest-cli
@@ -234,8 +236,9 @@ speed_test_tool() {
 				clear
 				echo "speedtest 未安装，开始安装..."
 				# 安装 speedtest
-				sudo sudo apt-get install speedtest
+				install_package speedtest
 				echo ""
+				clear
 				echo "------------------------"
 				echo "安装已完成"
 				echo "正在运行 Speedtest"
@@ -798,6 +801,91 @@ check_command() {
 	fi
 }
 
+# 函数:
+install_panel() {
+	if $lujing ; then
+		clear
+		echo -e "${green}$panelname 已安装，应用操作"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo "1. 管理$panelname          2. 卸载$panelname"
+		echo ""
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo "0. 返回上一级选单"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		read -p "请输入你的选择: " sub_choice
+		case $sub_choice in
+			1)
+					clear
+					$gongneng1
+					$gongneng1_1
+					;;
+			2)
+					clear
+					$gongneng2
+					$gongneng2_1
+					$gongneng2_2
+					;;
+			0)
+					break  # 跳出循环，退出菜单
+					;;
+			*)
+					break  # 跳出循环，退出菜单
+					;;
+		esac
+
+	else
+		clear
+		echo -e "${yellow}安装提示${normal}"
+		echo "如果您已经安装了其他面板工具或者 LDNMP 建站环境，建议先卸载，再安装 $panelname！"
+		echo "会根据系统自动安装，支持 Debian，Ubuntu，Centos"
+		echo "官网介绍: $panelurl "
+		echo ""
+		read -p "确定安装 $panelname 吗？(Y/N): " choice
+
+		case "$choice" in
+			[Yy])
+				iptables_open
+				install_package wget
+				if grep -q 'Alpine' /etc/issue; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				elif grep -qi 'CentOS' /etc/redhat-release; then
+					$centos_mingling
+					$centos_mingling2
+				elif grep -qi 'Ubuntu' /etc/os-release; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				elif grep -qi 'Debian' /etc/os-release; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				else
+					echo "Unsupported OS"
+				fi
+				;;
+
+			[Nn])
+				;;
+
+			*)
+				;;
+				esac
+
+	fi
+}
+
+# 函数:
+iptables_open() {
+	iptables -P INPUT ACCEPT
+	iptables -P FORWARD ACCEPT
+	iptables -P OUTPUT ACCEPT
+	iptables -F
+
+	ip6tables -P INPUT ACCEPT
+	ip6tables -P FORWARD ACCEPT
+	ip6tables -P OUTPUT ACCEPT
+	ip6tables -F
+}
+
 
 
 
@@ -1004,8 +1092,8 @@ while true; do
 				echo "4. socat 通信连接工具 （申请域名证书必备）"
 				echo "5. htop 系统监控工具"
 				echo "6. iftop 网络流量监控工具"
-				echo "7. unzip ZIP压缩解压工具"
-				echo "8. tar GZ压缩解压工具"
+				echo "7. unzip ZIP 压缩解压工具"
+				echo "8. tar GZ 压缩解压工具"
 				echo "9. tmux 多路后台运行工具"
 				echo "10. ffmpeg 视频编码直播推流工具"
 #				echo "11. btop 现代化监控工具"
@@ -1014,11 +1102,11 @@ while true; do
 				echo "14. fzf 全局搜索工具"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "21. cmatrix 黑客帝国屏保"
-				echo "22. sl 跑火车屏保"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "26. 俄罗斯方块小游戏"
-				echo "27. 贪吃蛇小游戏"
-				echo "28. 太空入侵者小游戏"
+#				echo "22. sl 跑火车屏保"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "26. 俄罗斯方块小游戏"
+#				echo "27. 贪吃蛇小游戏"
+#				echo "28. 太空入侵者小游戏"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "31. 全部安装"
 				echo "32. 全部卸载"
@@ -1087,7 +1175,7 @@ while true; do
 						iftop
 						;;
 
-					# unzip ZIP压缩解压工具
+					# unzip ZIP 压缩解压工具
 					7)
 						clear
 						install_package unzip
@@ -1097,7 +1185,7 @@ while true; do
 						unzip
 						;;
 
-					# tar GZ压缩解压工具
+					# tar GZ 压缩解压工具
 					8)
 						clear
 						install_package tar
@@ -1181,7 +1269,6 @@ while true; do
 					14)
 						clear
 						install_package fzf
-#						apt-get install fzf
 						cd /
 						clear
 						fzf
@@ -1193,60 +1280,59 @@ while true; do
 					# cmatrix 黑客帝国屏保
 					21)
 						clear
-#						apt-get install cmatrix
 						install_package cmatrix
 						clear
 						cmatrix
 						;;
 
 					# sl 跑火车屏保
-					22)
-						clear
-						install_package sl
-						clear
-						/usr/games/sl
-						;;
+#					22)
+#						clear
+#						install_package sl
+#						clear
+#						/usr/games/sl
+#						;;
 
 					# ------------------------
 
 					# 俄罗斯方块小游戏
-					26)
-						clear
-						install_package bastet
-						clear
-						/usr/games/bastet
-						;;
+#					26)
+#						clear
+#						install_package bastet
+#						clear
+#						/usr/games/bastet
+#						;;
 
 					# 贪吃蛇小游戏
-					27)
-						clear
-						install_package nsnake
-						clear
-						/usr/games/nsnake
-						;;
+#					27)
+#						clear
+#						install_package nsnake
+#						clear
+#						/usr/games/nsnake
+#						;;
 
 					# 太空入侵者小游戏
-					28)
-						clear
-						install_package ninvaders
-						clear
-						/usr/games/ninvaders
-						;;
+#					28)
+#						clear
+#						install_package ninvaders
+#						clear
+#						/usr/games/ninvaders
+#						;;
 
 					# ------------------------
 
 					# 全部安装
 					31)
 						clear
-						# btop ranger
-						install_package curl wget sudo socat htop iftop unzip tar tmux ffmpeg gdu fzf cmatrix sl bastet nsnake ninvaders
+						# btop ranger sl bastet nsnake ninvaders
+						install_package curl wget sudo socat htop iftop unzip tar tmux ffmpeg gdu fzf cmatrix
 						;;
 
 					# 全部卸载
 					32)
 						clear
-						# btop ranger
-						uninstall_packages htop iftop unzip tmux ffmpeg gdu fzf cmatrix sl bastet nsnake ninvaders
+						# btop ranger sl bastet nsnake ninvaders
+						uninstall_packages htop iftop unzip tmux ffmpeg gdu fzf cmatrix
 						;;
 
 					# ------------------------
@@ -1288,12 +1374,12 @@ while true; do
 					echo "当前TCP阻塞算法: $congestion_algorithm $queue_algorithm"
 
 					echo ""
-					echo "BBR管理"
-					echo "------------------------"
+					echo -e "${baizise}${bold}		 BBR管理			${jiacu}"
+					echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 					echo "1. 开启BBRv3              2. 关闭BBRv3（会重启）"
-					echo "------------------------"
+					echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 					echo "0. 返回上一级选单"
-					echo "------------------------"
+					echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 					read -p "请输入你的选择: " sub_choice
 
 					case $sub_choice in
@@ -1838,15 +1924,40 @@ while true; do
 		11)
 			while true; do
 				clear
-				echo -e "${cyan}▶ 面板工具${normal}"
-				echo "------------------------"
+				echo -e "${baizise}${bold}		 ▶ 面板工具			${jiacu}"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "1. 宝塔面板官方版                       "
 				echo "7. 哪吒探针 VPS 监控面板"
-				echo "------------------------"
+				echo ""
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "0. 返回主菜单"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
+					# 宝塔面板官方版
+					1)
+						lujing="[ -d "/www/server/panel" ]"
+						panelname="宝塔面板"
+            gongneng1="bt"
+            gongneng1_1=""
+            gongneng2="curl -o bt-uninstall.sh http://download.bt.cn/install/bt-uninstall.sh > /dev/null 2>&1 && chmod +x bt-uninstall.sh && ./bt-uninstall.sh"
+						gongneng2_1="chmod +x bt-uninstall.sh"
+						gongneng2_2="./bt-uninstall.sh"
+
+						panelurl="https://www.bt.cn/new/index.html"
+
+
+            centos_mingling="wget -O install.sh https://download.bt.cn/install/install_6.0.sh"
+            centos_mingling2="sh install.sh ed8484bec"
+
+            ubuntu_mingling="wget -O install.sh https://download.bt.cn/install/install-ubuntu_6.0.sh"
+            ubuntu_mingling2="bash install.sh ed8484bec"
+
+            install_panel
+
+						;;
+
 					# 哪吒探针 VPS 监控面板
 					7)
 						curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
@@ -1871,10 +1982,10 @@ while true; do
 		13)
 			while true; do
 				clear
-				echo -e "${cyan}▶ 系统工具${normal}"
-				echo "------------------------"
+				echo -e "${baizise}${bold}		 ▶ 系统工具			${jiacu}"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 设置脚本启动快捷键"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "2. 修改登录密码"
 				echo "3. ROOT 密码登录模式"
 				echo "4. 安装 Python 最新版"
@@ -1898,11 +2009,18 @@ while true; do
 				echo "22. fail2banSSH 防御程序"
 				echo "23. 限流自动关机"
 				echo "24. ROOT 私钥登录模式"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "99. 重启服务器"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "0. 返回主菜单"
-				echo "------------------------"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo -e "${green}$panelname 已安装，应用操作"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "1. 管理$panelname          2. 卸载$panelname"
+				echo ""
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "0. 返回上一级选单"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
@@ -3482,15 +3600,17 @@ EOF
 					11)
 						while true; do
 							clear
-							echo ""
-							echo "具体参数可以查看: "
-							echo "https://github.com/jerry048/Dedicated-Seedbox/blob/main/README-zh.md"
+#							echo ""
+#							echo "具体参数可以查看: "
+#							echo "https://github.com/jerry048/Dedicated-Seedbox/blob/main/README-zh.md"
 							echo ""
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							echo "默认执行参数: 用户名: seedbox 密码: seedbox 缓存大小: 3GB qBittorrent: v4.3.9 libtorrent: v1.2.19 vertex 启用 BBRx"
+							echo -e "${cyan}默认执行参数:${normal}"
+							echo -e "用户名: ${yellow}seedbox${normal} 密码: ${yellow}seedbox${normal} 缓存大小: ${yellow}3GB${normal} qBittorrent: ${yellow}v4.3.9${normal} libtorrent: ${yellow}v1.2.19${normal} ${yellow}vertex${normal} ${yellow}启用 BBRx${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 默认参数安装"
 							echo "2. 自定义参数安装"
+							echo ""
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
