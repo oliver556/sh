@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.10"
+sh_v="1.0.11"
 
 
 # 颜色 --------------------------------------------------------------------------------------------------------
@@ -313,6 +313,7 @@ root_use() {
 
 # 函数: 设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码
 add_root_ssh() {
+	echo -e "${yellow}设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码${normal}"
 	echo "设置你的 ROOT 密码"
 	# 提示用户输入两次密码，用于设置 ROOT 用户的密码
 	passwd
@@ -325,7 +326,7 @@ add_root_ssh() {
 	# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
 	restart_ssh
 	# 显示消息，表示 ROOT 登录设置完成
-	echo -e "${green}ROOT登录设置完毕！${normal}"
+	echo -e "${green}ROOT 登录设置完毕！${normal}"
 	# 函数: 询问用户是否要重启服务器
 	server_reboot
 }
@@ -884,6 +885,18 @@ iptables_open() {
 	ip6tables -P FORWARD ACCEPT
 	ip6tables -P OUTPUT ACCEPT
 	ip6tables -F
+}
+
+# 函数: 设置时区
+set_timedate() {
+    shiqu="$1"
+    if grep -q 'Alpine' /etc/issue; then
+			install tzdata
+			cp /usr/share/zoneinfo/${shiqu} /etc/localtime
+			hwclock --systohc
+    else
+			timedatectl set-timezone ${shiqu}
+    fi
 }
 
 
@@ -1994,7 +2007,7 @@ while true; do
 				echo "7. 优化 DNS 地址"
 				echo "8. 一键重装系统"
 				echo "9. 禁用 ROOT，并创建新账户赋 sudo"
-				echo "10. 切换优先 ipv4/ipv6"
+				echo "10. 切换优先 ipv4/ipv6 ▶"
 				echo "11. 查看端口占用状态"
 				echo "12. 修改虚拟内存大小"
 				echo "13. 用户管理"
@@ -2005,7 +2018,7 @@ while true; do
 				echo "18. 修改主机名"
 				echo "19. 切换系统更新源"
 				echo "20. 定时任务管理"
-				echo "21. 本机host解析"
+				echo "21. 本机 host 解析"
 				echo "22. fail2banSSH 防御程序"
 				echo "23. 限流自动关机"
 				echo "24. ROOT 私钥登录模式"
@@ -2426,18 +2439,18 @@ while true; do
 
 						echo ""
 							if [ "$ipv6_disabled" -eq 1 ]; then
-								echo "当前网络优先级设置: IPv4 优先"
+								echo -e "当前网络优先级设置: ${yellow}${bold}IPv4${normal} 优先"
 							else
-								echo "当前网络优先级设置: IPv6 优先"
+								echo -e "当前网络优先级设置: ${yellow}${bold}IPv6${normal} 优先"
 							fi
 
-						echo "------------------------"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
 						echo ""
 						echo "切换的网络优先级"
-						echo "------------------------"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						echo "1. IPv4 优先          2. IPv6 优先"
-						echo "------------------------"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						read -p "选择优先的网络: " choice
 
 						case $choice in
@@ -2505,8 +2518,8 @@ while true; do
 							root_use
 
 							# 显示所有用户、用户权限、用户组、是否在 sudoers 中
-							echo -e "${cyan}用户列表${normal}"
-							echo "----------------------------------------------------------------------------"
+							echo -e "${baizise}${bold}		  用户列表			${jiacu}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							printf "%-24s %-34s %-20s %-10s\n" "用户名" "用户权限" "用户组" "sudo 权限"
 							while IFS=: read -r username _ userid groupid _ _ homedir shell; do
 								groups=$(groups "$username" | cut -d : -f 2)
@@ -2515,16 +2528,16 @@ while true; do
 								done < /etc/passwd
 
 							echo ""
-							echo -e "${cyan}账户操作${normal}"
-							echo "------------------------"
+							echo -e "${baizise}${bold}		  账户操作			${jiacu}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 创建普通账户             2. 创建高级账户"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "3. 赋予最高权限             4. 取消最高权限"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "5. 删除账号"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请输入你的选择: " sub_choice
 
 						 case $sub_choice in
@@ -2646,7 +2659,10 @@ while true; do
 						root_use
 
 						while true; do
-							echo -e "${cyan}系统时间信息${normal}"
+							clear
+							echo ""
+							echo -e "${baizise}${bold}		  系统时间信息			${jiacu}"
+							echo ""
 
 							# 获取当前系统时区
 							timezone=$(current_timezone)
@@ -2655,27 +2671,27 @@ while true; do
 							current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
 							# 显示时区和时间
-							echo "当前系统时区: $timezone"
-							echo "当前系统时间: $current_time"
+							echo -e "当前系统时区: ${cyan}$timezone${normal}"
+							echo -e "当前系统时间: ${cyan}$current_time${normal}"
 
 							echo ""
-							echo "时区切换"
-							echo "亚洲------------------------"
+							echo -e "${baizise}${bold}		  时区切换			${jiacu}"
+							echo -e "${cyan}${bold}亚洲--------------------------------------------${jiacu}"
 							echo "1. 中国上海时间              2. 中国香港时间"
 							echo "3. 日本东京时间              4. 韩国首尔时间"
 							echo "5. 新加坡时间                6. 印度加尔各答时间"
 							echo "7. 阿联酋迪拜时间            8. 澳大利亚悉尼时间"
-							echo "欧洲------------------------"
+							echo -e "${cyan}${bold}欧洲--------------------------------------------${jiacu}"
 							echo "11. 英国伦敦时间             12. 法国巴黎时间"
 							echo "13. 德国柏林时间             14. 俄罗斯莫斯科时间"
 							echo "15. 荷兰尤特赖赫特时间       16. 西班牙马德里时间"
-							echo "美洲------------------------"
+							echo -e "${cyan}${bold}美洲--------------------------------------------${jiacu}"
 							echo "21. 美国西部时间             22. 美国东部时间"
 							echo "23. 加拿大时间               24. 墨西哥时间"
 							echo "25. 巴西时间                 26. 阿根廷时间"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请输入你的选择: " sub_choice
 
 							case $sub_choice in
@@ -2720,12 +2736,12 @@ while true; do
 								echo "当前内核版本: $kernel_version"
 
 								echo ""
-								echo "内核管理"
-								echo "------------------------"
+								echo -e "${baizise}${bold}		  内核管理			${jiacu}"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "1. 更新BBRv3内核              2. 卸载BBRv3内核"
-								echo "------------------------"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "0. 返回上一级选单"
-								echo "------------------------"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								read -p "请输入你的选择: " sub_choice
 
 								case $sub_choice in
@@ -2775,10 +2791,10 @@ while true; do
 							clear
 							echo "请备份数据，将为你升级 Linux 内核开启 BBR3"
 							echo "官网介绍: https://xanmod.org/"
-							echo "------------------------------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "仅支持 Debian/Ubuntu 仅支持 x86_64 架构"
 							echo "VPS 是 512M内 存的，请提前添加 1G 虚拟内存，防止因内存不足失联！"
-							echo "------------------------------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "确定继续吗？(Y/N): " choice
 
 							case "$choice" in
@@ -3170,18 +3186,18 @@ EOF
             while true; do
             	case "$ID" in
 								ubuntu)
-									echo "Ubuntu 更新源切换脚本"
-									echo "------------------------"
+									echo -e "${baizise}${bold}		 Ubuntu 更新源切换脚本		${jiacu}"
+									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									;;
 
 								debian)
-									echo "Debian 更新源切换脚本"
-									echo "------------------------"
+									echo -e "${baizise}${bold}		 Debian 更新源切换脚本		${jiacu}"
+									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									;;
 
 								centos)
-									echo "CentOS 更新源切换脚本"
-									echo "------------------------"
+									echo -e "${baizise}${bold}		 CentOS 更新源切换脚本		${jiacu}"
+									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									;;
 
 								*)
@@ -3192,12 +3208,14 @@ EOF
 
               echo "1. 切换到阿里云源"
 							echo "2. 切换到官方源"
-							echo "------------------------"
+							echo ""
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "3. 备份当前更新源"
 							echo "4. 还原初始更新源"
-							echo "------------------------"
+							echo ""
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请选择操作: " choice
 
 							case $choice in
@@ -3293,21 +3311,21 @@ EOF
 					20)
 						while true; do
 							clear
-							echo "定时任务列表"
+							echo -e "${baizise}${bold}		  定时任务列表			${jiacu}"
 							crontab -l
 							echo ""
-							echo "操作"
-							echo "------------------------"
+							echo -e "${cyan}操作${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 添加定时任务              2. 删除定时任务"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请输入你的选择: " sub_choice
 
 							case $sub_choice in
 								1)
 									read -p "请输入新任务的执行命令: " newquest
-									echo "------------------------"
+									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "1. 每周任务                 2. 每天任务"
 									read -p "请输入你的选择: " dingshi
 
@@ -3349,16 +3367,20 @@ EOF
 						root_use
 
 						while true; do
-							echo "本机 host 解析列表"
-							echo "如果你在这里添加解析匹配，将不再使用动态解析了"
-							cat /etc/hosts
+							clear
+							echo -e "${baizise}${bold}		 本机 host 解析列表		${jiacu}"
 							echo ""
-							echo "操作"
-							echo "------------------------"
+							echo "如果你在这里添加解析匹配，将不再使用动态解析了"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							cat /etc/hosts
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo ""
+							echo -e "${cyan}操作${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 添加新的解析              2. 删除解析地址"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "0. 返回上一级选单"
-							echo "------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "请输入你的选择: " host_dns
 
 							case $host_dns in
