@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.11"
+sh_v="1.0.12"
 
 
 # 颜色 --------------------------------------------------------------------------------------------------------
@@ -528,7 +528,7 @@ install_docker() {
 	if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
 		install_add_docker
 	else
-		echo "Docker环境已经安装"
+		echo -e "${cyan}Docker 环境已安装${normal}"
 	fi
 }
 
@@ -899,9 +899,161 @@ set_timedate() {
     fi
 }
 
+# 函数: 更新 LDNMP 环境
+install_ldnmp() {
+	new_swap=1024
+	add_swap
+
+	cd /home/web && docker compose up -d
+	clear
+	echo -e "${cyan}正在配置 LDNMP 环境，请耐心稍等……${normal}"
+
+	# 定义要执行的命令
+	commands=(
+		"docker exec nginx chmod -R 777 /var/www/html"
+		"docker restart nginx > /dev/null 2>&1"
+
+		"docker exec php apt update > /dev/null 2>&1"
+		"docker exec php apk update > /dev/null 2>&1"
+		"docker exec php74 apt update > /dev/null 2>&1"
+		"docker exec php74 apk update > /dev/null 2>&1"
+
+		# php 安装包管理
+		"curl -sL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+		"docker exec php mkdir -p /usr/local/bin/ > /dev/null 2>&1"
+		"docker exec php74 mkdir -p /usr/local/bin/ > /dev/null 2>&1"
+		"docker cp /usr/local/bin/install-php-extensions php:/usr/local/bin/ > /dev/null 2>&1"
+		"docker cp /usr/local/bin/install-php-extensions php74:/usr/local/bin/ > /dev/null 2>&1"
+		"docker exec php chmod +x /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+		"docker exec php74 chmod +x /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+
+		# php 安装扩展
+		"docker exec php install-php-extensions mysqli > /dev/null 2>&1"
+		"docker exec php install-php-extensions pdo_mysql > /dev/null 2>&1"
+		"docker exec php install-php-extensions gd > /dev/null 2>&1"
+		"docker exec php install-php-extensions intl > /dev/null 2>&1"
+		"docker exec php install-php-extensions zip > /dev/null 2>&1"
+		"docker exec php install-php-extensions exif > /dev/null 2>&1"
+		"docker exec php install-php-extensions bcmath > /dev/null 2>&1"
+		"docker exec php install-php-extensions opcache > /dev/null 2>&1"
+		"docker exec php install-php-extensions imagick > /dev/null 2>&1"
+		"docker exec php install-php-extensions redis > /dev/null 2>&1"
+
+		# php 配置参数
+		"docker exec php sh -c 'echo \"upload_max_filesize=50M \" > /usr/local/etc/php/conf.d/uploads.ini' > /dev/null 2>&1"
+		"docker exec php sh -c 'echo \"post_max_size=50M \" > /usr/local/etc/php/conf.d/post.ini' > /dev/null 2>&1"
+		"docker exec php sh -c 'echo \"memory_limit=256M\" > /usr/local/etc/php/conf.d/memory.ini' > /dev/null 2>&1"
+		"docker exec php sh -c 'echo \"max_execution_time=1200\" > /usr/local/etc/php/conf.d/max_execution_time.ini' > /dev/null 2>&1"
+		"docker exec php sh -c 'echo \"max_input_time=600\" > /usr/local/etc/php/conf.d/max_input_time.ini' > /dev/null 2>&1"
+
+		# php 重启
+		"docker exec php chmod -R 777 /var/www/html"
+		"docker restart php > /dev/null 2>&1"
+
+		# php 7.4 安装扩展
+		"docker exec php74 install-php-extensions mysqli > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions pdo_mysql > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions gd > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions intl > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions zip > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions exif > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions bcmath > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions opcache > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions imagick > /dev/null 2>&1"
+		"docker exec php74 install-php-extensions redis > /dev/null 2>&1"
+
+		# php 7.4 配置参数
+		"docker exec php74 sh -c 'echo \"upload_max_filesize=50M \" > /usr/local/etc/php/conf.d/uploads.ini' > /dev/null 2>&1"
+		"docker exec php74 sh -c 'echo \"post_max_size=50M \" > /usr/local/etc/php/conf.d/post.ini' > /dev/null 2>&1"
+		"docker exec php74 sh -c 'echo \"memory_limit=256M\" > /usr/local/etc/php/conf.d/memory.ini' > /dev/null 2>&1"
+		"docker exec php74 sh -c 'echo \"max_execution_time=1200\" > /usr/local/etc/php/conf.d/max_execution_time.ini' > /dev/null 2>&1"
+		"docker exec php74 sh -c 'echo \"max_input_time=600\" > /usr/local/etc/php/conf.d/max_input_time.ini' > /dev/null 2>&1"
+
+		# php 7.4 重启
+		"docker exec php74 chmod -R 777 /var/www/html"
+		"docker restart php74 > /dev/null 2>&1"
+	)
+
+	# 计算总命令数
+	total_commands=${#commands[@]}
+
+	for ((i = 0; i < total_commands; i++)); do
+		command="${commands[i]}"
+		eval $command  # 执行命令
+
+		# 打印百分比和进度条
+		percentage=$(( (i + 1) * 100 / total_commands ))
+		completed=$(( percentage / 2 ))
+		remaining=$(( 50 - completed ))
+		progressBar="["
+		for ((j = 0; j < completed; j++)); do
+			progressBar+="#"
+		done
+
+		for ((j = 0; j < remaining; j++)); do
+			progressBar+="."
+		done
+
+		progressBar+="]"
+
+		echo -ne "\r[${grey}$percentage%${normal}] $progressBar"
+	done
+
+	# 打印换行，以便输出不被覆盖
+	echo
+
+	clear
+	echo -e "${green}LDNMP 环境安装完毕${normal}"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	ldnmp_v
+}
+
+# 函数: 检查是否安装 LDNMP 环境
+ldnmp_install_status() {
+	if docker inspect "php" &>/dev/null; then
+  	echo "LDNMP 环境已安装，开始部署 $webname"
+	else
+    echo -e "${yellow}LDNMP 环境未安装，请先安装 LDNMP 环境，再部署网站${normal}"
+    break_end
+    leon
+ fi
+}
+
+# 函数:
+add_db() {
+	dbname=$(echo "$yuming" | sed -e 's/[^A-Za-z0-9]/_/g')
+	dbname="${dbname}"
+
+	dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+	dbuse=$(grep -oP 'MYSQL_USER:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+	dbusepasswd=$(grep -oP 'MYSQL_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+	docker exec mysql mysql -u root -p"$dbrootpasswd" -e "CREATE DATABASE $dbname; GRANT ALL PRIVILEGES ON $dbname.* TO \"$dbuse\"@\"%\";"
+}
+
+# 函数: 设置 nginx、php 目录权限并重启
+restart_ldnmp() {
+	docker exec nginx chmod -R 777 /var/www/html
+	docker exec php chmod -R 777 /var/www/html
+	docker exec php74 chmod -R 777 /var/www/html
+
+	docker restart nginx
+	docker restart php
+	docker restart php74
+}
+
+# 函数: 获取域名地址，进行提示
+ldnmp_web_on() {
+	clear
+	echo -e "${green}您的 $webname 搭建好了！${normal}"
+	echo "https://$yuming"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "$webname 安装信息如下: "
+}
 
 
-
+#=======================================================================================================================================
+#=======================================================================================================================================
+#=======================================================================================================================================
 #=======================================================================================================================================
 
 while true; do
@@ -1548,7 +1700,9 @@ while true; do
         echo "2. Region 流媒体解锁测试"
         echo ""
         echo -e "${cyan}${bold}-------------网络测试-------------------------${jiacu}"
-        echo "11. speedtest 网络带宽测速"
+        echo "11. Speedtest 网络带宽测速"
+        echo "12. mtr_trace 三网回程线路测试"
+        echo "13. Superspeed 三网测速"
         echo ""
         echo -e "${cyan}${bold}-------------硬件性能测试---------------------${jiacu}"
         echo "21. yabs 性能测试"
@@ -1568,6 +1722,8 @@ while true; do
 					1)
 						clear
 						bash <(curl -Ls https://cdn.jsdelivr.net/gh/missuo/OpenAI-Checker/openai.sh)
+#						留存删库备用
+#						bash <(curl -Ls https://raw.githubusercontent.com/oliver556/sh/main/third_party/openai.sh)
 						;;
 
 					# Region 流媒体解锁测试
@@ -1581,6 +1737,22 @@ while true; do
 						clear
 						speed_test_tool
 						;;
+
+					# mtr_trace 三网回程线路测试
+					12)
+							clear
+							curl https://raw.githubusercontent.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
+#							留存删库备用
+#							curl https://raw.githubusercontent.com/oliver556/sh/main/third_party/mtr_trace.sh | bash
+							;;
+
+					# Superspeed 三网测速
+					13)
+							clear
+							bash <(curl -Lso- https://git.io/superspeed_uxh)
+#							留存删库备用
+#							bash <(curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/superspeed_uxh)
+							;;
 
 					# yabs 性能测试
 					21)
@@ -1601,13 +1773,15 @@ while true; do
 					# 杜甫性能测试
 					41)
 						clear
-            curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/A.sh && chmod +x A.sh && ./A.sh
+            curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
 						;;
 
 					# bench 性能测试
 					42)
 						clear
 						curl -Lso- bench.sh | bash
+#						留存删库备用
+#            curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/bench.sh | bash;
 						;;
 
 					0)
@@ -1631,6 +1805,9 @@ while true; do
         echo  "1. 安装 LDNMP 环境"
         echo ""
         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        echo  "2. 安装 WordPress"
+        echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
         echo  "21. 仅安装 nginx"
         echo  "22. 站点重定向"
         echo  "23. 站点反向代理"
@@ -1639,6 +1816,12 @@ while true; do
         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
         echo  "31. 站点数据管理"
         echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo  "36. 优化 LDNMP 环境"
+				echo  "37. 更新 LDNMP 环境"
+				echo  "38. 卸载 LDNMP 环境"
+				echo ""
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
         echo  "0. 返回主菜单"
         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1649,9 +1832,80 @@ while true; do
 					# 安装 LDNMP 环境
 					1)
 						root_use
+						# 检查端口
 						check_port
+						# 安装依赖（wget socat unzip tar）
 						install_dependency
+						# 检查系统中是否已经安装了 docker 和 docker-compose
 						install_docker
+
+						# 创建必要的目录和文件
+						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
+
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+						# 创建自签名的 SSL 证书并将其存储在指定的目录中
+						default_server_ssl
+
+						# 下载 docker-compose.yml 文件并进行替换
+						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
+
+						dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
+
+						# 在 docker-compose.yml 文件中进行替换
+						sed -i "s#webroot#$dbrootpasswd#g" /home/web/docker-compose.yml
+						sed -i "s#kejilionYYDS#$dbusepasswd#g" /home/web/docker-compose.yml
+						sed -i "s#kejilion#$dbuse#g" /home/web/docker-compose.yml
+
+						# 更新 LDNMP 环境
+						install_ldnmp
+						;;
+
+					# 安装 WordPress
+					2)
+						clear
+						webname="WordPress"
+
+						# 检查是否安装 LDNMP 环境
+						ldnmp_install_status
+						# 获取 IP，及收集用户输入要解析的域名
+						add_yuming
+						# 获取 SSL/TLS 证书
+						install_ssltls
+						#
+						add_db
+
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/wordpress.com.conf
+						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+
+						cd /home/web/html
+						mkdir $yuming
+						cd $yuming
+						wget -O latest.zip https://cn.wordpress.org/latest-zh_CN.zip
+						unzip latest.zip
+						rm latest.zip
+
+						echo "define('FS_METHOD', 'direct'); define('WP_REDIS_HOST', 'redis'); define('WP_REDIS_PORT', '6379');" >> /home/web/html/$yuming/wordpress/wp-config-sample.php
+
+						# 设置 nginx、php 目录权限并重启
+						restart_ldnmp
+
+						# 获取域名地址，进行提示
+						ldnmp_web_on
+
+						echo "数据库名: $dbname"
+						echo "用户名: $dbuse"
+						echo "密码: $dbusepasswd"
+						echo "数据库地址: mysql"
+						echo "表前缀: wp_"
+
+						# 检查 docker、证书申请 状态
+						nginx_status
+
+						;;
+
+					#
+					3)
 						;;
 
 					# 仅安装 nginx
@@ -1917,6 +2171,128 @@ while true; do
 
 
 						done
+						;;
+
+					# 优化 LDNMP 环境
+					36)
+						while true; do
+							clear
+							echo -e "${baizise}${bold}		 优化 LDNMP 环境		${jiacu}"
+              echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+              echo "1. 标准模式              2. 高性能模式 (推荐 2H2G 以上)"
+              echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+              echo "0. 退出"
+              echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+              read -p "请输入你的选择: " sub_choice
+
+              case $sub_choice in
+              	# 标准模式
+              	1)
+              		# nginx 调优
+              		sed -i 's/worker_connections.*/worker_connections 1024;/' /home/web/nginx.conf
+
+									# ToDo 该脚本为空
+              		# php 调优
+									wget -O /home/optimized_php.ini https://raw.githubusercontent.com/oliver556/sh/main/php/optimized_php.ini
+									docker cp /home/optimized_php.ini php:/usr/local/etc/php/conf.d/optimized_php.ini
+									docker cp /home/optimized_php.ini php74:/usr/local/etc/php/conf.d/optimized_php.ini
+									rm -rf /home/optimized_php.ini
+
+									# php 调优
+									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www-1.conf
+									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
+									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
+									rm -rf /home/www.conf
+
+									# ToDo 该脚本为空
+									# mysql 调优
+									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config-1.cnf
+									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
+									rm -rf /home/custom_mysql_config.cnf
+
+									docker restart nginx
+									docker restart php
+									docker restart php74
+									docker restart mysql
+
+									echo -e "${green}LDNMP 环境已设置成 标准模式${normal}"
+              		;;
+
+              	# 高性能模式 (推荐 2H2G 以上)
+              	2)
+              		# nginx 调优
+              		sed -i 's/worker_connections.*/worker_connections 10240;/' /home/web/nginx.conf
+
+              		# php 调优
+									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www.conf
+									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
+									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
+									rm -rf /home/www.conf
+
+									# mysql 调优
+									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config.cnf
+									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
+									rm -rf /home/custom_mysql_config.cnf
+
+									docker restart nginx
+									docker restart php
+									docker restart php74
+									docker restart mysql
+
+									echo -e "${green}LDNMP 环境已设置成 高性能模式${normal}"
+              		;;
+
+              	0)
+									break
+									;;
+
+								*)
+									echo "无效的选择，请重新输入。"
+									;;
+              esac
+
+              break_end
+
+						done
+
+						;;
+
+					# 更新 LDNMP 环境
+					37)
+						root_use
+						docker rm -f nginx php php74 mysql redis
+						docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
+
+						# 检查端口
+						check_port
+						# 安装依赖（wget socat unzip tar）
+						install_dependency
+						# 查系统中是否已经安装了 docker 和 docker-compose
+						install_docker
+						#
+						install_ldnmp
+						;;
+
+					# 卸载 LDNMP 环境
+					38)
+						root_use
+						read -p "$(echo -e "${red}强烈建议先备份全部网站数据，再卸载 LDNMP 环境。确定删除所有网站数据吗？(Y/N): ${normal}")" choice
+
+						case "$choice" in
+							[Yy])
+								docker rm -f nginx php php74 mysql redis
+								docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
+								rm -rf /home/web
+								;;
+
+							[Nn])
+
+								;;
+
+							*)
+								echo "无效的选择，请输入 Y 或 N。"
+								;;
+						esac
 						;;
 
 					0)
@@ -3412,21 +3788,21 @@ EOF
 						if docker inspect fail2ban &>/dev/null ; then
             	while true; do
 								clear
-								echo "SSH 防御程序已启动"
-								echo "------------------------"
+								echo -e "${baizise}${bold}		 SSH 防御程序已启动		${jiacu}"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "1. 查看 SSH 拦截记录"
 								echo "2. 日志实时监控"
-								echo "------------------------"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "9. 卸载防御程序"
-								echo "------------------------"
-								echo "0. 退出"
-								echo "------------------------"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+								echo "0. 返回上一级选单"
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								read -p "请输入你的选择: " sub_choice
 								case $sub_choice in
 									1)
-										echo "------------------------"
+										echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 										f2b_sshd
-										echo "------------------------"
+										echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 										;;
 
 									2)
@@ -3437,7 +3813,8 @@ EOF
 									9)
 										docker rm -f fail2ban
 										rm -rf /path/to/fail2ban
-										echo "Fail2Ban防御程序已卸载"
+										clear
+										echo -e "${green}Fail2Ban 防御程序已卸载${normal}"
 
 										break
 										;;
@@ -3480,9 +3857,9 @@ EOF
 							clear
 							echo "fail2ban 是一个 SSH 防止暴力破解工具"
 							echo "官网介绍: https://github.com/fail2ban/fail2ban"
-							echo "------------------------------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "工作原理: 研判非法 IP 恶意高频访问 SSH 端口，自动进行 IP 封锁"
-							echo "------------------------------------------------"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							read -p "确定继续吗？(Y/N): " choice
 
 							case "$choice" in
@@ -3493,7 +3870,7 @@ EOF
 
 									cd ~
 									f2b_status
-									echo "Fail2Ban防御程序已开启"
+									echo "Fail2Ban 防御程序已开启"
 									;;
 
 								[Nn])
@@ -3510,10 +3887,13 @@ EOF
 					23)
 						root_use
 
-						echo -e "${cyan}当月流量使用情况，重启服务器流量计算会清零！"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+						echo -e "${red}${bold}当月流量使用情况，重启服务器流量计算会清零！"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						output_status
 						echo "$output"
 
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						# 检查是否存在 Limiting_Shut_down.sh 文件
 						if [ -f ~/Limiting_Shut_down.sh ]; then
 							# 获取 threshold_gb 的值
@@ -3521,13 +3901,18 @@ EOF
 							threshold_tb=$((threshold_gb / 1024))
 							echo -e "当前设置的限流阈值为 ${yellow}${threshold_gb}${normal} GB / ${yellow}${threshold_tb}${normal} TB"
             else
-							echo -e "${grey}当前未启用限流关机功能${normal}"
+							echo -e "${yellow}当前未启用限流关机功能${normal}"
             fi
+            echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
             echo ""
-						echo "------------------------------------------------"
 						echo "系统每分钟会检测实际流量是否到达阈值，到达后会自动关闭服务器！每月1日重置流量重启服务器。"
-						read -p "1. 开启限流关机功能    2. 停用限流关机功能    0. 退出  : " Limiting
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+						echo "1. 开启限流关机功能"
+						echo "2. 停用限流关机功能"
+						echo "0. 退出"
+#						read -p "1. 开启限流关机功能    2. 停用限流关机功能    0. 退出  : " Limiting
+						read -p "请输入你的选择: " Limiting
 
 						case "$Limiting" in
 							1)
@@ -3619,6 +4004,20 @@ EOF
 				read -p "请输入你的选择: " sub_choice
 
 				case $sub_choice in
+					# 安装集群环境
+					1)
+						clear
+						install_package python3 python3-paramiko speedtest-cli lrzsz
+						mkdir cluster && cd cluster
+						touch servers.py
+            cat > ./servers.py << EOF
+servers = [
+
+]
+EOF
+						;;
+
+					# Dedicated-Seedbox Vt Qb 一键工具 ▶
 					11)
 						while true; do
 							clear
