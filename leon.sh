@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.15"
+sh_v="1.0.16"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ CW="${bold}${baihongse} ERROR ${jiacu}"; ZY="${baihongse}${bold} ATTENTION ${jia
 
 # 复制将当前目录下的 leon.sh 文件复制到 /usr/local/bin 目录，并将其重命名为 n。
 # 复制过程中所有的输出信息和错误信息都被重定向到 /dev/null，因此不会在终端显示任何输出。这通常用于静默执行命令，避免输出干扰。
-cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
+cp ./leon.sh /usr/local/bin/k > /dev/null 2>&1
 
 
 # ToDo 以下属于通用函数
@@ -3154,7 +3154,7 @@ while true; do
 #									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
 #									printf "%-30s%s\n" "$domain" "$formatted_date"
 #								fi
-
+#							done
 
 							certs_dir="/home/web/certs"
 							if [ -d "$certs_dir" ]; then
@@ -3169,115 +3169,113 @@ while true; do
 							else
 								echo "找不到证书目录: $certs_dir"
 								echo "找不到 PEM 证书文件。."
-						  fi
+						  	fi
 
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo ""
+							echo -e "${green}数据库信息${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+							docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
+
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo ""
+							echo -e "${green}站点目录${jiacu}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo -e "数据 ${grey}/home/web/html${normal}     证书 ${grey}/home/web/certs${normal}     配置 ${grey}/home/web/conf.d${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo ""
+							echo -e "${green}操作${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "1. 申请/更新域名证书               2. 更换站点域名"
+							echo "3. 清理站点缓存                    4. 查看站点分析报告"
+							echo "5. 查看全局配置                    6. 查看站点配置"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "7. 删除指定站点                    8. 删除指定数据库"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "0. 返回上一级选单"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								# 申请/更新域名证书"
+								1)
+									read -p "请输入你的域名: " yuming
+									install_ssltls
+									;;
+
+								# 更换站点域名
+								2)
+									read -p "请输入旧域名: " oddyuming
+									read -p "请输入新域名: " yuming
+									install_ssltls
+									mv /home/web/conf.d/$oddyuming.conf /home/web/conf.d/$yuming.conf
+									sed -i "s/$oddyuming/$yuming/g" /home/web/conf.d/$yuming.conf
+									mv /home/web/html/$oddyuming /home/web/html/$yuming
+
+									rm /home/web/certs/${oddyuming}_key.pem
+									rm /home/web/certs/${oddyuming}_cert.pem
+
+									docker restart nginx
+									;;
+
+								# 清理站点缓存
+								3)
+									docker exec -it nginx rm -rf /var/cache/nginx
+									docker restart nginx
+									docker exec php php -r 'opcache_reset();'
+									docker restart php
+									docker exec php74 php -r 'opcache_reset();'
+									docker restart php74
+									;;
+
+								# 查看站点分析报告
+								4)
+									install goaccess
+									goaccess --log-format=COMBINED /home/web/log/nginx/access.log
+									;;
+
+								# 查看全局配置
+								5)
+									install nano
+									nano /home/web/nginx.conf
+									docker restart nginx
+									;;
+
+								# 查看站点配置
+								6)
+									read -p "查看站点配置，请输入你的域名: " yuming
+									install nano
+									nano /home/web/conf.d/$yuming.conf
+									docker restart nginx
+									;;
+
+								# 删除指定站点
+								7)
+									read -p "删除站点数据目录，请输入你的域名: " yuming
+									rm -r /home/web/html/$yuming
+									rm /home/web/conf.d/$yuming.conf
+									rm /home/web/certs/${yuming}_key.pem
+									rm /home/web/certs/${yuming}_cert.pem
+									docker restart nginx
+									;;
+
+								# 删除指定数据库
+								8)
+									read -p "删除站点数据库，请输入数据库名: " shujuku
+									dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+									docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $shujuku;" 2> /dev/null
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
 						done
-
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo ""
-						echo -e "${green}数据库信息${normal}"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-						docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
-
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo ""
-						echo -e "${green}站点目录${jiacu}"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo -e "数据 ${grey}/home/web/html${normal}     证书 ${grey}/home/web/certs${normal}     配置 ${grey}/home/web/conf.d${normal}"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo ""
-						echo -e "${green}操作${normal}"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo "1. 申请/更新域名证书               2. 更换站点域名"
-						echo "3. 清理站点缓存                    4. 查看站点分析报告"
-						echo "5. 查看全局配置                    6. 查看站点配置"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo "7. 删除指定站点                    8. 删除指定数据库"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo "0. 返回上一级选单"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						read -p "请输入你的选择: " sub_choice
-
-						case $sub_choice in
-							# 申请/更新域名证书"
-							1)
-								read -p "请输入你的域名: " yuming
-								install_ssltls
-								;;
-
-							# 更换站点域名
-							2)
-								read -p "请输入旧域名: " oddyuming
-								read -p "请输入新域名: " yuming
-								install_ssltls
-								mv /home/web/conf.d/$oddyuming.conf /home/web/conf.d/$yuming.conf
-								sed -i "s/$oddyuming/$yuming/g" /home/web/conf.d/$yuming.conf
-								mv /home/web/html/$oddyuming /home/web/html/$yuming
-
-								rm /home/web/certs/${oddyuming}_key.pem
-								rm /home/web/certs/${oddyuming}_cert.pem
-
-								docker restart nginx
-								;;
-
-							# 清理站点缓存
-							3)
-								docker exec -it nginx rm -rf /var/cache/nginx
-								docker restart nginx
-								docker exec php php -r 'opcache_reset();'
-								docker restart php
-								docker exec php74 php -r 'opcache_reset();'
-								docker restart php74
-								;;
-
-							# 查看站点分析报告
-							4)
-								install goaccess
-								goaccess --log-format=COMBINED /home/web/log/nginx/access.log
-								;;
-
-							# 查看全局配置
-							5)
-								install nano
-								nano /home/web/nginx.conf
-								docker restart nginx
-								;;
-
-							# 查看站点配置
-							6)
-								read -p "查看站点配置，请输入你的域名: " yuming
-								install nano
-								nano /home/web/conf.d/$yuming.conf
-								docker restart nginx
-								;;
-
-							# 删除指定站点
-							7)
-								read -p "删除站点数据目录，请输入你的域名: " yuming
-								rm -r /home/web/html/$yuming
-								rm /home/web/conf.d/$yuming.conf
-								rm /home/web/certs/${yuming}_key.pem
-								rm /home/web/certs/${yuming}_cert.pem
-								docker restart nginx
-								;;
-
-							# 删除指定数据库
-							8)
-								read -p "删除站点数据库，请输入数据库名: " shujuku
-								dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-								docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $shujuku;" 2> /dev/null
-								;;
-
-							0)
-								break  # 跳出循环，退出菜单
-								;;
-
-							*)
-								break  # 跳出循环，退出菜单
-								;;
-						esac
-
 						;;
 
 					# 备份全站数据
