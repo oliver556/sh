@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.13"
+sh_v="1.0.14"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -3146,13 +3146,31 @@ while true; do
 							# ls -t /home/web/conf.d | sed 's/\.[^.]*$//'
 							echo "${green}站点信息                      证书到期时间${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							for cert_file in /home/web/certs/*_cert.pem; do
-								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
+#							ToDo 下面会报错找不到路径文件
+#							for cert_file in /home/web/certs/*_cert.pem; do
+#								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
+#								if [ -n "$domain" ]; then
+#									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
+#									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
+#									printf "%-30s%s\n" "$domain" "$formatted_date"
+#								fi
+
+
+							certs_dir="/home/web/certs"
+							if [ -d "$certs_dir" ]; then
+								find "$certs_dir" -name '*_cert.pem' -type f | while read -r cert_file; do
+								domain=$(basename "$cert_file" | sed 's/_cert.pem//' 2>/dev/null || echo "")
 								if [ -n "$domain" ]; then
-									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
+									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print \$2}')
 									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
 									printf "%-30s%s\n" "$domain" "$formatted_date"
 								fi
+								done
+							else
+								echo "找不到证书目录: $certs_dir"
+								echo "找不到 PEM 证书文件。."
+						  fi
+
 						done
 
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -3259,8 +3277,8 @@ while true; do
 								break  # 跳出循环，退出菜单
 								;;
 						esac
-					done
 
+						done
 						;;
 
 					# 备份全站数据
