@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.24"
+sh_v="1.0.25"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -111,13 +111,16 @@ install() {
 			elif command -v yum &>/dev/null; then
 				yum -y update && yum -y install "$package"
 			elif command -v apt &>/dev/null; then
-				apt update -y && apt install -y "$package"
+				apt update -y && apt install -y "$package" || (echo "尝试使用 snap 进行安装" && sudo snap install "$package")
 			elif command -v apk &>/dev/null; then
 				apk update && apk add "$package"
 			else
 				echo "未知的包管理器!"
 				return 1
 			fi
+
+		else
+			echo "$package 已经安装"
 		fi
 	done
 
@@ -137,8 +140,25 @@ remove() {
 		return 1
 	fi
 
+#	for package in "$@"; do
+#		if command -v dnf &>/dev/null; then
+#			dnf remove -y "${package}*"
+#		elif command -v yum &>/dev/null; then
+#			yum remove -y "${package}*"
+#		elif command -v apt &>/dev/null; then
+#			apt purge -y "${package}*"
+#		elif command -v apk &>/dev/null; then
+#			apk del "${package}*"
+#		else
+#			echo "未知的包管理器!"
+#			return 1
+#		fi
+#	done
+
 	for package in "$@"; do
-		if command -v dnf &>/dev/null; then
+		if command -v snap &>/dev/null && snap list | grep -q "$package"; then
+			sudo snap remove "$package"
+		elif command -v dnf &>/dev/null; then
 			dnf remove -y "${package}*"
 		elif command -v yum &>/dev/null; then
 			yum remove -y "${package}*"
@@ -198,13 +218,33 @@ check_port() {
 }
 
 # 函数: 安装更新 Docker 环境
+#install_add_docker() {
+#	#  Alpine Linux 使用 apk 包管理器进行安装
+#	if [ -f "/etc/alpine-release" ]; then
+#		# 更新包管理器并安装 Docker
+#		apk update
+#		# 更新包管理器并安装 Docker Compose
+#		apk add docker docker-compose
+#		# 将 Docker 添加到默认的启动项
+#		rc-update add docker default
+#		# 启动 Docker
+#		service docker start
+#	else
+#		curl -fsSL https://get.docker.com | sh
+#		systemctl start docker
+#		systemctl enable docker
+#	fi
+#
+#	sleep 2
+#}
+# 函数: 安装更新 Docker 环境
 install_add_docker() {
 	#  Alpine Linux 使用 apk 包管理器进行安装
 	if [ -f "/etc/alpine-release" ]; then
 		# 更新包管理器并安装 Docker
 		apk update
 		# 更新包管理器并安装 Docker Compose
-		apk add docker docker-compose
+		apk add docker
 		# 将 Docker 添加到默认的启动项
 		rc-update add docker default
 		# 启动 Docker
@@ -218,14 +258,32 @@ install_add_docker() {
 	sleep 2
 }
 
+# 函数: 安装更新 Docker Compose 环境
+install_add_docker_compose() {
+	# Alpine Linux 使用 apk 包管理器进行安装
+	if [ -f "/etc/alpine-release" ]; then
+		# 更新包管理器并安装 Docker Compose
+		apk update
+		apk add docker-compose
+	else
+		# 在这里加入安装 Docker Compose 的命令，比如使用 curl 或其他方式
+		 curl -L "https://github.com/docker/compose/releases/download/X.Y.Z/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		 chmod +x /usr/local/bin/docker-compose
+	fi
+	sleep 2
+}
+
 # 函数: 检查系统中是否已经安装了 docker 和 docker-compose
 install_docker() {
-	if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
-#	if ! command -v docker compose &>/dev/null; then
+	if ! command -v docker &>/dev/null; then
 		install_add_docker
-	else
-		echo -e "${cyan}Docker 环境已安装${normal}"
 	fi
+
+	if ! command -v docker-compose &>/dev/null; then
+		install_add_docker_compose
+	fi
+
+	echo -e "${cyan}Docker 环境已安装${normal}"
 }
 
 # 函数: 开放所有端口
@@ -282,26 +340,62 @@ add_swap() {
 
 # 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 ldnmp_v() {
-      # 获取 nginx 版本
-      nginx_version=$(docker exec nginx nginx -v 2>&1)
-      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "nginx : ${huang}v$nginx_version${bai}"
+	# nginx
+	if docker exec nginx true > /dev/null 2>&1; then
+		# 获取 nginx 版本
+		nginx_version=$(docker exec nginx nginx -v 2>&1)
+		nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+	else
+		nginx_version="未安装"
+	fi
+	echo -n -e "nginx : ${huang}v$nginx_version${bai}"
 
-      # 获取 mysql 版本
-      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-      echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
+#	# 获取 nginx 版本
+#	nginx_version=$(docker exec nginx nginx -v 2>&1)
+#	nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+#	echo -n -e "nginx : ${huang}v$nginx_version${bai}"
 
-      # 获取 php 版本
-      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "            php : ${huang}v$php_version${bai}"
+	# mysql
+	if [ -f /home/web/docker-compose.yml ]; then
+		# 获取 mysql 版本
+		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+		mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
+	else
+		mysql_version="未安装"
+	fi
+	echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
 
-      # 获取 redis 版本
-      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-      echo -e "            redis : ${huang}v$redis_version${bai}"
+#	# 获取 mysql 版本
+#	dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+#	mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
+#	echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
 
-      echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-      echo ""
+	# 获取 php 版本
+	if docker exec php true > /dev/null 2>&1; then
+    	php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
+	else
+    	php_version="未安装"
+	fi
+	echo -n -e "            php : ${huang}v$php_version${bai}"
+
+#	# 获取 php 版本
+#	php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
+#	echo -n -e "            php : ${huang}v$php_version${bai}"
+
+	# 获取 redis 版本
+	if docker exec redis true > /dev/null 2>&1; then
+    	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
+	else
+    	redis_version="未安装"
+	fi
+	echo -e "            redis : ${huang}v$redis_version${bai}"
+
+#	# 获取 redis 版本
+#	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
+#	echo -e "            redis : ${huang}v$redis_version${bai}"
+
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo ""
 }
 
 # 函数: 更新 LDNMP 环境
@@ -543,7 +637,7 @@ docker_app() {
 		clear
 		echo -e "${green}$docker_name 已安装，访问地址: ${normal}"
 		ip_address
-		echo "http:$ipv4_address:$docker_port"
+		echo "http://$ipv4_address:$docker_port"
 		echo ""
 		echo -e "${cyan}应用操作${normal}"
 		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -566,7 +660,7 @@ docker_app() {
 				# 获取外部 IP 地址
 				ip_address
 				echo "您可以使用以下地址访问:"
-				echo "http:$ipv4_address:$docker_port"
+				echo "http://$ipv4_address:$docker_port"
 				$docker_use
 				$docker_passwd
 				;;
@@ -610,7 +704,7 @@ docker_app() {
 				# 获取外部 IP 地址
 				ip_address
 				echo "您可以使用以下地址访问:"
-				echo "http:$ipv4_address:$docker_port"
+				echo "http//:$ipv4_address:$docker_port"
 				$docker_use
 				$docker_passwd
 				;;
@@ -745,8 +839,7 @@ output_status() {
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "KB"; }
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "MB"; }
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "GB"; }
-
-			printf("总接收:\t\t%.2f %s\n总发送:\t\t%.2f %s\n", rx_total, rx_units, tx_total, tx_units);
+			printf("总接收:%*s%.2f %s\n总发送:%*s%.2f %s\n", 10, "", rx_total, rx_units, 10, "", tx_total, tx_units);
 		}' /proc/net/dev)
 }
 
@@ -1192,8 +1285,8 @@ while true; do
 	echo "12. 我的工作区 ▶ "
 	echo "13. 系统工具 ▶ "
 	echo "14. VPS 集群控制 ▶ "
-	echo "------------------------"
-	echo "p. 幻兽帕鲁开服脚本 ▶"
+#	echo "------------------------"
+#	echo "p. 幻兽帕鲁开服脚本 ▶"
 	echo "------------------------"
 	echo "00. 脚本更新"
 	echo "------------------------"
@@ -1308,33 +1401,33 @@ while true; do
 	    	echo ""
 			echo -e "${baizise}${bold}                  系统信息查询                  ${jiacu}"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "主机名:		$hostname"
-			echo "运营商:		$isp_info"
+			echo "主机名:          $hostname"
+			echo "运营商:		 $isp_info"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "系统版本:	$os_info"
-			echo "Linux 版本:	$kernel_version"
+			echo "系统版本:        $os_info"
+			echo "Linux 版本:      $kernel_version"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "CPU 架构:	$cpu_arch"
-			echo "CPU 型号:	$cpu_info"
-			echo "CPU 核心数:	$cpu_cores"
+			echo "CPU 架构:        $cpu_arch"
+			echo "CPU 型号:        $cpu_info"
+			echo "CPU 核心数:      $cpu_cores"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "CPU 占用:	$cpu_usage_percent%"
-			echo "物理内存:	$mem_info"
-			echo "虚拟内存:	$swap_info"
-			echo "硬盘占用:	$disk_info"
+			echo "物理内存:        $mem_info"
+			echo "虚拟内存:        $swap_info"
+			echo "硬盘占用:        $disk_info"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "$output"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "网络拥堵算法:	$congestion_algorithm $queue_algorithm"
+			echo "网络拥堵算法:    $congestion_algorithm $queue_algorithm"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "公网 IPv4 地址:	$ipv4_address"
-			echo "公网 IPv6 地址:	$ipv6_address"
+			echo "公网 IPv4 地址:  $ipv4_address"
+			echo "公网 IPv6 地址:  $ipv6_address"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "地理位置:	$country $city"
-			echo "系统时间:	$current_time"
-			echo "系统时间:	$current_time"
+			echo "地理位置:	 $country $city"
+			echo "系统时间:	 $current_time"
+			echo "系统时间:	 $current_time"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "系统运行时长: $runtime"
+			echo "系统运行时长:    $runtime"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
     		;;
@@ -1363,8 +1456,8 @@ while true; do
 				echo "4. socat 通信连接工具 （申请域名证书必备）"
 				echo "5. htop 系统监控工具"
 				echo "6. iftop 网络流量监控工具"
-				echo "7. unzip ZIP压缩解压工具"
-				echo "8. tar GZ压缩解压工具"
+				echo "7. unzip ZIP 压缩解压工具"
+				echo "8. tar GZ 压缩解压工具"
 				echo "9. tmux 多路后台运行工具"
 				echo "10. ffmpeg 视频编码直播推流工具"
 			  	echo "11. btop 现代化监控工具"
@@ -1491,7 +1584,15 @@ while true; do
 						clear
 						install btop
 						clear
-						btop
+						# 检查 btop 是否安装成功
+                        if command -v btop &>/dev/null; then
+                            clear
+                            btop
+                        else
+                            echo "btop: command not found" | tee -a install.log
+                            exit 1
+                        fi
+#						btop
 						;;
 
 					# ranger 文件管理工具
@@ -1510,7 +1611,6 @@ while true; do
 						install gdu
 						cd /
 						clear
-						sleep 2
 						gdu
 						cd ~
 						;;
@@ -1526,6 +1626,7 @@ while true; do
 						;;
 
 					# ------------------------------------------------
+
 					# cmatrix 黑客帝国屏保
 					21)
 						clear
@@ -1534,6 +1635,7 @@ while true; do
 						cmatrix
 						;;
 					# ------------------------------------------------
+
 #					 sl 跑火车屏保
 #					22)
 #						clear
@@ -1567,20 +1669,22 @@ while true; do
 #						;;
 
 					# ------------------------------------------------
+
 					# 全部安装
 					31)
 						clear
 						# btop ranger sl bastet nsnake ninvaders
-						install curl wget sudo socat htop iftop unzip tar tmux ffmpeg gdu fzf cmatrix nsnake
+						install curl wget sudo socat htop iftop unzip tar tmux ffmpeg btop gdu fzf cmatrix
 						;;
 
 					# 全部卸载
 					32)
 						clear
-						remove htop iftop unzip tmux ffmpeg gdu fzf cmatrix
+						remove htop iftop unzip tmux ffmpeg btop gdu fzf cmatrix
 						;;
 
 					# ------------------------------------------------
+
 					# 安装指定工具
 					41)
 						clear
@@ -1596,6 +1700,7 @@ while true; do
 						;;
 
 					# ------------------------------------------------
+
 					# 返回主菜单
 					0)
 						leon
@@ -1822,6 +1927,8 @@ while true; do
 							13)
 								echo ""
 								container_ids=$(docker ps -q)
+
+								clear
 
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								printf "%-25s %-25s %-25s\n" "容器名称" "网络名称" "IP地址"
@@ -2409,9 +2516,9 @@ while true; do
 				clear
 				echo -e "${baizise}${bold}                  LDNMP 建站                    ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "1. 安装 LDNMP 环境"
+				echo  "1.  安装 LDNMP 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "2. 安装 WordPress"
+				echo  "2.  安装 WordPress"
 #				echo  "3. 安装 Discuz 论坛"
 #				echo  "4. 安装可道云桌面"
 #				echo  "5. 安装苹果 CMS 网站"
@@ -2872,6 +2979,7 @@ while true; do
 						echo -e "${green}nginx 已安装完成${normal}"
 						echo -e "当前版本: ${yellow}v$nginx_version${normal}"
 						echo ""
+
 						;;
 
 					# 站点重定向
@@ -2969,6 +3077,7 @@ while true; do
 						;;
 
 					# 安装 Bitwarden 密码管理平台
+
 #					25)
 #						clear
 #						webname="Bitwarden"
@@ -3019,37 +3128,36 @@ while true; do
 							# ls -t /home/web/conf.d | sed 's/\.[^.]*$//'
 							echo "${green}站点信息                      证书到期时间${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-#							ToDo 下面会报错找不到路径文件
-							for cert_file in /home/web/certs/*_cert.pem; do
-								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
-								if [ -n "$domain" ]; then
-									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
-									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
-									printf "%-30s%s\n" "$domain" "$formatted_date"
-								fi
-							done
 
-#							certs_dir="/home/web/certs"
-#							if [ -d "$certs_dir" ]; then
-#								find "$certs_dir" -name '*_cert.pem' -type f | while read -r cert_file; do
-#								domain=$(basename "$cert_file" | sed 's/_cert.pem//' 2>/dev/null || echo "")
-#								if [ -n "$domain" ]; then
-#									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print \$2}')
-#									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
-#									printf "%-30s%s\n" "$domain" "$formatted_date"
-#								fi
-#								done
-#							else
-#								echo "找不到证书目录: $certs_dir"
-#								echo "找不到 PEM 证书文件。."
-#						  	fi
+							for cert_file in /home/web/certs/*_cert.pem; do
+								# 检查文件是否存在，避免后续脚本因为找不到而报错
+                            	if [ -e "$cert_file" ]; then
+                            		domain=$(basename "$cert_file" | sed 's/_cert.pem//')
+                            		if [ -n "$domain" ]; then
+                            			expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
+                            			formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
+                            			printf "%-30s%s\n" "$domain" "$formatted_date"
+                            		fi
+								else
+									echo -e "${grey}暂无创建站点${normal}"
+                            	fi
+                            done
 
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo ""
 							echo -e "${green}数据库信息${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-							docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
+#							dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+#							docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
+
+							docker_exec_output=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null)
+                            output=$(echo "$docker_exec_output" | grep -Ev "Database|information_schema|mysql|performance_schema|sys")
+
+                            if [ -n "$output" ]; then
+                                echo "$output"
+                            else
+                                echo -e "${grey}暂无数据库${normal}"
+                            fi
 
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo ""
@@ -3578,7 +3686,7 @@ while true; do
 				echo "17. AdGuardHome 去广告软件              18. onlyoffice 在线办公 OFFICE"
 				echo "19. 雷池 WAF 防火墙面板                 20. portainer 容器管理面板"
 				echo "21. VScode 网页版                       22. UptimeKuma 监控工具"
-				echo "23. Memos 网页备忘录                     24. Webtop 远程桌面网页版"
+				echo "23. Memos 网页备忘录                    24. Webtop 远程桌面网页版"
 				echo "25. Nextcloud 网盘                      26. QD-Today 定时任务管理框架"
 				echo "27. Dockge 容器堆栈管理面板             28. LibreSpeed 测速工具"
 				echo "29. searxng 聚合搜索站                  30. PhotoPrism 私有相册系统"
@@ -3691,14 +3799,14 @@ while true; do
 						docker_img="xhofe/alist:latest"
 						docker_port=5244
 						docker_rum="docker run -d \
-																--restart=always \
-																-v /home/docker/alist:/opt/alist/data \
-																-p 5244:5244 \
-																-e PUID=0 \
-																-e PGID=0 \
-																-e UMASK=022 \
-																--name="alist" \
-																xhofe/alist:latest"
+									--restart=always \
+									-v /home/docker/alist:/opt/alist/data \
+									-p 5244:5244 \
+									-e PUID=0 \
+									-e PGID=0 \
+									-e UMASK=022 \
+									--name="alist" \
+									xhofe/alist:latest"
 						docker_describe="一个支持多种存储，支持网页浏览和 WebDAV 的文件列表程序，由 gin 和 Solidjs 驱动"
 						docker_url="官网介绍: https://alist.nn.ci/zh/"
 						docker_use="docker exec -it alist ./alist admin random"
@@ -3909,7 +4017,7 @@ while true; do
 							clear
 							echo -e "${green}rocket.chat 已安装，访问地址: ${normal}"
 							ip_address
-							echo "http:$ipv4_address:3897"
+							echo "http://$ipv4_address:3897"
 							echo ""
 
 							echo -e "${cyan}应用操作${normal}"
@@ -3935,7 +4043,7 @@ while true; do
 									echo -e "${green}rocket.chat 已经安装完成${normal}"
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "多等一会，您可以使用以下地址访问 rocket.chat:"
-									echo "http:$ipv4_address:3897"
+									echo "http://$ipv4_address:3897"
 									echo ""
 									;;
 
@@ -3988,7 +4096,7 @@ while true; do
 								echo -e "${green}rocket.chat 已经安装完成${normal}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "多等一会，您可以使用以下地址访问 rocket.chat:"
-								echo "http:$ipv4_address:3897"
+								echo "http://$ipv4_address:3897"
 								echo ""
 								;;
 
@@ -4047,7 +4155,7 @@ while true; do
 						clear
 						echo -e "${green}cloudreve 已安装，访问地址: ${normal}"
 						ip_address
-						echo "http:$ipv4_address:5212"
+						echo "http://$ipv4_address:5212"
 						echo ""
 
 						echo -e "${cyan}应用操作${normal}"
@@ -4077,7 +4185,7 @@ while true; do
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "您可以使用以下地址访问 cloudreve:"
 								ip_address
-								echo "http:$ipv4_address:5212"
+								echo "http://$ipv4_address:5212"
 								sleep 3
 								docker logs cloudreve
 								echo ""
@@ -4127,7 +4235,7 @@ while true; do
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "您可以使用以下地址访问 cloudreve:"
 							ip_address
-							echo "http:$ipv4_address:5212"
+							echo "http://$ipv4_address:5212"
 							sleep 3
 							docker logs cloudreve
 							echo ""
@@ -4149,15 +4257,15 @@ while true; do
 						docker_img="ddsderek/easyimage:latest"
 						docker_port=85
 						docker_rum="docker run -d \
-											--name easyimage \
-											-p 85:80 \
-											-e TZ=Asia/Shanghai \
-											-e PUID=1000 \
-											-e PGID=1000 \
-											-v /home/docker/easyimage/config:/app/web/config \
-											-v /home/docker/easyimage/i:/app/web/i \
-											--restart unless-stopped \
-											ddsderek/easyimage:latest"
+									--name easyimage \
+									-p 85:80 \
+									-e TZ=Asia/Shanghai \
+									-e PUID=1000 \
+									-e PGID=1000 \
+									-v /home/docker/easyimage/config:/app/web/config \
+									-v /home/docker/easyimage/i:/app/web/i \
+									--restart unless-stopped \
+									ddsderek/easyimage:latest"
 						docker_describe="简单图床是一个简单的图床程序"
 						docker_url="官网介绍: https://github.com/icret/EasyImages2.0"
 						docker_use=""
@@ -4172,13 +4280,13 @@ while true; do
 						docker_img="linuxserver/emby:latest"
 						docker_port=8096
 						docker_rum="docker run -d --name=emby --restart=always \
-												-v /homeo/docker/emby/config:/config \
-												-v /homeo/docker/emby/share1:/mnt/share1 \
-												-v /homeo/docker/emby/share2:/mnt/share2 \
-												-v /mnt/notify:/mnt/notify \
-												-p 8096:8096 -p 8920:8920 \
-												-e UID=1000 -e GID=100 -e GIDLIST=100 \
-												linuxserver/emby:latest"
+									-v /homeo/docker/emby/config:/config \
+									-v /homeo/docker/emby/share1:/mnt/share1 \
+									-v /homeo/docker/emby/share2:/mnt/share2 \
+									-v /mnt/notify:/mnt/notify \
+									-p 8096:8096 -p 8920:8920 \
+									-e UID=1000 -e GID=100 -e GIDLIST=100 \
+									linuxserver/emby:latest"
 						docker_describe="emby 是一个主从式架构的媒体服务器软件，可以用来整理服务器上的视频和音频，并将音频和视频流式传输到客户端设备"
 						docker_url="官网介绍: https://emby.media/"
 						docker_use=""
@@ -4205,14 +4313,14 @@ while true; do
 						docker_img="adguard/adguardhome"
 						docker_port=3000
 						docker_rum="docker run -d \
-														--name adguardhome \
-														-v /home/docker/adguardhome/work:/opt/adguardhome/work \
-														-v /home/docker/adguardhome/conf:/opt/adguardhome/conf \
-														-p 53:53/tcp \
-														-p 53:53/udp \
-														-p 3000:3000/tcp \
-														--restart always \
-														adguard/adguardhome"
+									--name adguardhome \
+									-v /home/docker/adguardhome/work:/opt/adguardhome/work \
+									-v /home/docker/adguardhome/conf:/opt/adguardhome/conf \
+									-p 53:53/tcp \
+									-p 53:53/udp \
+									-p 3000:3000/tcp \
+									--restart always \
+									adguard/adguardhome"
 						docker_describe="AdGuardHome 是一款全网广告拦截与反跟踪软件，未来将不止是一个 DNS 服务器。"
 						docker_url="官网介绍: https://hub.docker.com/r/adguard/adguardhome"
 						docker_use=""
@@ -4227,11 +4335,11 @@ while true; do
 						docker_img="onlyoffice/documentserver"
 						docker_port=8082
 						docker_rum="docker run -d -p 8082:80 \
-												--restart=always \
-												--name onlyoffice \
-												-v /home/docker/onlyoffice/DocumentServer/logs:/var/log/onlyoffice  \
-												-v /home/docker/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data  \
-												 onlyoffice/documentserver"
+									--restart=always \
+									--name onlyoffice \
+									-v /home/docker/onlyoffice/DocumentServer/logs:/var/log/onlyoffice  \
+									-v /home/docker/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data  \
+									 onlyoffice/documentserver"
 						docker_describe="onlyoffice 是一款开源的在线 office 工具，太强大了！"
 						docker_url="官网介绍: https://www.onlyoffice.com/"
 						docker_use=""
@@ -4246,7 +4354,7 @@ while true; do
 							clear
 							echo -e "${green}雷池已安装，访问地址: ${normal}"
 							ip_address
-							echo "http:$ipv4_address:9443"
+							echo "http://$ipv4_address:9443"
 							echo ""
 
 							echo -e "${cyan}应用操作${normal}"
@@ -4303,7 +4411,7 @@ while true; do
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "您可以使用以下地址访问:"
 									ip_address
-									echo "http:$ipv4_address:9443"
+									echo "http://$ipv4_address:9443"
 									echo ""
 									;;
 
@@ -4322,12 +4430,12 @@ while true; do
 						docker_img="portainer/portainer"
 						docker_port=9050
 						docker_rum="docker run -d \
-										--name portainer \
-										-p 9050:9000 \
-										-v /var/run/docker.sock:/var/run/docker.sock \
-										-v /home/docker/portainer:/data \
-										--restart always \
-										portainer/portainer"
+									--name portainer \
+									-p 9050:9000 \
+									-v /var/run/docker.sock:/var/run/docker.sock \
+									-v /home/docker/portainer:/data \
+									--restart always \
+									portainer/portainer"
 						docker_describe="portainer 是一个轻量级的 docker 容器管理面板"
 						docker_url="官网介绍: https://www.portainer.io/"
 						docker_use=""
@@ -4354,11 +4462,11 @@ while true; do
 							docker_img="louislam/uptime-kuma:latest"
 							docker_port=3003
 							docker_rum="docker run -d \
-															--name=uptime-kuma \
-															-p 3003:3001 \
-															-v /home/docker/uptime-kuma/uptime-kuma-data:/app/data \
-															--restart=always \
-															louislam/uptime-kuma:latest"
+										--name=uptime-kuma \
+										-p 3003:3001 \
+										-v /home/docker/uptime-kuma/uptime-kuma-data:/app/data \
+										--restart=always \
+										louislam/uptime-kuma:latest"
 							docker_describe="Uptime Kuma 易于使用的自托管监控工具"
 							docker_url="官网介绍: https://github.com/louislam/uptime-kuma"
 							docker_use=""
@@ -4385,23 +4493,23 @@ while true; do
 						docker_img="lscr.io/linuxserver/webtop:latest"
 						docker_port=3083
 						docker_rum="docker run -d \
-													--name=webtop \
-													--security-opt seccomp=unconfined \
-													-e PUID=1000 \
-													-e PGID=1000 \
-													-e TZ=Etc/UTC \
-													-e SUBFOLDER=/ \
-													-e TITLE=Webtop \
-													-e LC_ALL=zh_CN.UTF-8 \
-													-e DOCKER_MODS=linuxserver/mods:universal-package-install \
-													-e INSTALL_PACKAGES=font-noto-cjk \
-													-p 3083:3000 \
-													-v /home/docker/webtop/data:/config \
-													-v /var/run/docker.sock:/var/run/docker.sock \
-													--device /dev/dri:/dev/dri \
-													--shm-size="1gb" \
-													--restart unless-stopped \
-													lscr.io/linuxserver/webtop:latest"
+									--name=webtop \
+									--security-opt seccomp=unconfined \
+									-e PUID=1000 \
+									-e PGID=1000 \
+									-e TZ=Etc/UTC \
+									-e SUBFOLDER=/ \
+									-e TITLE=Webtop \
+									-e LC_ALL=zh_CN.UTF-8 \
+									-e DOCKER_MODS=linuxserver/mods:universal-package-install \
+									-e INSTALL_PACKAGES=font-noto-cjk \
+									-p 3083:3000 \
+									-v /home/docker/webtop/data:/config \
+									-v /var/run/docker.sock:/var/run/docker.sock \
+									--device /dev/dri:/dev/dri \
+									--shm-size="1gb" \
+									--restart unless-stopped \
+									lscr.io/linuxserver/webtop:latest"
 
 						docker_describe="webtop基于 Alpine、Ubuntu、Fedora 和 Arch 的容器，包含官方支持的完整桌面环境，可通过任何现代 Web 浏览器访问"
 						docker_url="官网介绍: https://docs.linuxserver.io/images/docker-webtop/"
@@ -4430,7 +4538,7 @@ while true; do
 						docker_img="qdtoday/qd:latest"
 						docker_port=8923
 						docker_rum="docker run -d --name qd -p 8923:80 -v /home/docker/qd/config:/usr/src/app/config qdtoday/qd"
-						docker_describe="QD-Today是一个HTTP请求定时任务自动执行框架"
+						docker_describe="QD-Today 是一个 HTTP 请求定时任务自动执行框架"
 						docker_url="官网介绍: https://qd-today.github.io/qd/zh_CN/"
 						docker_use=""
 						docker_passwd=""
@@ -4456,12 +4564,12 @@ while true; do
 						docker_img="ghcr.io/librespeed/speedtest:latest"
 						docker_port=6681
 						docker_rum="docker run -d \
-														--name speedtest \
-														--restart always \
-														-e MODE=standalone \
-														-p 6681:80 \
-														ghcr.io/librespeed/speedtest:latest"
-						docker_describe="librespeed是用Javascript实现的轻量级速度测试工具，即开即用"
+									--name speedtest \
+									--restart always \
+									-e MODE=standalone \
+									-p 6681:80 \
+									ghcr.io/librespeed/speedtest:latest"
+						docker_describe="librespeed 是用 Javascript 实现的轻量级速度测试工具，即开即用"
 						docker_url="官网介绍: https://github.com/librespeed/speedtest"
 						docker_use=""
 						docker_passwd=""
@@ -4474,13 +4582,13 @@ while true; do
 						docker_img="alandoyle/searxng:latest"
 						docker_port=8700
 						docker_rum="docker run --name=searxng \
-														-d --init \
-														--restart=unless-stopped \
-														-v /home/docker/searxng/config:/etc/searxng \
-														-v /home/docker/searxng/templates:/usr/local/searxng/searx/templates/simple \
-														-v /home/docker/searxng/theme:/usr/local/searxng/searx/static/themes/simple \
-														-p 8700:8080/tcp \
-														alandoyle/searxng:latest"
+									-d --init \
+									--restart=unless-stopped \
+									-v /home/docker/searxng/config:/etc/searxng \
+									-v /home/docker/searxng/templates:/usr/local/searxng/searx/templates/simple \
+									-v /home/docker/searxng/theme:/usr/local/searxng/searx/static/themes/simple \
+									-p 8700:8080/tcp \
+									alandoyle/searxng:latest"
 						docker_describe="searxng 是一个私有且隐私的搜索引擎站点"
 						docker_url="官网介绍: https://hub.docker.com/r/alandoyle/searxng"
 						docker_use=""
@@ -4495,17 +4603,17 @@ while true; do
 						docker_port=2342
 						rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
 						docker_rum="docker run -d \
-														--name photoprism \
-														--restart always \
-														--security-opt seccomp=unconfined \
-														--security-opt apparmor=unconfined \
-														-p 2342:2342 \
-														-e PHOTOPRISM_UPLOAD_NSFW="true" \
-														-e PHOTOPRISM_ADMIN_PASSWORD="$rootpasswd" \
-														-v /home/docker/photoprism/storage:/photoprism/storage \
-														-v /home/docker/photoprism/Pictures:/photoprism/originals \
-														photoprism/photoprism"
-						docker_describe="photoprism非常强大的私有相册系统"
+									--name photoprism \
+									--restart always \
+									--security-opt seccomp=unconfined \
+									--security-opt apparmor=unconfined \
+									-p 2342:2342 \
+									-e PHOTOPRISM_UPLOAD_NSFW="true" \
+									-e PHOTOPRISM_ADMIN_PASSWORD="$rootpasswd" \
+									-v /home/docker/photoprism/storage:/photoprism/storage \
+									-v /home/docker/photoprism/Pictures:/photoprism/originals \
+									photoprism/photoprism"
+						docker_describe="photoprism 非常强大的私有相册系统"
 						docker_url="官网介绍: https://www.photoprism.app/"
 						docker_use="echo \"账号: admin  密码: $rootpasswd\""
 						docker_passwd=""
@@ -4518,14 +4626,14 @@ while true; do
 						docker_img="frooodle/s-pdf:latest"
 						docker_port=8020
 						docker_rum="docker run -d \
-														--name s-pdf \
-														--restart=always \
-														 -p 8020:8080 \
-														 -v /home/docker/s-pdf/trainingData:/usr/share/tesseract-ocr/5/tessdata \
-														 -v /home/docker/s-pdf/extraConfigs:/configs \
-														 -v /home/docker/s-pdf/logs:/logs \
-														 -e DOCKER_ENABLE_SECURITY=false \
-														 frooodle/s-pdf:latest"
+									--name s-pdf \
+									--restart=always \
+									 -p 8020:8080 \
+									 -v /home/docker/s-pdf/trainingData:/usr/share/tesseract-ocr/5/tessdata \
+									 -v /home/docker/s-pdf/extraConfigs:/configs \
+									 -v /home/docker/s-pdf/logs:/logs \
+									 -e DOCKER_ENABLE_SECURITY=false \
+									 frooodle/s-pdf:latest"
 						docker_describe="这是一个强大的本地托管基于 Web 的 PDF 操作工具，使用 docker，允许您对 PDF 文件执行各种操作，例如拆分合并、转换、重新组织、添加图像、旋转、压缩等。"
 						docker_url="官网介绍: https://github.com/Stirling-Tools/Stirling-PDF"
 						docker_use=""
@@ -4552,12 +4660,12 @@ while true; do
 						docker_img="hslr/sun-panel"
 						docker_port=3009
 						docker_rum="docker run -d --restart=always -p 3009:3002 \
-														-v /home/docker/sun-panel/conf:/app/conf \
-														-v /home/docker/sun-panel/uploads:/app/uploads \
-														-v /home/docker/sun-panel/database:/app/database \
-														--name sun-panel \
-														hslr/sun-panel"
-						docker_describe="Sun-Panel服务器、NAS导航面板、Homepage、浏览器首页"
+									-v /home/docker/sun-panel/conf:/app/conf \
+									-v /home/docker/sun-panel/uploads:/app/uploads \
+									-v /home/docker/sun-panel/database:/app/database \
+									--name sun-panel \
+									hslr/sun-panel"
+						docker_describe="Sun-Panel 服务器、NAS 导航面板、Homepage、浏览器首页"
 						docker_url="官网介绍: https://doc.sun-panel.top/zh_cn/"
 						docker_use="echo \"账号: admin@sun.cc  密码: 12345678\""
 						docker_passwd=""
@@ -4570,11 +4678,11 @@ while true; do
 						docker_img="stonith404/pingvin-share"
 						docker_port=3060
 						docker_rum="docker run -d \
-														--name pingvin-share \
-														--restart always \
-														-p 3060:3000 \
-														-v /home/docker/pingvin-share/data:/opt/app/backend/data \
-														stonith404/pingvin-share"
+									--name pingvin-share \
+									--restart always \
+									-p 3060:3000 \
+									-v /home/docker/pingvin-share/data:/opt/app/backend/data \
+									stonith404/pingvin-share"
 						docker_describe="Pingvin Share 是一个可自建的文件分享平台，是 WeTransfer 的一个替代品"
 						docker_url="官网介绍: https://github.com/stonith404/pingvin-share"
 						docker_use=""
@@ -4588,12 +4696,12 @@ while true; do
 						docker_img="kingwrcy/moments:latest"
 						docker_port=8035
 						docker_rum="docker run -d --restart unless-stopped \
-														-p 8035:3000 \
-														-v /home/docker/moments/data:/app/data \
-														-v /etc/localtime:/etc/localtime:ro \
-														-v /etc/timezone:/etc/timezone:ro \
-														--name moments \
-														kingwrcy/moments:latest"
+									-p 8035:3000 \
+									-v /home/docker/moments/data:/app/data \
+									-v /etc/localtime:/etc/localtime:ro \
+									-v /etc/timezone:/etc/timezone:ro \
+									--name moments \
+									kingwrcy/moments:latest"
 						docker_describe="极简朋友圈，高仿微信朋友圈，记录你的美好生活"
 						docker_url="官网介绍: https://github.com/kingwrcy/moments?tab=readme-ov-file"
 						docker_use="echo \"账号: admin  密码: a123456\""
@@ -4607,10 +4715,10 @@ while true; do
 						docker_img="lobehub/lobe-chat:latest"
 						docker_port=8036
 						docker_rum="docker run -d -p 8036:3210 \
-														--name lobe-chat \
-														--restart=always \
-														lobehub/lobe-chat"
-						docker_describe="LobeChat聚合市面上主流的AI大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
+									--name lobe-chat \
+									--restart=always \
+									lobehub/lobe-chat"
+						docker_describe="LobeChat 聚合市面上主流的 AI 大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
 						docker_url="官网介绍: https://github.com/lobehub/lobe-chat"
 						docker_use=""
 						docker_passwd=""
@@ -4663,11 +4771,11 @@ while true; do
 				echo "3. 3 号工作区"
 				echo "4. 4 号工作区"
 				echo "5. 5 号工作区"
-				echo "6. 6 号工作区"
-				echo "7. 7 号工作区"
-				echo "8. 8 号工作区"
-				echo "9. 9 号工作区"
-				echo "10. 10 号工作区"
+#				echo "6. 6 号工作区"
+#				echo "7. 7 号工作区"
+#				echo "8. 8 号工作区"
+#				echo "9. 9 号工作区"
+#				echo "10. 10 号工作区"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "99. 工作区状态"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -4717,40 +4825,40 @@ while true; do
 						tmux_run
 						;;
 
-					6)
-						clear
-						install tmux
-						SESSION_NAME="work6"
-						tmux_run
-						;;
-
-					7)
-						clear
-						install tmux
-						SESSION_NAME="work7"
-						tmux_run
-						;;
-
-					8)
-						clear
-						install tmux
-						SESSION_NAME="work8"
-						tmux_run
-						;;
-
-					9)
-						clear
-						install tmux
-						SESSION_NAME="work9"
-						tmux_run
-						;;
-
-					10)
-						clear
-						install tmux
-						SESSION_NAME="work10"
-						tmux_run
-						;;
+#					6)
+#						clear
+#						install tmux
+#						SESSION_NAME="work6"
+#						tmux_run
+#						;;
+#
+#					7)
+#						clear
+#						install tmux
+#						SESSION_NAME="work7"
+#						tmux_run
+#						;;
+#
+#					8)
+#						clear
+#						install tmux
+#						SESSION_NAME="work8"
+#						tmux_run
+#						;;
+#
+#					9)
+#						clear
+#						install tmux
+#						SESSION_NAME="work9"
+#						tmux_run
+#						;;
+#
+#					10)
+#						clear
+#						install tmux
+#						SESSION_NAME="work10"
+#						tmux_run
+#						;;
 
 					99)
 						clear
@@ -4909,6 +5017,7 @@ while true; do
 					# 开放所有端口
 					5)
 						root_use
+						echo -e "${cyan}打开端口中，请稍后，很快就好......${jiacu}"
 						iptables_open
 						remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 						echo "端口已全部开放"
@@ -6169,7 +6278,7 @@ EOF
 							case $host_dns in
 								# 添加新的解析
 								1)
-									read -p "请输入新的解析记录 格式: 110.25.5.33 kejilion.pro : " addhost
+									read -p "请输入新的解析记录 格式: 142.251.42.238 google.com : " addhost
 									echo "$addhost" >> /etc/hosts
 									;;
 
@@ -6392,7 +6501,7 @@ EOF
 						remote_ip="66.42.61.110"
 						remote_user="liaotian123"
 						remote_file="/home/liaotian123/liaotian.txt"
-						password="kejilionYYDS"  # 替换为您的密码
+						password="leonYYDS"  # 替换为您的密码
 
 						clear
 						echo "leon 留言板"
@@ -6567,8 +6676,8 @@ EOF
                         echo "11. 安装 Leon 脚本           12. 更新系统              13. 清理系统"
                         echo "14. 安装 docker              15. 安装 BBR3             16. 设置 1G 虚拟内存"
                         echo "17. 设置时区到上海           18. 开放所有端口"
-                        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-                        echo "51. 自定义指令"
+#                        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#                        echo "51. 自定义指令"
                         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
                         echo "0. 返回上一级选单"
                         echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -6650,16 +6759,16 @@ EOF
                          		;;
 
                        		# 自定义指令
-                      		51)
-
-                          		read -p "请输入批量执行的命令: " mingling
-                          		py_task=custom_tasks.py
-                          		cd ~/cluster/
-#                          		ToDo 需要新增脚本
-                          		curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
-							  	sed -i "s#Customtasks#$mingling#g" ~/cluster/$py_task
-							  	python3 ~/cluster/$py_task
-							  	;;
+#                      		51)
+#
+#                          		read -p "请输入批量执行的命令: " mingling
+#                          		py_task=custom_tasks.py
+#                          		cd ~/cluster/
+##                          		ToDo 需要新增脚本
+#                          		curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
+#							  	sed -i "s#Customtasks#$mingling#g" ~/cluster/$py_task
+#							  	python3 ~/cluster/$py_task
+#							  	;;
 
                       		0)
                           		break  # 跳出循环，退出菜单
@@ -6724,12 +6833,12 @@ EOF
 
     	;;
 
-		# 幻兽帕鲁开服脚本
-		p)
-			cd ~
-			curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
-			exit
-			;;
+#		# 幻兽帕鲁开服脚本
+#		p)
+#			cd ~
+#			curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
+#			exit
+#			;;
 
 		# 脚本更新
 		00)
