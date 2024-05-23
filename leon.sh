@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.25"
+sh_v="1.0.26"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -1465,7 +1465,8 @@ while true; do
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "21. cmatrix 黑客帝国屏保"
+				echo "21. Dedicated-Seedbox Vertex qBittorrent 一键工具 ▶"
+#				echo "21. cmatrix 黑客帝国屏保"
 #				echo "22. sl 跑火车屏保"
 #				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 #				echo "26. 俄罗斯方块小游戏"
@@ -1626,17 +1627,102 @@ while true; do
 						;;
 
 					# ------------------------------------------------
-
-					# cmatrix 黑客帝国屏保
+					# Dedicated-Seedbox Vertex qBittorrent 一键工具
 					21)
-						clear
-						install cmatrix
-						clear
-						cmatrix
+						while true; do
+							clear
+							echo ""
+							echo "官网介绍：https://wiki.vertex.icu"
+							echo ""
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo -e "${cyan}默认执行参数:${normal}"
+							echo -e "用户名: ${yellow}seedbox${normal} 密码: ${yellow}seedbox${normal} 缓存大小: ${yellow}3GB${normal} qBittorrent: ${yellow}v4.3.9${normal} libtorrent: ${yellow}v1.2.19${normal} ${yellow}vertex${normal} ${yellow}启用 BBRx${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "1. 预设参数安装"
+							echo "2. 自定义参数安装"
+							echo ""
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "0. 返回上一级选单"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								# 预设参数安装
+								1)
+									clear
+									check_command wget
+									bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+									;;
+
+								# 自定义参数安装
+								2)
+									clear
+									check_command wget
+									read -p "请输入用户名 (默认: admin): " username
+									username=${username:-admin}
+									read -p "请输入密码 (默认: admin): " password
+									password=${password:-admin}
+									read -p "请输入缓存大小（单位：MB，默认: 3072）: " cache_size
+									cache_size=${cache_size:-3072}
+									read -p "是否安装 autobrr？ (y/n, 默认: n): " install_autobrr
+									install_autobrr=${install_autobrr:-n}
+									read -p "是否安装 vertex？ (y/n, 默认: y): " install_vertex
+									install_vertex=${install_vertex:-y}
+									read -p "是否安装 autoremove-torrents？ (y/n, 默认: n): " install_autoremove
+									install_autoremove=${install_autoremove:-n}
+									read -p "是否启动 BBR V3？ (y/n, 默认: n): " enable_bbr_v3
+									enable_bbr_v3=${enable_bbr_v3:-n}
+									read -p "是否启动 BBRx？ (y/n, 默认: y): " enable_bbrx
+									enable_bbrx=${enable_bbrx:-y}
+									read -p "请输入自定义端口号（不需要输入则留空）: " custom_port
+
+									# 构建参数字符串
+									params="-u $username -p $password -c $cache_size"
+									if [ "$install_autobrr" == "y" ]; then
+										params="$params -b"
+									fi
+									if [ "$install_vertex" == "y" ]; then
+										params="$params -v"
+									fi
+									if [ "$install_autoremove" == "y" ]; then
+										params="$params -r"
+									fi
+									if [ "$enable_bbr_v3" == "y" ]; then
+										params="$params -3"
+									fi
+									if [ "$enable_bbrx" == "y" ]; then
+										params="$params -x"
+									fi
+									if [ -n "$custom_port" ]; then
+										params="$params -o $custom_port"
+									fi
+
+									# 执行安装脚本，并传入用户输入的参数
+                                    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
+
+						done
 						;;
+
+#					# cmatrix 黑客帝国屏保
+#					21)
+#						clear
+#						install cmatrix
+#						clear
+#						cmatrix
+#						;;
 					# ------------------------------------------------
 
-#					 sl 跑火车屏保
+#					# sl 跑火车屏保
 #					22)
 #						clear
 #						install sl
@@ -1644,7 +1730,7 @@ while true; do
 #						/usr/games/sl
 #						;;
 #
-#					 俄罗斯方块小游戏
+#					# 俄罗斯方块小游戏
 #					26)
 #						clear
 #						install bastet
@@ -1652,7 +1738,7 @@ while true; do
 #						/usr/games/bastet
 #						;;
 #
-#					 贪吃蛇小游戏
+#					# 贪吃蛇小游戏
 #					27)
 #						clear
 #						install nsnake
@@ -1660,7 +1746,7 @@ while true; do
 #						/usr/games/nsnake
 #						;;
 #
-#					 太空入侵者小游戏
+#					# 太空入侵者小游戏
 #					28)
 #						clear
 #						install ninvaders
