@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.22"
+sh_v="1.0.23"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -2461,13 +2461,17 @@ while true; do
 						# 创建必要的目录和文件
 						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
 
-						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+#						ToDo
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
+#						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+#						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
 						# 创建自签名的 SSL 证书并将其存储在指定的目录中
 						default_server_ssl
 
 						# 下载 docker-compose.yml 文件并进行替换
-						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
+						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+#						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
 
 						dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
 
