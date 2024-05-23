@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.20"
+sh_v="1.0.21"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -63,7 +63,6 @@ break_end() {
 leon() {
 	n
 	exit
-
 }
 
 # 函数: 是否以 root 用户身份运行
@@ -167,11 +166,11 @@ speed_test_tool() {
 		# 检查 curl 是否已安装
 		if ! command -v curl &> /dev/null; then
 			echo "curl 未安装，开始安装..."
-			install_package curl
+			install curl
 
 		else
 			# 更新一下
-			install_package curl
+			install curl
 		fi
 
 		# 使用 curl 安装 speedtest-cli
@@ -185,7 +184,7 @@ speed_test_tool() {
 			clear
 			echo "speedtest 未安装，开始安装..."
 			# 安装 speedtest
-			install_package speedtest
+			install speedtest
 			echo ""
 			clear
 			echo "------------------------"
@@ -233,45 +232,13 @@ speed_test_tool() {
 
 }
 
-# ToDo 检查
-# 函数: 根据系统类型使用不同的包管理器进行安装
-install_package() {
-	# 遍历所有传递进来的软件包列表，逐个安装
-	for package_name in "$@"; do
-		if [ -x "$(command -v apt-get)" ]; then
-			apt-get install -y $package_name
-		elif [ -x "$(command -v yum)" ]; then
-			yum install -y $package_name
-		else
-			echo -e "${CW} 不支持的软件包管理器${normal}"
-			return 1
-		fi
-	done
-}
-
-# 函数: 根据系统类型使用不同的包管理器进行卸载
-uninstall_packages() {
-	# 遍历所有传递进来的软件包列表，逐个卸载
-	for package_name in "$@"
-	do
-		if [ -x "$(command -v apt-get)" ]; then
-			apt-get remove -y $package_name
-		elif [ -x "$(command -v yum)" ]; then
-			yum remove -y $package_name
-		else
-			echo -e "${CW} 不支持的软件包管理器${normal}"
-			return 1
-		fi
-	done
-}
-
 # 函数: 函数用于检查命令是否已安装，未安装的进行安装
 check_command() {
 	local command_name="$1"  # 将输入的命令名保存到变量
 
 	if ! command -v "$command_name" &>/dev/null; then
 		echo "$command_name 未安装，正在进行安装..."
-		install_package "$command_name"  # 使用引号包围变量以正确传递参数
+		install "$command_name"  # 使用引号包围变量以正确传递参数
 	fi
 }
 
@@ -694,12 +661,10 @@ check_port() {
 	fi
 }
 
-# ToDo 可以考虑移动到 通用函数
+# 函数: 安装依赖 wget socat unzip tar
 install_dependency() {
-		clear
-#		ToDo 考虑是否用 install_package
-		install wget socat unzip tar
-#		install_package wget socat unzip tar
+	clear
+	install wget socat unzip tar
 }
 
 # 函数: 安装 certbot 工具
@@ -732,30 +697,6 @@ install_certbot() {
 default_server_ssl() {
 	install openssl
 	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
-}
-
-# 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
-ldnmp_v() {
-      # 获取 nginx 版本
-      nginx_version=$(docker exec nginx nginx -v 2>&1)
-      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "nginx : ${huang}v$nginx_version${bai}"
-
-      # 获取 mysql 版本
-      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-      echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
-
-      # 获取 php 版本
-      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "            php : ${huang}v$php_version${bai}"
-
-      # 获取 redis 版本
-      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-      echo -e "            redis : ${huang}v$redis_version${bai}"
-
-      echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-      echo ""
 }
 
 # 函数: 获取 SSL/TLS 证书
@@ -877,7 +818,6 @@ install_panel() {
 			[Yy])
 				# 开放所有端口
 				iptables_open
-#				ToDo 是否使用 install_package
 				install wget
 				if grep -q 'Alpine' /etc/issue; then
 					$ubuntu_mingling
@@ -928,6 +868,30 @@ set_timedate() {
 	else
 		timedatectl set-timezone ${shiqu}
 	fi
+}
+
+# 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
+ldnmp_v() {
+      # 获取 nginx 版本
+      nginx_version=$(docker exec nginx nginx -v 2>&1)
+      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "nginx : ${huang}v$nginx_version${bai}"
+
+      # 获取 mysql 版本
+      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
+      echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
+
+      # 获取 php 版本
+      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "            php : ${huang}v$php_version${bai}"
+
+      # 获取 redis 版本
+      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
+      echo -e "            redis : ${huang}v$redis_version${bai}"
+
+      echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+      echo ""
 }
 
 # 函数: 更新 LDNMP 环境
@@ -1473,13 +1437,7 @@ while true; do
 					# curl 下载工具
 					1)
 						clear
-						# ToDo 更换 install_package
-						set -x
-						echo "789"
 						install curl
-						echo "987"
-						set +x
-
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1489,7 +1447,6 @@ while true; do
 					# wget 下载工具
 					2)
 						clear
-						# ToDo 更换 install_package
 						install wget
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1500,7 +1457,6 @@ while true; do
 					# sudo 超级管理权限工具
 					3)
 						clear
-						# ToDo 更换 install_package
 						install sudo
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1511,7 +1467,6 @@ while true; do
 					# socat 通信连接工具 （申请域名证书必备）
 					4)
 						clear
-						# ToDo 更换 install_package
 						install socat
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1522,7 +1477,6 @@ while true; do
 					# htop 系统监控工具
 					5)
 						clear
-						# ToDo 更换 install_package
 						install htop
 						clear
 						htop
@@ -1531,7 +1485,6 @@ while true; do
 					# iftop 网络流量监控工具
 					6)
 						clear
-						# ToDo 更换 install_package
 						install iftop
 						clear
 						iftop
@@ -1542,7 +1495,6 @@ while true; do
 						clear
 						install unzip
 						clear
-						# ToDo 更换 install_package
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						unzip
@@ -1551,7 +1503,6 @@ while true; do
 					# tar GZ 压缩解压工具
 					8)
 						clear
-						# ToDo 更换 install_package
 						install tar
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1562,7 +1513,6 @@ while true; do
 					# tmux 多路后台运行工具
 					9)
 						clear
-						# ToDo 更换 install_package
 						install tmux
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1573,7 +1523,6 @@ while true; do
 					# ffmpeg 视频编码直播推流工具
 					10)
 						clear
-						# ToDo 更换 install_package
 						install ffmpeg
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
@@ -1584,27 +1533,14 @@ while true; do
 					# btop 现代化监控工具
 					11)
 						clear
-						# ToDo 更换 install_package
 						install btop
 						clear
 						btop
 						;;
 
 					# ranger 文件管理工具
-					# ToDo 安装有问题，需要 Python 环境
-					# 1. 确认 ranger 是否安装：
-					# 使用以下命令来检查 ranger 是否已经正确安装：
-					# which ranger
-					# 2. 尝试重新安装 ranger：
-					# 如果 ranger 未安装或出现问题，可以尝试重新安装它：
-					# sudo apt-get install ranger   # 如果系统是基于 Debian/Ubuntu 的
-					# 3. 检查 Python 环境：
-					# ranger 是基于 Python 编写的，确保你的系统具有正确的 Python 环境，并且可能需要安装一些 Python 依赖项。
-					# 4. 手动安装依赖：
-					# 如果 ranger 依赖的模块确实缺失，你可以尝试手动安装它们。例如，如果提示缺少名为 'ranger' 的模块，你可以使用以下命令进行安装：
 					12)
 						clear
-						# ToDo 更换 install_package
 						install ranger
 						cd /
 						clear
@@ -1615,7 +1551,6 @@ while true; do
 					# gdu 磁盘占用查看工具
 					13)
 						clear
-						# ToDo 更换 install_package
 						install gdu
 						cd /
 						clear
@@ -1627,7 +1562,6 @@ while true; do
 					# fzf 全局搜索工具
 					14)
 						clear
-						# ToDo 更换 install_package
 						install fzf
 						cd /
 						clear
@@ -1639,48 +1573,46 @@ while true; do
 					# cmatrix 黑客帝国屏保
 					21)
 						clear
-						# ToDo 更换 install_package
 						install cmatrix
 						clear
 						cmatrix
 						;;
 					# ------------------------------------------------
-						# sl 跑火车屏保
-	#					22)
-	#						clear
-	#						install sl
-	#						clear
-	#						/usr/games/sl
-	#						;;
+#					 sl 跑火车屏保
+#					22)
+#						clear
+#						install sl
+#						clear
+#						/usr/games/sl
+#						;;
+#
+#					 俄罗斯方块小游戏
+#					26)
+#						clear
+#						install bastet
+#						clear
+#						/usr/games/bastet
+#						;;
+#
+#					 贪吃蛇小游戏
+#					27)
+#						clear
+#						install nsnake
+#						clear
+#						/usr/games/nsnake
+#						;;
+#
+#					 太空入侵者小游戏
+#					28)
+#						clear
+#						install ninvaders
+#						clear
+#						/usr/games/ninvaders
+#						;;
 
-						# 俄罗斯方块小游戏
-	#					26)
-	#						clear
-	#						install bastet
-	#						clear
-	#						/usr/games/bastet
-	#						;;
-
-						# 贪吃蛇小游戏
-	#					27)
-	#						clear
-	#						install nsnake
-	#						clear
-	#						/usr/games/nsnake
-	#						;;
-
-						# 太空入侵者小游戏
-	#					28)
-	#						clear
-	#						install ninvaders
-	#						clear
-	#						/usr/games/ninvaders
-	#						;;
-
-						# ------------------------------------------------
+					# ------------------------------------------------
 					# 全部安装
 					31)
-						# ToDo 更换 install_package
 						clear
 						# btop ranger sl bastet nsnake ninvaders
 						install curl wget sudo socat htop iftop unzip tar tmux ffmpeg gdu fzf cmatrix nsnake
@@ -1689,7 +1621,6 @@ while true; do
 					# 全部卸载
 					32)
 						clear
-						# btop ranger sl bastet nsnake ninvaders
 						remove htop iftop unzip tmux ffmpeg gdu fzf cmatrix
 						;;
 
@@ -1698,7 +1629,6 @@ while true; do
 					41)
 						clear
 						read -p "请输入安装的工具名（wget curl sudo htop）: " installname
-						# ToDo 更换 install_package
 						install $installname
 						;;
 
@@ -1706,7 +1636,6 @@ while true; do
 					42)
 						clear
 						read -p "请输入卸载的工具名（htop ufw tmux cmatrix）: " removename
-						# ToDo 更换 uninstall_packages
 						remove $removename
 						;;
 
