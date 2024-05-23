@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.23"
+sh_v="1.0.24"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -79,10 +79,6 @@ detect_system() {
 		exit 1
 	fi
 }
-
-
-
-
 
 
 # ToDo ====================================================================================================
@@ -224,7 +220,8 @@ install_add_docker() {
 
 # 函数: 检查系统中是否已经安装了 docker 和 docker-compose
 install_docker() {
-	if ! command -v docker compose &>/dev/null; then
+	if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
+#	if ! command -v docker compose &>/dev/null; then
 		install_add_docker
 	else
 		echo -e "${cyan}Docker 环境已安装${normal}"
@@ -1187,7 +1184,7 @@ while true; do
 	echo "4. 常用工具 ▶"
 	echo "5. BBR 管理 ▶"
 	echo "6. Docker 管理 ▶ "
-#	echo "7. WARP 管理 ▶ "
+	echo "7. WARP 管理 ▶ "
 	echo "8. 测试脚本合集 ▶ "
 	echo "9. 甲骨文云脚本合集 ▶ "
 	echo "10. LDNMP 建站 ▶ "
@@ -2095,11 +2092,11 @@ while true; do
     		;;
 
 		# WARP 管理
-# 		7)
-#			clear
-#			install wget
-#			wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
-#	    	;;
+ 		7)
+			clear
+			install wget
+			wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh && bash menu.sh [option] [lisence/url/token]
+	    	;;
 
 		# 测试脚本合集
 		8)
@@ -2462,16 +2459,16 @@ while true; do
 						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
 
 #						ToDo
-						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-#						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
-#						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+#						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
+#						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
 						# 创建自签名的 SSL 证书并将其存储在指定的目录中
 						default_server_ssl
 
 						# 下载 docker-compose.yml 文件并进行替换
-						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
-#						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
+#						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
 
 						dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
 
@@ -6313,7 +6310,7 @@ EOF
 							threshold_tb=$((threshold_gb / 1024))
 							echo -e "当前设置的限流阈值为 ${yellow}${threshold_gb}${normal} GB / ${yellow}${threshold_tb}${normal} TB"
 						else
-							echo -e "${yellow}前未启用限流关机功能${normal}"
+							echo -e "${yellow}当前未启用限流关机功能${normal}"
 						fi
 
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
