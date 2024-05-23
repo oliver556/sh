@@ -24,3 +24,7 @@ apt update -y  && apt install -y curl
 ```bash
 curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh && ./leon.sh
 ```
+
+```bash
+curl -sS -O https://cdn.jsdelivr.net/gh/oliver556/sh/leon.sh && chmod +x leon.sh && ./leon.sh
+```

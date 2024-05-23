@@ -95,6 +95,58 @@ detect_system() {
 	fi
 }
 
+# 函数: 安装软件包
+install() {
+	if [ $# -eq 0 ]; then
+		echo "未提供软件包参数!"
+		return 1
+	fi
+
+	for package in "$@"; do
+		if ! command -v "$package" &>/dev/null; then
+			if command -v dnf &>/dev/null; then
+				dnf -y update && dnf install -y "$package"
+			elif command -v yum &>/dev/null; then
+				yum -y update && yum -y install "$package"
+			elif command -v apt &>/dev/null; then
+				apt update -y && apt install -y "$package"
+			elif command -v apk &>/dev/null; then
+				apk update && apk add "$package"
+			else
+				echo "未知的包管理器!"
+				return 1
+			fi
+		fi
+	done
+
+	return 0
+}
+
+# 函数: 卸载软件包
+remove() {
+	if [ $# -eq 0 ]; then
+		echo "未提供软件包参数!"
+		return 1
+	fi
+
+	for package in "$@"; do
+		if command -v dnf &>/dev/null; then
+			dnf remove -y "${package}*"
+		elif command -v yum &>/dev/null; then
+			yum remove -y "${package}*"
+		elif command -v apt &>/dev/null; then
+			apt purge -y "${package}*"
+		elif command -v apk &>/dev/null; then
+			apk del "${package}*"
+		else
+			echo "未知的包管理器!"
+			return 1
+		fi
+	done
+
+	return 0
+}
+
 # ToDo ====================================================================================================
 # ToDo 以下属于个人新增函数
 # ToDo ====================================================================================================
@@ -345,8 +397,8 @@ linux_clean() {
 
 # 函数: 启用 BBR 拥塞控制算法
 bbr_on() {
-# 将以下内容覆盖写入 /etc/sysctl.conf 文件中
-cat > /etc/sysctl.conf << EOF
+	# 将以下内容覆盖写入 /etc/sysctl.conf 文件中
+	cat > /etc/sysctl.conf << EOF
 net.core.default_qdisc=fq_pie
 net.ipv4.tcp_congestion_control=bbr
 EOF
@@ -725,14 +777,14 @@ install_ssltls() {
 # 函数: Nginx 环境检查
 nginx_install_status() {
 
- if docker inspect "nginx" &>/dev/null; then
-	echo "nginx 环境已安装，开始部署 $webname"
- else
-	echo -e "${yellow}nginx 未安装，请先安装 nginx 环境，再部署网站${normal}"
+	if docker inspect "nginx" &>/dev/null; then
+		echo "nginx 环境已安装，开始部署 $webname"
+	else
+		echo -e "${yellow}nginx 未安装，请先安装 nginx 环境，再部署网站${normal}"
 
 	break_end
 	leon
- fi
+ 	fi
 }
 
 # 函数: 获取 IP，及收集用户输入要解析的域名
@@ -1038,66 +1090,6 @@ ldnmp_web_on() {
 
 }
 
-# ToDo ====================================================================================================
-# ToDo 还未使用
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-
-install() {
-	if [ $# -eq 0 ]; then
-		echo "未提供软件包参数!"
-		return 1
-	fi
-
-	for package in "$@"; do
-		if ! command -v "$package" &>/dev/null; then
-			if command -v dnf &>/dev/null; then
-				dnf -y update && dnf install -y "$package"
-			elif command -v yum &>/dev/null; then
-				yum -y update && yum -y install "$package"
-			elif command -v apt &>/dev/null; then
-				apt update -y && apt install -y "$package"
-			elif command -v apk &>/dev/null; then
-				apk update && apk add "$package"
-			else
-				echo "未知的包管理器!"
-				return 1
-			fi
-		fi
-	done
-
-	return 0
-}
-
-remove() {
-	if [ $# -eq 0 ]; then
-		echo "未提供软件包参数!"
-		return 1
-	fi
-
-	for package in "$@"; do
-		if command -v dnf &>/dev/null; then
-			dnf remove -y "${package}*"
-		elif command -v yum &>/dev/null; then
-			yum remove -y "${package}*"
-		elif command -v apt &>/dev/null; then
-			apt purge -y "${package}*"
-		elif command -v apk &>/dev/null; then
-			apk del "${package}*"
-		else
-			echo "未知的包管理器!"
-			return 1
-		fi
-	done
-
-	return 0
-}
-
 repeat_add_yuming() {
 	if [ -e /home/web/conf.d/$yuming.conf ]; then
     echo -e "${yellow}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！${normal}"
@@ -1106,20 +1098,6 @@ repeat_add_yuming() {
 	else
     echo "当前 ${yuming} 域名可用"
 	fi
-}
-
-# 函数: 设置反向代理配置，修改 Nginx 反向代理配置文件
-reverse_proxy() {
-	# 获取服务器 IPV4、IPV6 公网地址
-	ip_address
-
-	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
-	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
-	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
-	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
-
-	# 重启 Nginx 服务器
-	docker restart nginx
 }
 
 docker_app() {
@@ -1254,6 +1232,21 @@ set_dns() {
 	echo "------------------------"
 }
 
+# ToDo 还未使用
+# 函数: 设置反向代理配置，修改 Nginx 反向代理配置文件
+reverse_proxy() {
+	# 获取服务器 IPV4、IPV6 公网地址
+	ip_address
+
+	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
+	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
+
+	# 重启 Nginx 服务器
+	docker restart nginx
+}
+
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
@@ -1267,9 +1260,9 @@ while true; do
 	clear
 
 	echo -e "${green}${bold}# ==========================================================="
-	echo -e "${green}# _    ____  ____ _  _ "
-	echo -e "${green}# |    |___  |  | |\ | "
-	echo -e "${green}# |___ |___  |__| | \|   ${cyan}v$sh_v${normal}"
+	echo -e "${green}# _    ____ ____ _  _ "
+	echo -e "${green}# |    |___ |  | |\ | "
+	echo -e "${green}# |___ |___ |__| | \|   ${cyan}v$sh_v${normal}"
 	echo -e "${green}${bold}# "
 	echo -e "${green}# Leon 一键脚本工具（支持 Ubuntu/Debian/CentOS/Alpine 系统）${normal}"
 	echo -e "${green}${bold}# 输入${yellow} n ${green}可快速启动此脚本 ${normal}"
@@ -1403,7 +1396,7 @@ while true; do
 			clear
 
 	    	echo ""
-			echo -e "${baizise}${bold}		 	系统信息查询			${jiacu}"
+			echo -e "${baizise}${bold}                  系统信息查询                  ${jiacu}"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "主机名:		$hostname"
 			echo "运营商:		$isp_info"
@@ -1422,7 +1415,7 @@ while true; do
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "$output"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-			echo "网络拥堵算法: $congestion_algorithm $queue_algorithm"
+			echo "网络拥堵算法:	$congestion_algorithm $queue_algorithm"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "公网 IPv4 地址:	$ipv4_address"
 			echo "公网 IPv6 地址:	$ipv6_address"
@@ -1448,11 +1441,11 @@ while true; do
 			linux_clean
 			;;
 
-		# 常用工具
+		# 常用工具 ▶
   		4)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 	▶ 安装常用工具			 ${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 安装常用工具                ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. curl 下载工具"
 				echo "2. wget 下载工具"
@@ -1464,17 +1457,17 @@ while true; do
 				echo "8. tar GZ压缩解压工具"
 				echo "9. tmux 多路后台运行工具"
 				echo "10. ffmpeg 视频编码直播推流工具"
-	#      echo "11. btop 现代化监控工具"
-	#      echo "12. ranger 文件管理工具"
+			  	echo "11. btop 现代化监控工具"
+	      		echo "12. ranger 文件管理工具"
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "21. cmatrix 黑客帝国屏保"
-	#      echo "22. sl 跑火车屏保"
-	#      echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-	#      echo "26. 俄罗斯方块小游戏"
-	#      echo "27. 贪吃蛇小游戏"
-	#      echo "28. 太空入侵者小游戏"
+#				echo "22. sl 跑火车屏保"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "26. 俄罗斯方块小游戏"
+#				echo "27. 贪吃蛇小游戏"
+#				echo "28. 太空入侵者小游戏"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "31. 全部安装"
 				echo "32. 全部卸载"
@@ -1491,7 +1484,12 @@ while true; do
 					1)
 						clear
 						# ToDo 更换 install_package
+						set -x
+						echo "789"
 						install curl
+						echo "987"
+						set +x
+
 						clear
 						echo -e "${baizise}工具已安装，使用方法如下: ${jiacu}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1594,17 +1592,6 @@ while true; do
 						;;
 
 					# btop 现代化监控工具
-					# ToDo 安装有问题，需要 Python 环境
-					# 1. 确认 btop 是否安装成功：
-					# pip3 show btop
-					# 如果成功安装，你应该能够看到 btop 的信息和安装路径。
-					# 2. 确认安装路径是否在系统路径中：
-					# 确保 btop 的安装路径在系统的 PATH 变量中。你可以使用以下命令来查看当前的 PATH 变量：
-					# echo $PATH
-					# 如果 btop 的安装路径不在其中，你可以手动将其添加到 PATH 变量中。
-					# 3. 尝试重新安装：
-					# 你可以尝试重新安装 btop，可能安装过程中出现了一些问题：
-					# pip3 install btop
 					11)
 						clear
 						# ToDo 更换 install_package
@@ -1642,6 +1629,7 @@ while true; do
 						install gdu
 						cd /
 						clear
+						sleep 2
 						gdu
 						cd ~
 						;;
@@ -1757,7 +1745,7 @@ while true; do
 					echo "当前 TCP 阻塞算法: $congestion_algorithm $queue_algorithm"
 
 					echo ""
-					echo -e "${baizise}${bold}		 BBR管理			${jiacu}"
+					echo -e "${baizise}${bold}                  BBR 管理                      ${jiacu}"
 					echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 					echo "1. 开启 BBRv3              2. 关闭 BBRv3（会重启）"
 					echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1802,7 +1790,7 @@ while true; do
   		6)
     		while true; do
 				clear
-				echo -e "${baizise}${bold}		 ▶ Docker 管理器		${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ Docker 管理器               ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 安装更新 Docker 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1863,7 +1851,7 @@ while true; do
               			echo -e "${cyan}Docker 容器列表${normal}"
 						docker ps -a
 						echo ""
-						echo -e "${baizise}${bold}		 容器操作			${jiacu}"
+						echo -e "${baizise}${bold}                  容器操作                      ${jiacu}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						echo "1. 创建新的容器"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1996,7 +1984,7 @@ while true; do
           			4)
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		 Docker 镜像列表		${jiacu}"
+							echo -e "${baizise}${bold}                  Docker 镜像列表               ${jiacu}"
 							docker image ls
 							echo ""
 							echo "镜像操作"
@@ -2060,7 +2048,7 @@ while true; do
           			5)
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		 Docker 网络列表		${jiacu}"
+							echo -e "${baizise}${bold}                  Docker 网络列表               ${jiacu}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							docker network ls
 							echo ""
@@ -2139,7 +2127,7 @@ while true; do
           			6)
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		 Docker 卷列表		${jiacu}"
+							echo -e "${baizise}${bold}                  Docker 卷列表                 ${jiacu}"
 							docker volume ls
 							echo ""
 							echo "卷操作"
@@ -2239,7 +2227,7 @@ while true; do
 		8)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 ▶ 测试脚本合集			${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 测试脚本合集                ${jiacu}"
 				echo ""
 				echo -e "${cyan}${bold}-------------IP 及解锁状态检测----------------${jiacu}"
 				echo "1. ChatGPT 解锁状态检测"
@@ -2338,7 +2326,7 @@ while true; do
 #					15)
 #						clear
 #
-#						echo -e "${baizise}${bold}		 可参考的 IP 列表		${jiacu}"
+#						echo -e "${baizise}${bold}                  可参考的 IP 列表              ${jiacu}"
 #						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 #						echo "北京电信: 219.141.136.12"
 #						echo "北京联通: 202.106.50.1"
@@ -2398,6 +2386,12 @@ while true; do
 						curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
 						;;
 
+					# Disk Test 硬盘&系统综合测试（杜甫测试）
+					41)
+						clear
+						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
+						;;
+
 					0)
 						leon
 						;;
@@ -2414,7 +2408,7 @@ while true; do
 		9)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 ▶ 甲骨文云脚本合集		${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 甲骨文云脚本合集            ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 安装闲置机器活跃脚本"
 				echo "2. 卸载闲置机器活跃脚本"
@@ -2538,7 +2532,7 @@ while true; do
   		10)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 LDNMP 建站			${jiacu}"
+				echo -e "${baizise}${bold}                  LDNMP 建站                    ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo  "1. 安装 LDNMP 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -3138,7 +3132,7 @@ while true; do
 						root_use
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		 LDNMP 环境			${jiacu}"
+							echo -e "${baizise}${bold}                  LDNMP 环境                    ${jiacu}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 							ldnmp_v
@@ -3147,29 +3141,29 @@ while true; do
 							echo "${green}站点信息                      证书到期时间${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 #							ToDo 下面会报错找不到路径文件
-#							for cert_file in /home/web/certs/*_cert.pem; do
-#								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
-#								if [ -n "$domain" ]; then
-#									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
-#									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
-#									printf "%-30s%s\n" "$domain" "$formatted_date"
-#								fi
-#							done
-
-							certs_dir="/home/web/certs"
-							if [ -d "$certs_dir" ]; then
-								find "$certs_dir" -name '*_cert.pem' -type f | while read -r cert_file; do
-								domain=$(basename "$cert_file" | sed 's/_cert.pem//' 2>/dev/null || echo "")
+							for cert_file in /home/web/certs/*_cert.pem; do
+								domain=$(basename "$cert_file" | sed 's/_cert.pem//')
 								if [ -n "$domain" ]; then
-									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print \$2}')
+									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
 									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
 									printf "%-30s%s\n" "$domain" "$formatted_date"
 								fi
-								done
-							else
-								echo "找不到证书目录: $certs_dir"
-								echo "找不到 PEM 证书文件。."
-						  	fi
+							done
+
+#							certs_dir="/home/web/certs"
+#							if [ -d "$certs_dir" ]; then
+#								find "$certs_dir" -name '*_cert.pem' -type f | while read -r cert_file; do
+#								domain=$(basename "$cert_file" | sed 's/_cert.pem//' 2>/dev/null || echo "")
+#								if [ -n "$domain" ]; then
+#									expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print \$2}')
+#									formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
+#									printf "%-30s%s\n" "$domain" "$formatted_date"
+#								fi
+#								done
+#							else
+#								echo "找不到证书目录: $certs_dir"
+#								echo "找不到 PEM 证书文件。."
+#						  	fi
 
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo ""
@@ -3371,7 +3365,7 @@ while true; do
 						if docker inspect fail2ban &>/dev/null ; then
 							while true; do
 								clear
-								echo -e "${baizise}${bold}		 服务器防御程序已启动		${jiacu}"
+								echo -e "${baizise}${bold}                  服务器防御程序已启动          ${jiacu}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "1. 开启 SSH 防暴力破解              2. 关闭 SSH 防暴力破解"
 								echo "3. 开启网站保护                   4. 关闭网站保护"
@@ -3560,7 +3554,7 @@ while true; do
 					36)
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		 优化 LDNMP 环境		${jiacu}"
+							echo -e "${baizise}${bold}                  优化 LDNMP 环境               ${jiacu}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 标准模式              2. 高性能模式 (推荐 2H2G 以上)"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -3658,7 +3652,7 @@ while true; do
 					38)
 						root_use
 
-						read -p "$(echo -e "${red}强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ${normal}")" choice
+						read -p "$(echo -e "强烈建议${red}先备份全部网站数据${normal}，再卸载 LDNMP 环境。确定删除所有网站数据吗？(Y/N): ")" choice
 
 						case "$choice" in
 							[Yy])
@@ -3692,7 +3686,7 @@ while true; do
 		11)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 ▶ 面板工具			${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 面板工具                    ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 宝塔面板官方版                       2. aaPanel 宝塔国际版"
 				echo "3. 1Panel 新一代管理面板                4. NginxProxyManager 可视化面板"
@@ -4750,7 +4744,7 @@ while true; do
 						docker_img="ghcr.io/jason5ng32/myip:latest"
 						docker_port=8037
 						docker_rum="docker run -d -p 8037:18966 --name myip --restart always ghcr.io/jason5ng32/myip:latest"
-						docker_describe="是一个多功能IP工具箱，可以查看自己IP信息及连通性，用网页面板呈现"
+						docker_describe="是一个多功能 IP 工具箱，可以查看自己 IP 信息及连通性，用网页面板呈现"
 						docker_url="官网介绍: https://github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
 						docker_use=""
 						docker_passwd=""
@@ -4780,7 +4774,7 @@ while true; do
 		12)
 			while true; do
 				clear
-				echo -e "${baizise}${bold}		 ▶ 我的工作区			${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 我的工作区                  ${jiacu}"
 				echo "系统将为你提供 5 个后台运行的工作区，你可以用来执行长时间的任务"
 				echo "即使你断开 SSH，工作区中的任务也不会中断，非常方便！来试试吧！"
 				echo -e "${yellow}注意: 进入工作区后使用 Ctrl + b 再单独按 d，退出工作区！normal{bai}"
@@ -4902,13 +4896,13 @@ while true; do
   		13)
     		while true; do
       			clear
-				echo -e "${baizise}${bold}		 ▶ 系统工具			${jiacu}"
+				echo -e "${baizise}${bold}                  ▶ 系统工具                    ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 设置脚本启动快捷键                  2. 修改登录密码"
-				echo "3. ROOT 密码登录模式                    4. 安装 Python 最新版"
+				echo "3. ROOT 密码登录模式                   4. 安装 Python 最新版"
 				echo "5. 开放所有端口                        6. 修改 SSH 连接端口"
-				echo "7. 优化 DNS 地址                         8. 一键重装系统"
-				echo "9. 禁用 ROOT 账户创建新账户              10. 切换优先 ipv4/ipv6"
+				echo "7. 优化 DNS 地址                       8. 一键重装系统"
+				echo "9. 禁用 ROOT 账户创建新账户            10. 切换优先 ipv4/ipv6"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "11. 查看端口占用状态                   12. 修改虚拟内存大小"
 				echo "13. 用户管理                           14. 用户/密码生成器"
@@ -4916,7 +4910,7 @@ while true; do
 				echo "17. 防火墙高级管理器                   18. 修改主机名"
 				echo "19. 切换系统更新源                     20. 定时任务管理"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "21. 本机 host 解析                       22. fail2banSSH 防御程序"
+				echo "21. 本机 host 解析                     22. fail2banSSH 防御程序"
 				echo "23. 限流自动关机                       24. ROOT 私钥登录模式"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "31. 留言板                             66. 一条龙系统调优"
@@ -5439,7 +5433,7 @@ while true; do
 							root_use
 
 							# 显示所有用户、用户权限、用户组和是否在sudoers中
-							echo -e "${baizise}${bold}		  用户列表			${jiacu}"
+							echo -e "${baizise}${bold}                  用户列表                      ${jiacu}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
 							printf "%-24s %-34s %-20s %-10s\n" "用户名" "用户权限" "用户组" "sudo权限"
@@ -5452,7 +5446,7 @@ while true; do
 
 
 							echo ""
-							echo -e "${baizise}${bold}		  账户操作			${jiacu}"
+							echo -e "${baizise}${bold}                  账户操作                      ${jiacu}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo "1. 创建普通账户             2. 创建高级账户"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -5580,7 +5574,7 @@ while true; do
 						while true; do
 							clear
 							echo ""
-							echo -e "${baizise}${bold}		  系统时间信息			${jiacu}"
+							echo -e "${baizise}${bold}                  系统时间信息                  ${jiacu}"
 							echo ""
 
 							# 获取当前系统时区
@@ -5594,7 +5588,7 @@ while true; do
 							echo -e "当前系统时间: ${cyan}$current_time${normal}"
 
 							echo ""
-							echo -e "${baizise}${bold}		  时区切换			${jiacu}"
+							echo -e "${baizise}${bold}                  时区切换                      ${jiacu}"
 							echo -e "${cyan}${bold}亚洲--------------------------------------------${jiacu}"
 							echo "1. 中国上海时间              2. 中国香港时间"
 							echo "3. 日本东京时间              4. 韩国首尔时间"
@@ -5652,7 +5646,7 @@ while true; do
 								echo "当前内核版本: $kernel_version"
 
 								echo ""
-								echo -e "${baizise}${bold}		  内核管理			${jiacu}"
+								echo -e "${baizise}${bold}                  内核管理                      ${jiacu}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "1. 更新 BBRv3 内核              2. 卸载 BBRv3 内核"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -6209,7 +6203,7 @@ EOF
 					20)
 						while true; do
 							clear
-							echo -e "${baizise}${bold}		  定时任务列表			${jiacu}"
+							echo -e "${baizise}${bold}                  定时任务列表                  ${jiacu}"
 							crontab -l
 							echo ""
 							echo -e "${cyan}操作${normal}"
@@ -6280,7 +6274,7 @@ EOF
 					21)
 						root_use
 						while true; do
-							echo -e "${baizise}${bold}		 本机 host 解析列表		${jiacu}"
+							echo -e "${baizise}${bold}                  本机 host 解析列表            ${jiacu}"
 							echo ""
 							echo "如果你在这里添加解析匹配，将不再使用动态解析了"
 							cat /etc/hosts
@@ -6323,7 +6317,7 @@ EOF
 						if docker inspect fail2ban &>/dev/null ; then
 							while true; do
 								clear
-								echo -e "${baizise}${bold}		 SSH 防御程序已启动		${jiacu}"
+								echo -e "${baizise}${bold}                  SSH 防御程序已启动            ${jiacu}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "1. 查看 SSH 拦截记录"
 								echo "2. 日志实时监控"
@@ -6647,7 +6641,7 @@ EOF
 			clear
 			while true; do
 			clear
-			echo -e "${baizise}${bold}		 ▶ VPS 集群控制			${jiacu}"
+			echo -e "${baizise}${bold}                  ▶ VPS 集群控制                ${jiacu}"
 			echo "你可以远程操控多台 VPS 一起执行任务（仅支持 Ubuntu/Debian）"
 			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 			echo "1. 安装集群环境"
@@ -6683,7 +6677,7 @@ EOF
 
               		while true; do
 						clear
-						echo -e "${baizise}${bold}		 集群服务器列表			${jiacu}"
+						echo -e "${baizise}${bold}                  集群服务器列表                ${jiacu}"
 						cat ~/cluster/servers.py
 
                   		echo ""
