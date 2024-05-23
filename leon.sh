@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.21"
+sh_v="1.0.22"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -51,25 +51,11 @@ cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
 
 # 函数: 提示用户按任意键继续
 
-break_end() {
-	echo -e "${green}操作完成${normal}"
-	echo "按任意键继续..."
-	read -n 1 -s -r -p ""
-	echo ""
-	clear
-}
 
-# 函数: 重头执行函数
-leon() {
-	n
-	exit
-}
 
-# 函数: 是否以 root 用户身份运行
-root_use() {
-	clear
-	[ "$EUID" -ne 0 ] && echo -e "${red}请注意，该功能需要 root 用户 才能运行！${normal}" && break_end && leon
-}
+
+
+
 
 # 函数: 判断服务器系统类型
 detect_system() {
@@ -92,6 +78,27 @@ detect_system() {
 		echo "Unknown distribution"
 		exit 1
 	fi
+}
+
+
+
+
+
+
+# ToDo ====================================================================================================
+# ToDo 以下属于 kejilion 函数
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+
+# 获取服务器 IPV4、IPV6 公网地址
+ip_address() {
+	ipv4_address=$(curl -s ipv4.ip.sb)
+	ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
 }
 
 # 函数: 安装软件包
@@ -121,6 +128,12 @@ install() {
 	return 0
 }
 
+# 函数: 安装依赖 wget socat unzip tar
+install_dependency() {
+	clear
+	install wget socat unzip tar
+}
+
 # 函数: 卸载软件包
 remove() {
 	if [ $# -eq 0 ]; then
@@ -146,231 +159,46 @@ remove() {
 	return 0
 }
 
-# ToDo ====================================================================================================
-# ToDo 以下属于个人新增函数
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
+break_end() {
+	echo -e "${green}操作完成${normal}"
+	echo "按任意键继续..."
+	read -n 1 -s -r -p ""
+	echo ""
+	clear
+}
 
-# 函数: speedtest 测速工具
-speed_test_tool() {
-	# 判断系统类型
-	detect_system
+# 函数: 重头执行函数
+leon() {
+	n
+	exit
+}
 
-	# Debian、Ubuntu
-	if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ]; then
-		# 检查 curl 是否已安装
-		if ! command -v curl &> /dev/null; then
-			echo "curl 未安装，开始安装..."
-			install curl
+# 函数: 检查端口
+check_port() {
+	# 定义要检测的端口
+	PORT=443
 
+	# 检查端口占用情况
+	result=$(ss -tulpn | grep ":$PORT")
+
+	# 判断结果并输出相应信息
+	if [ -n "$result" ]; then
+		is_nginx_container=$(docker ps --format '{{.Names}}' | grep 'nginx')
+
+		# 判断是否是 Nginx 容器占用端口
+		if [ -n "$is_nginx_container" ]; then
+				echo ""
 		else
-			# 更新一下
-			install curl
+				clear
+				echo -e "${red}端口 ${yellow}$PORT${red} 已被占用，无法安装环境，卸载以下程序后重试！${normal}"
+				echo "$result"
+				break_end
+				leon
 		fi
 
-		# 使用 curl 安装 speedtest-cli
-		if ! command -v speedtest-cli &> /dev/null
-		then
-				curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
-		fi
-
-		# 检查 speedtest 是否已安装
-		if ! command -v speedtest &> /dev/null; then
-			clear
-			echo "speedtest 未安装，开始安装..."
-			# 安装 speedtest
-			install speedtest
-			echo ""
-			clear
-			echo "------------------------"
-			echo "安装已完成"
-			echo "正在运行 Speedtest"
-			speedtest
-		else
-			# 如果已安装，直接运行 speedtest
-			clear
-			echo ""
-			echo "------------------------"
-			echo "正在运行 Speedtest"
-			speedtest
-		fi
+	else
+		echo ""
 	fi
-
-	# Centos
-	# ToDo 需要在 centos 上验证
-	if [ "$ID" = "centos" ]; then
-  		# 使用 curl 安装 speedtest-cli
-  		if ! command -v speedtest-cli &> /dev/null; then
-			curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.rpm.sh | sudo bash
-  		fi
-
-  		# 检查 speedtest 是否已安装
-  		if ! command -v speedtest &> /dev/null; then
-			clear
-			echo "speedtest 未安装，开始安装..."
-			# 安装 speedtest
-			sudo sudo yum install speedtest
-			echo ""
-			echo "------------------------"
-			echo "安装已完成"
-			echo "正在运行 Speedtest"
-			speedtest
-  		else
-			# 如果已安装，直接运行 speedtest
-			clear
-			echo ""
-			echo "------------------------"
-			echo "正在运行 Speedtest"
-			speedtest
-  		fi
-  	fi
-
-}
-
-# 函数: 函数用于检查命令是否已安装，未安装的进行安装
-check_command() {
-	local command_name="$1"  # 将输入的命令名保存到变量
-
-	if ! command -v "$command_name" &>/dev/null; then
-		echo "$command_name 未安装，正在进行安装..."
-		install "$command_name"  # 使用引号包围变量以正确传递参数
-	fi
-}
-
-# ToDo ====================================================================================================
-# ToDo 以下属于 kejilion 函数
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-
-# 获取服务器 IPV4、IPV6 公网地址
-ip_address() {
-	ipv4_address=$(curl -s ipv4.ip.sb)
-	ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
-}
-
-# 函数: 获取服务器流量统计状态，格式化输出（单位保留 GB）
-output_status() {
-	output=$(awk 'BEGIN { rx_total = 0; tx_total = 0 }
-		NR > 2 { rx_total += $2; tx_total += $10 }
-		END {
-			rx_units = "Bytes";
-			tx_units = "Bytes";
-			if (rx_total > 1024) { rx_total /= 1024; rx_units = "KB"; }
-			if (rx_total > 1024) { rx_total /= 1024; rx_units = "MB"; }
-			if (rx_total > 1024) { rx_total /= 1024; rx_units = "GB"; }
-
-			if (tx_total > 1024) { tx_total /= 1024; tx_units = "KB"; }
-			if (tx_total > 1024) { tx_total /= 1024; tx_units = "MB"; }
-			if (tx_total > 1024) { tx_total /= 1024; tx_units = "GB"; }
-
-			printf("总接收:\t\t%.2f %s\n总发送:\t\t%.2f %s\n", rx_total, rx_units, tx_total, tx_units);
-		}' /proc/net/dev)
-}
-
-# 函数: 系统更新
-linux_update() {
-	# Update system on Debian-based systems
-	if [ -f "/etc/debian_version" ]; then
-		apt update -y && DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
-	fi
-
-	# Update system on Red Hat-based systems
-	if [ -f "/etc/redhat-release" ]; then
-		yum -y update
-	fi
-
-	# Update system on Alpine Linux
-	if [ -f "/etc/alpine-release" ]; then
-		apk update && apk upgrade
-	fi
-}
-
-# 函数: 清理不同 Linux 发行版（Debian、Red Hat、Alpine）系统的函数。它根据系统版本使用不同的清理命令，
-# 包括清理软件包缓存、日志和内核文件，以释放磁盘空间。
-linux_clean() {
-	# 清理 Debian 系统
-	clean_debian() {
-		# 自动删除不需要的软件包，并清理相关的配置文件
-		apt autoremove --purge -y
-		# 清理下载的软件包的缓存
-		apt clean -y
-		# 清理旧的软件包下载缓存
-		apt autoclean -y
-		# 移除已经标记为删除但未完全清理的软件包
-		apt remove --purge $(dpkg -l | awk '/^rc/ {print $2}') -y
-		# 旋转系统日志
-		journalctl --rotate
-		# 清理老旧的系统日志，保留不超过1秒的日志
-		journalctl --vacuum-time=1s
-		# 清理系统日志，保留不超过 50MB 的日志
-		journalctl --vacuum-size=50M
-		# 移除旧的 Linux 内核镜像和头文件
-		apt remove --purge $(dpkg -l | awk '/^ii linux-(image|headers)-[^ ]+/{print $2}' | grep -v $(uname -r | sed 's/-.*//') | xargs) -y
-	}
-
-	# 清理 Red Hat 系统
-	clean_redhat() {
-		# 自动删除不需要的软件包
-		yum autoremove -y
-		# 清理 YUM 软件包管理器的缓存
-		yum clean all
-		# 旋转系统日志
-		journalctl --rotate
-		# 清理老旧的系统日志，保留不超过 1 秒的日志
-		journalctl --vacuum-time=1s
-		# 清理系统日志，保留不超过 50MB 的日志
-		journalctl --vacuum-size=50M
-		# 移除旧的内核
-		yum remove $(rpm -q kernel | grep -v $(uname -r)) -y
-	}
-
-	# 清理 Alpine Linux 系统
-	clean_alpine() {
-		# 移除不再需要的安装包
-		apk del --purge $(apk info --installed | awk '{print $1}' | grep -v $(apk info --available | awk '{print $1}'))
-		# 自动移除不需要的软件包
-		apk autoremove
-		# 清理 APK 软件包管理器的缓存
-		apk cache clean
-		# 移除日志文件
-		rm -rf /var/log/*
-		# 清理 APK 的缓存文件
-		rm -rf /var/cache/apk/*
-
-	}
-
-	# Main script
-	if [ -f "/etc/debian_version" ]; then
-		# Debian-based systems
-		clean_debian
-	elif [ -f "/etc/redhat-release" ]; then
-		# Red Hat-based systems
-		clean_redhat
-	elif [ -f "/etc/alpine-release" ]; then
-		# Alpine Linux
-		clean_alpine
-	fi
-}
-
-# 函数: 启用 BBR 拥塞控制算法
-bbr_on() {
-	# 将以下内容覆盖写入 /etc/sysctl.conf 文件中
-	cat > /etc/sysctl.conf << EOF
-net.core.default_qdisc=fq_pie
-net.ipv4.tcp_congestion_control=bbr
-EOF
-	# 重新加载
-	sysctl -p
 }
 
 # 函数: 安装更新 Docker 环境
@@ -394,56 +222,13 @@ install_add_docker() {
 	sleep 2
 }
 
-# 函数: 设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码
-add_sshpasswd() {
-	echo -e "${yellow}设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码${normal}"
-	echo "设置你的 ROOT 密码"
-	# 提示用户输入两次密码，用于设置 ROOT 用户的密码
-	passwd
-	# 修改 /etc/ssh/sshd_config 文件来允许 ROOT 用户通过 SSH 登录
-	sed -i 's/^\s*#\?\s*PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config;
-	# 修改 /etc/ssh/sshd_config 文件来允许密码进行认证
-	sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config;
-	# 清理 SSH 配置目录下的临时文件
-	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
-	# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
-	restart_ssh
-	# 显示消息，表示 ROOT 登录设置完成
-	echo -e "${green}ROOT 登录设置完毕！${normal}"
-	server_reboot
-}
-
-# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
-restart_ssh() {
-	if command -v dnf &>/dev/null; then
-		systemctl restart sshd
-	elif command -v yum &>/dev/null; then
-		systemctl restart sshd
-	elif command -v apt &>/dev/null; then
-		service ssh restart
-	elif command -v apk &>/dev/null; then
-		service sshd restart
+# 函数: 检查系统中是否已经安装了 docker 和 docker-compose
+install_docker() {
+	if ! command -v docker compose &>/dev/null; then
+		install_add_docker
 	else
-		echo -e "${red}无法找到 SSH 服务启动脚本，无法重启 SSH 服务!${normal}"
-		return 1
+		echo -e "${cyan}Docker 环境已安装${normal}"
 	fi
-}
-
-# 函数: 询问用户是否要重启服务器
-server_reboot() {
-	read -p "$(echo -e "${yellow}现在重启服务器吗？(Y/N): ${normal}")" rboot
-	case "$rboot" in
-	[Yy])
-		echo "已重启"
-		reboot
-		;;
-	[Nn])
-		echo "已取消"
-		;;
-	*)
-		echo "无效的选择，请输入 Y 或 N。"
-		;;
-	esac
 }
 
 # 函数: 开放所有端口
@@ -458,31 +243,6 @@ iptables_open() {
 	ip6tables -P FORWARD ACCEPT
 	ip6tables -P OUTPUT ACCEPT
 	ip6tables -F
-}
-
-# 函数: 修改 SSH 连接端口
-new_ssh_port() {
-	# 备份 SSH 配置文件
-	cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
-
-	# 使用 sed 替换命令将原先注释掉的端口配置取消注释，即将 #Port 改为 Port
-	sed -i 's/^\s*#\?\s*Port/Port/' /etc/ssh/sshd_config
-
-	# 替换 SSH 配置文件中的端口号
-	sed -i "s/Port [0-9]\+/Port $new_port/g" /etc/ssh/sshd_config
-
-	# 重启 SSH 服务
-	service sshd restart
-
-	# 打印消息，确认 SSH 端口已被成功修改
-	echo "SSH 端口已修改为: $new_port"
-
-	clear
-	# 调用函数以打开所有端口
-	open_all_ports
-
-	# 移除一些防火墙相关的软件
-	remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 }
 
 # 函数:重新配置系统的 swap 分区和文件。该函数删除所有现有的 swap 分区和文件，
@@ -521,353 +281,6 @@ add_swap() {
     fi
 
     echo -e "虚拟内存大小已调整为${yellow}${new_swap}${normal} MB"
-}
-
-# 函数: 获取当前系统时区
-current_timezone() {
-	if grep -q 'Alpine' /etc/issue; then
-		date +"%Z %z"
-	else
-	 	timedatectl | grep "Time zone" | awk '{print $3}'
-	fi
-}
-
-# 函数: 根据系统的发行版设置一个变量 xxx 的值，调用 f2b_status_xxx 函数来处理相应的操作
-f2b_sshd() {
-	if grep -q 'Alpine' /etc/issue; then
-		xxx=alpine-sshd
-		f2b_status_xxx
-	elif grep -qi 'CentOS' /etc/redhat-release; then
-		xxx=centos-sshd
-		f2b_status_xxx
-	else
-		xxx=linux-sshd
-		f2b_status_xxx
-	fi
-}
-
-# 函数: 通过 Docker 容器内的 fail2ban-client 工具来获取特定服务的状态信息
-f2b_status_xxx() {
-	docker exec -it fail2ban fail2ban-client status $xxx
-}
-
-# 函数: 检查系统中是否已经安装了 docker 和 docker-compose
-install_docker() {
-	if ! command -v docker compose &>/dev/null; then
-		install_add_docker
-	else
-		echo -e "${cyan}Docker 环境已安装${normal}"
-	fi
-}
-
-# 函数: 在 Docker 中运行 fail2ban 容器，并根据系统类型添加适当的配置文件以保护 SSH 服务
-f2b_install_sshd() {
-
-	docker run -d \
-		--name=fail2ban \
-		--net=host \
-		--cap-add=NET_ADMIN \
-		--cap-add=NET_RAW \
-		-e PUID=1000 \
-		-e PGID=1000 \
-		-e TZ=Etc/UTC \
-		-e VERBOSITY=-vv \
-		-v /path/to/fail2ban/config:/config \
-		-v /var/log:/var/log:ro \
-		-v /home/web/log/nginx/:/remotelogs/nginx:ro \
-		--restart unless-stopped \
-		lscr.io/linuxserver/fail2ban:latest
-
-	sleep 3
-	if grep -q 'Alpine' /etc/issue; then
-		cd /path/to/fail2ban/config/fail2ban/filter.d
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
-
-		cd /path/to/fail2ban/config/fail2ban/jail.d/
-
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
-
-	elif grep -qi 'CentOS' /etc/redhat-release; then
-		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
-
-	else
-		install rsyslog
-		systemctl start rsyslog
-		systemctl enable rsyslog
-		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
-	fi
-}
-
-# 函数: 重新启动 fail2ban 容器，并使用 fail2ban-client 工具获取 fail2ban 服务的状态信息
-f2b_status() {
-	 docker restart fail2ban
-	 sleep 3
-	 docker exec -it fail2ban fail2ban-client status
-}
-
-# 函数: 添加密钥
-add_sshkey() {
-
-	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
-
-	cat ~/.ssh/sshkey.pub >> ~/.ssh/authorized_keys
-	chmod 600 ~/.ssh/authorized_keys
-
-	# 获取服务器 IPV4、IPV6 公网地址
-	ip_address
-
-	echo -e "私钥信息已生成，务必复制保存，可保存成 ${yellow}${ipv4_address}_ssh.key${normal} 文件，用于以后的 SSH 登录"
-	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-	cat ~/.ssh/sshkey
-	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-
-	sed -i -e 's/^\s*#\?\s*PermitRootLogin .*/PermitRootLogin prohibit-password/' \
-				 -e 's/^\s*#\?\s*PasswordAuthentication .*/PasswordAuthentication no/' \
-				 -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
-				 -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
-	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
-
-	echo -e "${grey}ROOT 私钥登录已开启，已关闭 ROOT 密码登录，重连将会生效${normal}"
-}
-
-# 函数: 检查端口
-check_port() {
-	# 定义要检测的端口
-	PORT=443
-
-	# 检查端口占用情况
-	result=$(ss -tulpn | grep ":$PORT")
-
-	# 判断结果并输出相应信息
-	if [ -n "$result" ]; then
-		is_nginx_container=$(docker ps --format '{{.Names}}' | grep 'nginx')
-
-		# 判断是否是 Nginx 容器占用端口
-		if [ -n "$is_nginx_container" ]; then
-				echo ""
-		else
-				clear
-				echo -e "${red}端口 ${yellow}$PORT${red} 已被占用，无法安装环境，卸载以下程序后重试！${normal}"
-				echo "$result"
-				break_end
-				leon
-		fi
-
-	else
-		echo ""
-	fi
-}
-
-# 函数: 安装依赖 wget socat unzip tar
-install_dependency() {
-	clear
-	install wget socat unzip tar
-}
-
-# 函数: 安装 certbot 工具
-install_certbot() {
-    install certbot
-
-    # 切换到一个一致的目录（例如，家目录）
-    cd ~ || exit
-
-    # 下载并使脚本可执行
-    curl -O https://raw.githubusercontent.com/oliver556/sh/main/auto_cert_renewal.sh
-    chmod +x auto_cert_renewal.sh
-
-    # 设置定时任务字符串
-    cron_job="0 0 * * * ~/auto_cert_renewal.sh"
-
-    # 检查是否存在相同的定时任务
-    existing_cron=$(crontab -l 2>/dev/null | grep -F "$cron_job")
-
-    # 如果不存在，则添加定时任务
-    if [ -z "$existing_cron" ]; then
-		(crontab -l 2>/dev/null; echo "$cron_job") | crontab -
-		echo "续签任务已添加"
-    else
-		echo "续签任务已存在，无需添加"
-    fi
-}
-
-# 函数: 创建自签名的 SSL 证书并将其存储在指定的目录中
-default_server_ssl() {
-	install openssl
-	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
-}
-
-# 函数: 获取 SSL/TLS 证书
-install_ssltls() {
-	docker stop nginx > /dev/null 2>&1
-	iptables_open
-	cd ~
-	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
-	cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/web/certs/${yuming}_cert.pem
-	cp /etc/letsencrypt/live/$yuming/privkey.pem /home/web/certs/${yuming}_key.pem
-	docker start nginx > /dev/null 2>&1
-}
-
-# 函数: Nginx 环境检查
-nginx_install_status() {
-
-	if docker inspect "nginx" &>/dev/null; then
-		echo "nginx 环境已安装，开始部署 $webname"
-	else
-		echo -e "${yellow}nginx 未安装，请先安装 nginx 环境，再部署网站${normal}"
-
-	break_end
-	leon
- 	fi
-}
-
-# 函数: 获取 IP，及收集用户输入要解析的域名
-add_yuming() {
-	ip_address
-	echo -e "先将域名解析到本机IP: ${yellow}$ipv4_address  $ipv6_address${normal}"
-	read -p "请输入你解析的域名: " yuming
-	repeat_add_yuming
-}
-
-# 函数: 输出建站 IP
-nginx_web_on() {
-	clear
-	echo "您的 $webname 搭建好了！"
-	echo "https://$yuming"
-}
-
-# 函数: 检查 docker、证书申请 状态
-nginx_status() {
-
-	sleep 1
-
-	nginx_container_name="nginx"
-
-	# 获取容器的状态
-	container_status=$(docker inspect -f '{{.State.Status}}' "$nginx_container_name" 2>/dev/null)
-
-	# 获取容器的重启状态
-	container_restart_count=$(docker inspect -f '{{.RestartCount}}' "$nginx_container_name" 2>/dev/null)
-
-	# 检查容器是否在运行，并且没有处于"Restarting"状态
-	if [ "$container_status" == "running" ]; then
-		echo ""
-	else
-		rm -r /home/web/html/$yuming >/dev/null 2>&1
-		rm /home/web/conf.d/$yuming.conf >/dev/null 2>&1
-		rm /home/web/certs/${yuming}_key.pem >/dev/null 2>&1
-		rm /home/web/certs/${yuming}_cert.pem >/dev/null 2>&1
-		docker restart nginx >/dev/null 2>&1
-
-		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $dbname;" 2> /dev/null
-
-		echo -e "${red}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${normal}"
-	fi
-
-}
-
-# 函数: ToDo
-install_panel() {
-	if $lujing ; then
-		clear
-		echo -e "${green}$panelname 已安装，应用操作"
-		echo ""
-		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-		echo "1. 管理$panelname          2. 卸载$panelname"
-		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-		echo "0. 返回上一级选单"
-		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-		read -p "请输入你的选择: " sub_choice
-
-		case $sub_choice in
-			1)
-				clear
-				$gongneng1
-				$gongneng1_1
-				;;
-
-			2)
-				clear
-				$gongneng2
-				$gongneng2_1
-				$gongneng2_2
-				;;
-
-			0)
-				break  # 跳出循环，退出菜单
-				;;
-
-			*)
-				break  # 跳出循环，退出菜单
-				;;
-		esac
-
-	else
-		clear
-		echo -e "${yellow}安装提示${normal}"
-		echo "如果您已经安装了其他面板工具或者 LDNMP 建站环境，建议先卸载，再安装 $panelname！"
-		echo "会根据系统自动安装，支持Debian，Ubuntu，Centos"
-		echo "官网介绍: $panelurl "
-		echo ""
-
-		read -p "确定安装 $panelname 吗？(Y/N): " choice
-		case "$choice" in
-			[Yy])
-				# 开放所有端口
-				iptables_open
-				install wget
-				if grep -q 'Alpine' /etc/issue; then
-					$ubuntu_mingling
-					$ubuntu_mingling2
-				elif grep -qi 'CentOS' /etc/redhat-release; then
-					$centos_mingling
-					$centos_mingling2
-				elif grep -qi 'Ubuntu' /etc/os-release; then
-					$ubuntu_mingling
-					$ubuntu_mingling2
-				elif grep -qi 'Debian' /etc/os-release; then
-					$ubuntu_mingling
-					$ubuntu_mingling2
-				else
-					echo "Unsupported OS"
-				fi
-				;;
-
-			[Nn])
-				;;
-
-			*)
-				;;
-				esac
-	fi
-}
-
-# 函数: ToDo
-iptables_open() {
-	iptables -P INPUT ACCEPT
-	iptables -P FORWARD ACCEPT
-	iptables -P OUTPUT ACCEPT
-	iptables -F
-
-	ip6tables -P INPUT ACCEPT
-	ip6tables -P FORWARD ACCEPT
-	ip6tables -P OUTPUT ACCEPT
-	ip6tables -F
-}
-
-# 函数: 设置时区
-set_timedate() {
-	shiqu="$1"
-	if grep -q 'Alpine' /etc/issue; then
-		install tzdata
-		cp /usr/share/zoneinfo/${shiqu} /etc/localtime
-		hwclock --systohc
-	else
-		timedatectl set-timezone ${shiqu}
-	fi
 }
 
 # 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
@@ -999,16 +412,96 @@ install_ldnmp() {
 	  	ldnmp_v
 }
 
-# 函数: 检查是否安装 LDNMP 环境
-ldnmp_install_status() {
-   if docker inspect "php" &>/dev/null; then
-    	echo "LDNMP 环境已安装，开始部署 $webname"
-   else
+# 函数: 安装 certbot 工具
+install_certbot() {
+    install certbot
 
-	echo -e "${yellow}LDNMP 环境未安装，请先安装 LDNMP 环境，再部署网站${normal}"
+    # 切换到一个一致的目录（例如，家目录）
+    cd ~ || exit
+
+    # 下载并使脚本可执行
+    curl -O https://raw.githubusercontent.com/oliver556/sh/main/auto_cert_renewal.sh
+    chmod +x auto_cert_renewal.sh
+
+    # 设置定时任务字符串
+    cron_job="0 0 * * * ~/auto_cert_renewal.sh"
+
+    # 检查是否存在相同的定时任务
+    existing_cron=$(crontab -l 2>/dev/null | grep -F "$cron_job")
+
+    # 如果不存在，则添加定时任务
+    if [ -z "$existing_cron" ]; then
+		(crontab -l 2>/dev/null; echo "$cron_job") | crontab -
+		echo "续签任务已添加"
+    else
+		echo "续签任务已存在，无需添加"
+    fi
+}
+
+# 函数: 获取 SSL/TLS 证书
+install_ssltls() {
+	docker stop nginx > /dev/null 2>&1
+	iptables_open
+	cd ~
+	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+	cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/web/certs/${yuming}_cert.pem
+	cp /etc/letsencrypt/live/$yuming/privkey.pem /home/web/certs/${yuming}_key.pem
+	docker start nginx > /dev/null 2>&1
+}
+
+# 函数: 创建自签名的 SSL 证书并将其存储在指定的目录中
+default_server_ssl() {
+	install openssl
+	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+}
+
+# 函数: 检查 docker、证书申请 状态
+nginx_status() {
+
+	sleep 1
+
+	nginx_container_name="nginx"
+
+	# 获取容器的状态
+	container_status=$(docker inspect -f '{{.State.Status}}' "$nginx_container_name" 2>/dev/null)
+
+	# 获取容器的重启状态
+	container_restart_count=$(docker inspect -f '{{.RestartCount}}' "$nginx_container_name" 2>/dev/null)
+
+	# 检查容器是否在运行，并且没有处于"Restarting"状态
+	if [ "$container_status" == "running" ]; then
+		echo ""
+	else
+		rm -r /home/web/html/$yuming >/dev/null 2>&1
+		rm /home/web/conf.d/$yuming.conf >/dev/null 2>&1
+		rm /home/web/certs/${yuming}_key.pem >/dev/null 2>&1
+		rm /home/web/certs/${yuming}_cert.pem >/dev/null 2>&1
+		docker restart nginx >/dev/null 2>&1
+
+		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $dbname;" 2> /dev/null
+
+		echo -e "${red}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${normal}"
+	fi
+
+}
+
+repeat_add_yuming() {
+	if [ -e /home/web/conf.d/$yuming.conf ]; then
+    echo -e "${yellow}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！${normal}"
     break_end
     leon
-   fi
+	else
+    echo "当前 ${yuming} 域名可用"
+	fi
+}
+
+# 函数: 获取 IP，及收集用户输入要解析的域名
+add_yuming() {
+	ip_address
+	echo -e "先将域名解析到本机IP: ${yellow}$ipv4_address  $ipv6_address${normal}"
+	read -p "请输入你解析的域名: " yuming
+	repeat_add_yuming
 }
 
 # 函数: 解析指定的 docker-compose.yml 文件中的 MySQL 配置
@@ -1023,6 +516,20 @@ add_db() {
 	docker exec mysql mysql -u root -p"$dbrootpasswd" -e "CREATE DATABASE $dbname; GRANT ALL PRIVILEGES ON $dbname.* TO \"$dbuse\"@\"%\";"
 }
 
+# 函数: 设置反向代理配置，修改 Nginx 反向代理配置文件
+reverse_proxy() {
+	# 获取服务器 IPV4、IPV6 公网地址
+	ip_address
+
+	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
+	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
+
+	# 重启 Nginx 服务器
+	docker restart nginx
+}
+
 # 函数: 设置 nginx、php 目录权限并重启
 restart_ldnmp() {
 	docker exec nginx chmod -R 777 /var/www/html
@@ -1032,26 +539,6 @@ restart_ldnmp() {
 	docker restart nginx
 	docker restart php
 	docker restart php74
-}
-
-# 函数: 获取域名地址，进行提示
-ldnmp_web_on() {
-	clear
-	echo -e "${green}您的 $webname 搭建好了！${normal}"
-	echo "https://$yuming"
-	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-	echo "$webname 安装信息如下: "
-
-}
-
-repeat_add_yuming() {
-	if [ -e /home/web/conf.d/$yuming.conf ]; then
-    echo -e "${yellow}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！${normal}"
-    break_end
-    leon
-	else
-    echo "当前 ${yuming} 域名可用"
-	fi
 }
 
 docker_app() {
@@ -1163,6 +650,369 @@ tmux_run() {
 	fi
 }
 
+# 函数: 重新启动 fail2ban 容器，并使用 fail2ban-client 工具获取 fail2ban 服务的状态信息
+f2b_status() {
+	 docker restart fail2ban
+	 sleep 3
+	 docker exec -it fail2ban fail2ban-client status
+}
+
+# 函数: 通过 Docker 容器内的 fail2ban-client 工具来获取特定服务的状态信息
+f2b_status_xxx() {
+	docker exec -it fail2ban fail2ban-client status $xxx
+}
+
+# 函数: 在 Docker 中运行 fail2ban 容器，并根据系统类型添加适当的配置文件以保护 SSH 服务
+f2b_install_sshd() {
+
+	docker run -d \
+		--name=fail2ban \
+		--net=host \
+		--cap-add=NET_ADMIN \
+		--cap-add=NET_RAW \
+		-e PUID=1000 \
+		-e PGID=1000 \
+		-e TZ=Etc/UTC \
+		-e VERBOSITY=-vv \
+		-v /path/to/fail2ban/config:/config \
+		-v /var/log:/var/log:ro \
+		-v /home/web/log/nginx/:/remotelogs/nginx:ro \
+		--restart unless-stopped \
+		lscr.io/linuxserver/fail2ban:latest
+
+	sleep 3
+	if grep -q 'Alpine' /etc/issue; then
+		cd /path/to/fail2ban/config/fail2ban/filter.d
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
+
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
+
+	elif grep -qi 'CentOS' /etc/redhat-release; then
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
+
+	else
+		install rsyslog
+		systemctl start rsyslog
+		systemctl enable rsyslog
+		cd /path/to/fail2ban/config/fail2ban/jail.d/
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
+	fi
+}
+
+# 函数: 根据系统的发行版设置一个变量 xxx 的值，调用 f2b_status_xxx 函数来处理相应的操作
+f2b_sshd() {
+	if grep -q 'Alpine' /etc/issue; then
+		xxx=alpine-sshd
+		f2b_status_xxx
+	elif grep -qi 'CentOS' /etc/redhat-release; then
+		xxx=centos-sshd
+		f2b_status_xxx
+	else
+		xxx=linux-sshd
+		f2b_status_xxx
+	fi
+}
+
+# 函数: 询问用户是否要重启服务器
+server_reboot() {
+	read -p "$(echo -e "${yellow}现在重启服务器吗？(Y/N): ${normal}")" rboot
+	case "$rboot" in
+	[Yy])
+		echo "已重启"
+		reboot
+		;;
+	[Nn])
+		echo "已取消"
+		;;
+	*)
+		echo "无效的选择，请输入 Y 或 N。"
+		;;
+	esac
+}
+
+# 函数: 获取服务器流量统计状态，格式化输出（单位保留 GB）
+output_status() {
+	output=$(awk 'BEGIN { rx_total = 0; tx_total = 0 }
+		NR > 2 { rx_total += $2; tx_total += $10 }
+		END {
+			rx_units = "Bytes";
+			tx_units = "Bytes";
+			if (rx_total > 1024) { rx_total /= 1024; rx_units = "KB"; }
+			if (rx_total > 1024) { rx_total /= 1024; rx_units = "MB"; }
+			if (rx_total > 1024) { rx_total /= 1024; rx_units = "GB"; }
+
+			if (tx_total > 1024) { tx_total /= 1024; tx_units = "KB"; }
+			if (tx_total > 1024) { tx_total /= 1024; tx_units = "MB"; }
+			if (tx_total > 1024) { tx_total /= 1024; tx_units = "GB"; }
+
+			printf("总接收:\t\t%.2f %s\n总发送:\t\t%.2f %s\n", rx_total, rx_units, tx_total, tx_units);
+		}' /proc/net/dev)
+}
+
+# 函数: 检查是否安装 LDNMP 环境
+ldnmp_install_status() {
+   if docker inspect "php" &>/dev/null; then
+    	echo "LDNMP 环境已安装，开始部署 $webname"
+   else
+
+	echo -e "${yellow}LDNMP 环境未安装，请先安装 LDNMP 环境，再部署网站${normal}"
+    break_end
+    leon
+   fi
+}
+
+# 函数: Nginx 环境检查
+nginx_install_status() {
+
+	if docker inspect "nginx" &>/dev/null; then
+		echo "nginx 环境已安装，开始部署 $webname"
+	else
+		echo -e "${yellow}nginx 未安装，请先安装 nginx 环境，再部署网站${normal}"
+
+	break_end
+	leon
+ 	fi
+}
+
+# 函数: 获取域名地址，进行提示
+ldnmp_web_on() {
+	clear
+	echo -e "${green}您的 $webname 搭建好了！${normal}"
+	echo "https://$yuming"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "$webname 安装信息如下: "
+
+}
+
+# 函数: 输出建站 IP
+nginx_web_on() {
+	clear
+	echo "您的 $webname 搭建好了！"
+	echo "https://$yuming"
+}
+
+# 函数: ToDo
+install_panel() {
+	if $lujing ; then
+		clear
+		echo -e "${green}$panelname 已安装，应用操作"
+		echo ""
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo "1. 管理$panelname          2. 卸载$panelname"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo "0. 返回上一级选单"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		read -p "请输入你的选择: " sub_choice
+
+		case $sub_choice in
+			1)
+				clear
+				$gongneng1
+				$gongneng1_1
+				;;
+
+			2)
+				clear
+				$gongneng2
+				$gongneng2_1
+				$gongneng2_2
+				;;
+
+			0)
+				break  # 跳出循环，退出菜单
+				;;
+
+			*)
+				break  # 跳出循环，退出菜单
+				;;
+		esac
+
+	else
+		clear
+		echo -e "${yellow}安装提示${normal}"
+		echo "如果您已经安装了其他面板工具或者 LDNMP 建站环境，建议先卸载，再安装 $panelname！"
+		echo "会根据系统自动安装，支持Debian，Ubuntu，Centos"
+		echo "官网介绍: $panelurl "
+		echo ""
+
+		read -p "确定安装 $panelname 吗？(Y/N): " choice
+		case "$choice" in
+			[Yy])
+				# 开放所有端口
+				iptables_open
+				install wget
+				if grep -q 'Alpine' /etc/issue; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				elif grep -qi 'CentOS' /etc/redhat-release; then
+					$centos_mingling
+					$centos_mingling2
+				elif grep -qi 'Ubuntu' /etc/os-release; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				elif grep -qi 'Debian' /etc/os-release; then
+					$ubuntu_mingling
+					$ubuntu_mingling2
+				else
+					echo "Unsupported OS"
+				fi
+				;;
+
+			[Nn])
+				;;
+
+			*)
+				;;
+				esac
+	fi
+}
+
+# 函数: 获取当前系统时区
+current_timezone() {
+	if grep -q 'Alpine' /etc/issue; then
+		date +"%Z %z"
+	else
+	 	timedatectl | grep "Time zone" | awk '{print $3}'
+	fi
+}
+
+# 函数: 设置时区
+set_timedate() {
+	shiqu="$1"
+	if grep -q 'Alpine' /etc/issue; then
+		install tzdata
+		cp /usr/share/zoneinfo/${shiqu} /etc/localtime
+		hwclock --systohc
+	else
+		timedatectl set-timezone ${shiqu}
+	fi
+}
+
+# 函数: 系统更新
+linux_update() {
+	# Update system on Debian-based systems
+	if [ -f "/etc/debian_version" ]; then
+		apt update -y && DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
+	fi
+
+	# Update system on Red Hat-based systems
+	if [ -f "/etc/redhat-release" ]; then
+		yum -y update
+	fi
+
+	# Update system on Alpine Linux
+	if [ -f "/etc/alpine-release" ]; then
+		apk update && apk upgrade
+	fi
+}
+
+# 函数: 清理不同 Linux 发行版（Debian、Red Hat、Alpine）系统的函数。它根据系统版本使用不同的清理命令，
+# 包括清理软件包缓存、日志和内核文件，以释放磁盘空间。
+linux_clean() {
+	# 清理 Debian 系统
+	clean_debian() {
+		# 自动删除不需要的软件包，并清理相关的配置文件
+		apt autoremove --purge -y
+		# 清理下载的软件包的缓存
+		apt clean -y
+		# 清理旧的软件包下载缓存
+		apt autoclean -y
+		# 移除已经标记为删除但未完全清理的软件包
+		apt remove --purge $(dpkg -l | awk '/^rc/ {print $2}') -y
+		# 旋转系统日志
+		journalctl --rotate
+		# 清理老旧的系统日志，保留不超过1秒的日志
+		journalctl --vacuum-time=1s
+		# 清理系统日志，保留不超过 50MB 的日志
+		journalctl --vacuum-size=50M
+		# 移除旧的 Linux 内核镜像和头文件
+		apt remove --purge $(dpkg -l | awk '/^ii linux-(image|headers)-[^ ]+/{print $2}' | grep -v $(uname -r | sed 's/-.*//') | xargs) -y
+	}
+
+	# 清理 Red Hat 系统
+	clean_redhat() {
+		# 自动删除不需要的软件包
+		yum autoremove -y
+		# 清理 YUM 软件包管理器的缓存
+		yum clean all
+		# 旋转系统日志
+		journalctl --rotate
+		# 清理老旧的系统日志，保留不超过 1 秒的日志
+		journalctl --vacuum-time=1s
+		# 清理系统日志，保留不超过 50MB 的日志
+		journalctl --vacuum-size=50M
+		# 移除旧的内核
+		yum remove $(rpm -q kernel | grep -v $(uname -r)) -y
+	}
+
+	# 清理 Alpine Linux 系统
+	clean_alpine() {
+		# 移除不再需要的安装包
+		apk del --purge $(apk info --installed | awk '{print $1}' | grep -v $(apk info --available | awk '{print $1}'))
+		# 自动移除不需要的软件包
+		apk autoremove
+		# 清理 APK 软件包管理器的缓存
+		apk cache clean
+		# 移除日志文件
+		rm -rf /var/log/*
+		# 清理 APK 的缓存文件
+		rm -rf /var/cache/apk/*
+
+	}
+
+	# Main script
+	if [ -f "/etc/debian_version" ]; then
+		# Debian-based systems
+		clean_debian
+	elif [ -f "/etc/redhat-release" ]; then
+		# Red Hat-based systems
+		clean_redhat
+	elif [ -f "/etc/alpine-release" ]; then
+		# Alpine Linux
+		clean_alpine
+	fi
+}
+
+# 函数: 修改 SSH 连接端口
+new_ssh_port() {
+	# 备份 SSH 配置文件
+	cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+	# 使用 sed 替换命令将原先注释掉的端口配置取消注释，即将 #Port 改为 Port
+	sed -i 's/^\s*#\?\s*Port/Port/' /etc/ssh/sshd_config
+
+	# 替换 SSH 配置文件中的端口号
+	sed -i "s/Port [0-9]\+/Port $new_port/g" /etc/ssh/sshd_config
+
+	# 重启 SSH 服务
+	service sshd restart
+
+	# 打印消息，确认 SSH 端口已被成功修改
+	echo "SSH 端口已修改为: $new_port"
+
+	clear
+	# 调用函数以打开所有端口
+	open_all_ports
+
+	# 移除一些防火墙相关的软件
+	remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
+}
+
+# 函数: 启用 BBR 拥塞控制算法
+bbr_on() {
+	# 将以下内容覆盖写入 /etc/sysctl.conf 文件中
+	cat > /etc/sysctl.conf << EOF
+net.core.default_qdisc=fq_pie
+net.ipv4.tcp_congestion_control=bbr
+EOF
+	# 重新加载
+	sysctl -p
+}
+
 set_dns() {
 
 	# 检查机器是否有 IPv6 地址
@@ -1186,21 +1036,130 @@ set_dns() {
 	echo "------------------------"
 }
 
-# ToDo 还未使用
-# 函数: 设置反向代理配置，修改 Nginx 反向代理配置文件
-reverse_proxy() {
+# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
+restart_ssh() {
+	if command -v dnf &>/dev/null; then
+		systemctl restart sshd
+	elif command -v yum &>/dev/null; then
+		systemctl restart sshd
+	elif command -v apt &>/dev/null; then
+		service ssh restart
+	elif command -v apk &>/dev/null; then
+		service sshd restart
+	else
+		echo -e "${red}无法找到 SSH 服务启动脚本，无法重启 SSH 服务!${normal}"
+		return 1
+	fi
+}
+
+# 函数: 添加密钥
+add_sshkey() {
+
+	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
+
+	cat ~/.ssh/sshkey.pub >> ~/.ssh/authorized_keys
+	chmod 600 ~/.ssh/authorized_keys
+
 	# 获取服务器 IPV4、IPV6 公网地址
 	ip_address
 
-	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
-	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
-	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
-	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
+	echo -e "私钥信息已生成，务必复制保存，可保存成 ${yellow}${ipv4_address}_ssh.key${normal} 文件，用于以后的 SSH 登录"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	cat ~/.ssh/sshkey
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 
-	# 重启 Nginx 服务器
-	docker restart nginx
+	sed -i -e 's/^\s*#\?\s*PermitRootLogin .*/PermitRootLogin prohibit-password/' \
+				 -e 's/^\s*#\?\s*PasswordAuthentication .*/PasswordAuthentication no/' \
+				 -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
+				 -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
+
+	echo -e "${grey}ROOT 私钥登录已开启，已关闭 ROOT 密码登录，重连将会生效${normal}"
 }
 
+# 函数: 设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码
+add_sshpasswd() {
+	echo -e "${yellow}设置允许 ROOT 用户通过 SSH 登录，并设置 ROOT 用户的密码${normal}"
+	echo "设置你的 ROOT 密码"
+	# 提示用户输入两次密码，用于设置 ROOT 用户的密码
+	passwd
+	# 修改 /etc/ssh/sshd_config 文件来允许 ROOT 用户通过 SSH 登录
+	sed -i 's/^\s*#\?\s*PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config;
+	# 修改 /etc/ssh/sshd_config 文件来允许密码进行认证
+	sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config;
+	# 清理 SSH 配置目录下的临时文件
+	rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
+	# 函数: 根据系统中安装的包管理器来使用适当的命令来重启 SSH 服务
+	restart_ssh
+	# 显示消息，表示 ROOT 登录设置完成
+	echo -e "${green}ROOT 登录设置完毕！${normal}"
+	server_reboot
+}
+
+# 函数: 是否以 root 用户身份运行
+root_use() {
+	clear
+	[ "$EUID" -ne 0 ] && echo -e "${red}请注意，该功能需要 root 用户 才能运行！${normal}" && break_end && leon
+}
+
+# ToDo ====================================================================================================
+# ToDo 以下属于个人新增函数
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+# ToDo ====================================================================================================
+
+# 函数: speedtest 测速工具
+speed_test_tool() {
+	# 判断是否安装了 curl
+	if ! command -v curl &> /dev/null; then
+		echo "curl 未安装，开始安装..."
+		install curl
+	else
+		# 更新一下
+		install curl
+	fi
+
+	# 使用 curl 安装 speedtest-cli
+	if ! command -v speedtest-cli &> /dev/null
+	then
+		curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+	fi
+
+	# 检查 speedtest 是否已安装
+	if ! command -v speedtest &> /dev/null; then
+		clear
+		echo "speedtest 未安装，开始安装..."
+		# 安装 speedtest
+		install speedtest
+		echo ""
+		clear
+		echo "------------------------"
+		echo "安装已完成"
+		echo "正在运行 Speedtest"
+		speedtest
+	else
+		# 如果已安装，直接运行 speedtest
+		clear
+		echo ""
+		echo "------------------------"
+		echo "正在运行 Speedtest"
+		speedtest
+	fi
+}
+
+# 函数: 函数用于检查命令是否已安装，未安装的进行安装
+check_command() {
+	local command_name="$1"  # 将输入的命令名保存到变量
+
+	if ! command -v "$command_name" &>/dev/null; then
+		echo "$command_name 未安装，正在进行安装..."
+		install "$command_name"  # 使用引号包围变量以正确传递参数
+	fi
+}
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
