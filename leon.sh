@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.19"
+sh_v="1.0.20"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -736,31 +736,26 @@ default_server_ssl() {
 
 # 函数: 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
 ldnmp_v() {
+      # 获取 nginx 版本
+      nginx_version=$(docker exec nginx nginx -v 2>&1)
+      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "nginx : ${huang}v$nginx_version${bai}"
 
-	# 获取 nginx 版本
-	nginx_version=$(docker exec nginx nginx -v 2>&1)
-	# ToDo 未安装显示未空
-#	nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
-	nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-	echo -n -e "nginx : ${yellow}v$nginx_version${normal}"
+      # 获取 mysql 版本
+      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
+      echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
 
-	# 获取 mysql 版本
-	# ToDo 未安装显示未空
-#	dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml 2>/dev/null | tr -d '[:space:]' || echo "")
-	dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-	mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-	echo -n -e "            mysql : ${yellow}v$mysql_version${normal}"
+      # 获取 php 版本
+      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "            php : ${huang}v$php_version${bai}"
 
-	# 获取 php 版本
-	php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-	echo -n -e "            php : ${yellow}v$php_version${normal}"
+      # 获取 redis 版本
+      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
+      echo -e "            redis : ${huang}v$redis_version${bai}"
 
-	# 获取 redis 版本
-	redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-	echo -e "            redis : ${yellow}v$redis_version${normal}"
-
-	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-	echo ""
+      echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+      echo ""
 }
 
 # 函数: 获取 SSL/TLS 证书
@@ -939,7 +934,6 @@ set_timedate() {
 install_ldnmp() {
 
 	new_swap=1024
-	# 重新配置系统的 swap 分区和文件
 	add_swap
 
 	cd /home/web && docker compose up -d
@@ -951,9 +945,7 @@ install_ldnmp() {
 		"docker exec nginx chmod -R 777 /var/www/html"
 		"docker restart nginx > /dev/null 2>&1"
 
-		"docker exec php apt update > /dev/null 2>&1"
 		"docker exec php apk update > /dev/null 2>&1"
-		"docker exec php74 apt update > /dev/null 2>&1"
 		"docker exec php74 apk update > /dev/null 2>&1"
 
 		# php 安装包管理
@@ -988,7 +980,7 @@ install_ldnmp() {
 		"docker exec php chmod -R 777 /var/www/html"
 		"docker restart php > /dev/null 2>&1"
 
-		# php 7.4 安装扩展
+		# php7.4 安装扩展
 		"docker exec php74 install-php-extensions mysqli > /dev/null 2>&1"
 		"docker exec php74 install-php-extensions pdo_mysql > /dev/null 2>&1"
 		"docker exec php74 install-php-extensions gd > /dev/null 2>&1"
@@ -1000,18 +992,17 @@ install_ldnmp() {
 		"docker exec php74 install-php-extensions imagick > /dev/null 2>&1"
 		"docker exec php74 install-php-extensions redis > /dev/null 2>&1"
 
-		# php 7.4 配置参数
+		# php7.4 配置参数
 		"docker exec php74 sh -c 'echo \"upload_max_filesize=50M \" > /usr/local/etc/php/conf.d/uploads.ini' > /dev/null 2>&1"
 		"docker exec php74 sh -c 'echo \"post_max_size=50M \" > /usr/local/etc/php/conf.d/post.ini' > /dev/null 2>&1"
 		"docker exec php74 sh -c 'echo \"memory_limit=256M\" > /usr/local/etc/php/conf.d/memory.ini' > /dev/null 2>&1"
 		"docker exec php74 sh -c 'echo \"max_execution_time=1200\" > /usr/local/etc/php/conf.d/max_execution_time.ini' > /dev/null 2>&1"
 		"docker exec php74 sh -c 'echo \"max_input_time=600\" > /usr/local/etc/php/conf.d/max_input_time.ini' > /dev/null 2>&1"
 
-		# php 7.4 重启
+		# php7.4 重启
 		"docker exec php74 chmod -R 777 /var/www/html"
 		"docker restart php74 > /dev/null 2>&1"
 	)
-
 	# 计算总命令数
 	total_commands=${#commands[@]}
 
@@ -1025,24 +1016,23 @@ install_ldnmp() {
 		remaining=$(( 50 - completed ))
 		progressBar="["
 		for ((j = 0; j < completed; j++)); do
-			progressBar+="#"
+		  	progressBar+="#"
 		done
 		for ((j = 0; j < remaining; j++)); do
-			progressBar+="."
+		  	progressBar+="."
 		done
-		progressBar+="]"
-		echo -ne "\r[${grey}$percentage%${normal}] $progressBar"
-	done
+			progressBar+="]"
+			echo -ne "\r[${lv}$percentage%${bai}] $progressBar"
+		done
 
-	echo  # 打印换行，以便输出不被覆盖
+	  	echo  # 打印换行，以便输出不被覆盖
 
 
-	clear
-	echo -e "${green}LDNMP 环境安装完毕${normal}"
-	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-
-	# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
-	ldnmp_v
+	  	clear
+		echo -e "${green}LDNMP 环境安装完毕${normal}"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		# 获取当前环境中 Nginx、MySQL、PHP 和 Redis 的版本信息
+	  	ldnmp_v
 }
 
 # 函数: 检查是否安装 LDNMP 环境
