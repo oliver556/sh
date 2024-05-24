@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.26"
+sh_v="1.0.27"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -1250,6 +1250,141 @@ check_command() {
 		install "$command_name"  # 使用引号包围变量以正确传递参数
 	fi
 }
+
+# 用于格式化安装参数的辅助函数
+# 如果用户选择了对应功能，就添加该参数
+format_param() {
+    local choice=\$1
+    local param=\$2
+    [[ "$choice" == "y" ]] && echo " $param" || echo ""
+}
+
+# 如果参数有值，则添加选项和参数值
+format_option_param() {
+    local value=\$1
+    local option=\$2
+    [[ -n "$value" ]] && echo " $option $value" || echo ""
+}
+
+# 定义函数以读取带有默认值的输入
+read_input() {
+	echo "Prompt: \$1, Default: \$2"  # 调试输出
+    local prompt=\$1
+    local default=\$2
+    local user_input
+    read -p "$prompt" user_input
+    echo "${user_input:-$default}"
+}
+
+# 函数: 定义默认安装的函数
+install_seedbox_default() {
+	bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+}
+
+
+
+# 函数: 定义自定义安装的函数
+install_seedbox_custom() {
+	clear
+
+    # 显示安装参数函数
+	seedbox_custom_display_params() {
+		local show_header="$1"
+
+		if [[ $show_header == "true" ]]; then
+        	echo -e "${cyan}${bold}当前已输入参数如下 ↓${normal}"
+    	fi
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo -e "用户名: ${yellow}${bold}$username${normal}"
+		echo -e "密码: ${yellow}${bold}$password${normal}"
+		echo -e "缓存大小: ${yellow}${bold}${cache_size}MB${normal}"
+		echo -e "${bold}qBittorrent${normal} 版本：${yellow}${bold}$qb_version${normal}"
+		echo -e "${bold}libtorrent${normal} 版本：${yellow}${bold}$li_version${normal}"
+		echo -e "安装 ${bold}autobrr${normal}: $( [[ $install_autobrr == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "安装 ${bold}vertex${normal}: $( [[ $install_vertex == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "安装 ${bold}autoremove-torrents${normal}: $( [[ $install_autoremove == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "启动 ${bold}BBR V3${normal}: $( [[ $enable_bbr_v3 == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "启动 ${bold}BBRx${normal}: $( [[ $enable_bbrx == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		[[ -n $custom_port ]] && echo "自定义端口号：${yellow}${bold}$custom_port${normal}"
+		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+		echo ""
+	}
+
+	seedbox_custom_display_params true
+
+
+	# 定义读取输入的通用函数，包含默认值处理
+    read_input() {
+		local prompt="$1"
+		local default_value="$2"
+		local var_name="$3"
+
+		# 清屏并显示当前已输入的参数
+		clear
+		seedbox_custom_display_params true
+
+		echo -ne "${prompt} (默认: ${yellow}${default_value}${normal}): "
+		# 读取输入
+		read input_value
+
+		# 如果用户未输入值，则使用默认值
+		declare -g "$var_name=${input_value:-$default_value}"
+
+#		旧方式
+#		# 清屏并显示当前已输入的参数
+#		clear
+#		seedbox_custom_display_params true
+	}
+
+	# 逐个读取输入的参数
+	read_input "请输入用户名" "admin" "username"
+	read_input "请输入密码" "adminadmin" "password"
+	read_input "请输入缓存大小（单位：MB）" "3072" "cache_size"
+	read_input "请输入 qBittorrent 版本" "4.3.9" "qb_version"
+	read_input "请输入 libtorrent 版本" "v1.2.19" "li_version"
+	read_input "是否安装 autobrr？ (y/n)" "n" "install_autobrr"
+	read_input "是否安装 vertex？ (y/n)" "y" "install_vertex"
+	read_input "是否安装 autoremove-torrents？ (y/n)" "n" "install_autoremove"
+	read_input "是否启动 BBR V3？ (y/n)" "n" "enable_bbr_v3"
+	read_input "是否启动 BBRx？ (y/n)" "y" "enable_bbrx"
+	read_input "请输入自定义端口号（不需要输入则留空）" "" "custom_port"
+
+	clear
+	# 显示最终的安装参数
+	echo -e "${red}${bold}最终安装参数如下 ↓${normal}"
+	seedbox_custom_display_params false
+
+	# 构建参数字符串
+	params="-u $username -p $password -c $cache_size -q $qb_version -l $li_version"
+	[[ $install_autobrr == "y" ]] && params="$params -b"
+	[[ $install_vertex == "y" ]] && params="$params -v"
+	[[ $install_autoremove == "y" ]] && params="$params -r"
+	[[ $enable_bbr_v3 == "y" ]] && params="$params -3"
+	[[ $enable_bbrx == "y" ]] && params="$params -x"
+	[[ -n $custom_port ]] && params="$params -o $custom_port"
+
+	echo "$params"
+
+	# 用户确认
+	read -p "输入完成，${red}${bold}请确认参数${normal}，是否继续安装? (y/n): " confirm_install
+	if [[ "$confirm_install" != "y" ]]; then
+		echo "安装已取消。"
+		return 1
+	fi
+
+	echo "$params"
+
+	read -n 1 -s -r -p ""
+
+    # 调用安装脚本并传递参数
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+
+    break_end
+}
+
+
+
+
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
@@ -1631,14 +1766,15 @@ while true; do
 					21)
 						while true; do
 							clear
-							echo ""
-							echo "官网介绍：https://wiki.vertex.icu"
+#							echo ""
+#							echo "具体参数可以查看: "
+#							echo "https://github.com/jerry048/Dedicated-Seedbox/blob/main/README-zh.md"
 							echo ""
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 							echo -e "${cyan}默认执行参数:${normal}"
-							echo -e "用户名: ${yellow}seedbox${normal} 密码: ${yellow}seedbox${normal} 缓存大小: ${yellow}3GB${normal} qBittorrent: ${yellow}v4.3.9${normal} libtorrent: ${yellow}v1.2.19${normal} ${yellow}vertex${normal} ${yellow}启用 BBRx${normal}"
+							echo -e "用户名: ${yellow}admin${normal} 密码: ${yellow}adminadmin${normal} 缓存大小: ${yellow}3GB${normal} qBittorrent: ${yellow}v4.3.9${normal} libtorrent: ${yellow}v1.2.19${normal} ${yellow}vertex${normal} ${yellow}启用 BBRx${normal}"
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							echo "1. 预设参数安装"
+							echo "1. 默认参数安装"
 							echo "2. 自定义参数安装"
 							echo ""
 							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1647,58 +1783,14 @@ while true; do
 							read -p "请输入你的选择: " sub_choice
 
 							case $sub_choice in
-								# 预设参数安装
 								1)
-									clear
-									check_command wget
-									bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+									install_seedbox_default
+									break_end
 									;;
 
-								# 自定义参数安装
 								2)
-									clear
-									check_command wget
-									read -p "请输入用户名 (默认: admin): " username
-									username=${username:-admin}
-									read -p "请输入密码 (默认: admin): " password
-									password=${password:-admin}
-									read -p "请输入缓存大小（单位：MB，默认: 3072）: " cache_size
-									cache_size=${cache_size:-3072}
-									read -p "是否安装 autobrr？ (y/n, 默认: n): " install_autobrr
-									install_autobrr=${install_autobrr:-n}
-									read -p "是否安装 vertex？ (y/n, 默认: y): " install_vertex
-									install_vertex=${install_vertex:-y}
-									read -p "是否安装 autoremove-torrents？ (y/n, 默认: n): " install_autoremove
-									install_autoremove=${install_autoremove:-n}
-									read -p "是否启动 BBR V3？ (y/n, 默认: n): " enable_bbr_v3
-									enable_bbr_v3=${enable_bbr_v3:-n}
-									read -p "是否启动 BBRx？ (y/n, 默认: y): " enable_bbrx
-									enable_bbrx=${enable_bbrx:-y}
-									read -p "请输入自定义端口号（不需要输入则留空）: " custom_port
-
-									# 构建参数字符串
-									params="-u $username -p $password -c $cache_size"
-									if [ "$install_autobrr" == "y" ]; then
-										params="$params -b"
-									fi
-									if [ "$install_vertex" == "y" ]; then
-										params="$params -v"
-									fi
-									if [ "$install_autoremove" == "y" ]; then
-										params="$params -r"
-									fi
-									if [ "$enable_bbr_v3" == "y" ]; then
-										params="$params -3"
-									fi
-									if [ "$enable_bbrx" == "y" ]; then
-										params="$params -x"
-									fi
-									if [ -n "$custom_port" ]; then
-										params="$params -o $custom_port"
-									fi
-
-									# 执行安装脚本，并传入用户输入的参数
-                                    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+									install_seedbox_custom
+									break_end
 									;;
 
 								0)
@@ -1997,6 +2089,11 @@ while true; do
 
 							# 进入指定容器
 							11)
+								echo -e "${cyan}退出容器方法（2 选 1）: ${normal}"
+								echo "1. Ctrl + D"
+								echo "2. 在命令行输入 exit 然后按回车键"
+								echo ""
+								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								read -p "请输入容器名: " dockername
 								docker exec -it $dockername /bin/sh
 								break_end
@@ -2017,7 +2114,7 @@ while true; do
 								clear
 
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-								printf "%-25s %-25s %-25s\n" "容器名称" "网络名称" "IP地址"
+								printf "%-25s %-25s %-25s\n" "容器名称" "网络名称" "IP 地址"
 
 								for container_id in $container_ids; do
 									container_info=$(docker inspect --format '{{ .Name }}{{ range $network, $config := .NetworkSettings.Networks }} {{ $network }} {{ $config.IPAddress }}{{ end }}' "$container_id")

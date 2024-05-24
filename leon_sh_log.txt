@@ -28,3 +28,7 @@
 ------------------------
 2024-05-22   v1.0.26
 1. 新增 Dedicated-Seedbox Vertex qBittorrent 一键工具
+------------------------
+2024-05-24   v1.0.27
+1. 优化 Dedicated-Seedbox Vertex qBittorrent 一键工具
+2. 更新版本号 v1.0.27
