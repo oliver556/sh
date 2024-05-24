@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.27"
+sh_v="1.0.28"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -1372,14 +1372,8 @@ install_seedbox_custom() {
 		return 1
 	fi
 
-	echo "$params"
-
-	read -n 1 -s -r -p ""
-
     # 调用安装脚本并传递参数
     bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
-
-    break_end
 }
 
 
