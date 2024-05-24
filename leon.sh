@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.28"
+sh_v="1.0.29"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -1296,15 +1296,15 @@ install_seedbox_custom() {
     	fi
 		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 		echo -e "用户名: ${yellow}${bold}$username${normal}"
-		echo -e "密码: ${yellow}${bold}$password${normal}"
-		echo -e "缓存大小: ${yellow}${bold}${cache_size}MB${normal}"
-		echo -e "${bold}qBittorrent${normal} 版本：${yellow}${bold}$qb_version${normal}"
-		echo -e "${bold}libtorrent${normal} 版本：${yellow}${bold}$li_version${normal}"
-		echo -e "安装 ${bold}autobrr${normal}: $( [[ $install_autobrr == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
-		echo -e "安装 ${bold}vertex${normal}: $( [[ $install_vertex == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
-		echo -e "安装 ${bold}autoremove-torrents${normal}: $( [[ $install_autoremove == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
-		echo -e "启动 ${bold}BBR V3${normal}: $( [[ $enable_bbr_v3 == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
-		echo -e "启动 ${bold}BBRx${normal}: $( [[ $enable_bbrx == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "${jiacu}密码: ${yellow}${bold}$password${normal}"
+		echo -e "${jiacu}缓存大小: ${yellow}${bold}${cache_size}MB${normal}"
+		echo -e "${jiacu}qBittorrent${normal} 版本：${yellow}${bold}$qb_version${normal}"
+		echo -e "${jiacu}libtorrent${normal} 版本：${yellow}${bold}$li_version${normal}"
+		echo -e "${jiacu}安装 autobrr${normal}: $( [[ $install_autobrr == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "${jiacu}安装 vertex${normal}: $( [[ $install_vertex == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "${jiacu}安装 autoremove-torrents${normal}: $( [[ $install_autoremove == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "${jiacu}启动 BBR V3${normal}: $( [[ $enable_bbr_v3 == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
+		echo -e "${jiacu}启动 BBRx${normal}: $( [[ $enable_bbrx == "y" ]] && echo "${yellow}${bold}是${normal}" || echo "${yellow}${bold}否${normal}" )"
 		[[ -n $custom_port ]] && echo "自定义端口号：${yellow}${bold}$custom_port${normal}"
 		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 		echo ""
@@ -1362,8 +1362,6 @@ install_seedbox_custom() {
 	[[ $enable_bbr_v3 == "y" ]] && params="$params -3"
 	[[ $enable_bbrx == "y" ]] && params="$params -x"
 	[[ -n $custom_port ]] && params="$params -o $custom_port"
-
-	echo "$params"
 
 	# 用户确认
 	read -p "输入完成，${red}${bold}请确认参数${normal}，是否继续安装? (y/n): " confirm_install
