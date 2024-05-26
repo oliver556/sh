@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.29"
+sh_v="1.0.30"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -632,6 +632,541 @@ restart_ldnmp() {
 	docker restart php74
 }
 
+# 函数：容器安装参数
+# ToDo 把其余容器也更改进来
+docker_parameter() {
+    app_name=$1
+    case "$app_name" in
+
+    	# NginxProxyManager 可视化面板
+    	"npm")
+    		docker_name="npm"
+			docker_img="jc21/nginx-proxy-manager:latest"
+			docker_port=81
+			docker_rum="docker run -d \
+						--name=$docker_name \
+						-p 80:80 \
+						-p 81:$docker_port \
+						-p 443:443 \
+						-v /home/docker/npm/data:/data \
+						-v /home/docker/npm/letsencrypt:/etc/letsencrypt \
+						--restart=always \
+						$docker_img"
+			docker_describe="如果您已经安装了其他面板工具或者 LDNMP 建站环境，建议先卸载，再安装 npm！"
+			docker_url="官网介绍: https://nginxproxymanager.com/"
+			docker_use="echo \"初始用户名: admin@example.com\""
+			docker_passwd="echo \"初始密码: changeme\""
+    		;;
+
+  		# AList 多存储文件列表程序
+        "alist")
+            docker_name="alist"
+            docker_img="xhofe/alist:latest"
+            docker_port=5244
+            docker_rum="docker run -d \
+                    --restart=always \
+                    -v /home/docker/alist:/opt/alist/data \
+                    -p 5244:5244 \
+                    -e PUID=0 \
+                    -e PGID=0 \
+                    -e UMASK=022 \
+                    --name="alist" \
+                    xhofe/alist:latest"
+            docker_describe="一个支持多种存储，支持网页浏览和 WebDAV 的文件列表程序，由 gin 和 Solidjs 驱动"
+            docker_url="官网介绍: https://alist.nn.ci/zh/"
+            docker_use="docker exec -it alist ./alist admin random"
+            docker_passwd=""
+            ;;
+
+        # Ubuntu 远程桌面网页版
+        "ubuntu-novnc")
+			docker_name="ubuntu-novnc"
+			docker_img="fredblgr/ubuntu-novnc:20.04"
+			docker_port=6080
+			rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
+			docker_rum="docker run -d \
+						--name ubuntu-novnc \
+						-p 6080:80 \
+						-v /home/docker/ubuntu-novnc:/workspace:rw \
+						-e HTTP_PASSWORD=$rootpasswd \
+						-e RESOLUTION=1280x720 \
+						--restart=always \
+						fredblgr/ubuntu-novnc:20.04"
+			docker_describe="一个网页版 Ubuntu 远程桌面，挺好用的！"
+			docker_url="官网介绍: https://hub.docker.com/r/fredblgr/ubuntu-novnc"
+			docker_use="echo \"用户名: root\""
+			docker_passwd="echo \"密码: $rootpasswd\""
+        	;;
+
+		# QB 离线 BT 磁力下载面板
+        "qbittorrent")
+            docker_name="qbittorrent"
+			docker_img="lscr.io/linuxserver/qbittorrent:latest"
+			docker_port=8081
+			docker_rum="docker run -d \
+						--name=qbittorrent \
+						-e PUID=1000 \
+						-e PGID=1000 \
+						-e TZ=Etc/UTC \
+						-e WEBUI_PORT=8081 \
+						-p 8081:8081 \
+						-p 6881:6881 \
+						-p 6881:6881/udp \
+						-v /home/docker/qbittorrent/config:/config \
+						-v /home/docker/qbittorrent/downloads:/downloads \
+						--restart unless-stopped \
+						lscr.io/linuxserver/qbittorrent:latest"
+			docker_describe="qbittorrent 离线 BT 磁力下载服务"
+			docker_url="官网介绍: https://hub.docker.com/r/linuxserver/qbittorrent"
+			docker_use="sleep 3"
+			docker_passwd="docker logs qbittorrent"
+            ;;
+
+        # 禅道项目管理软件
+		"zentao-server")
+			docker_name="zentao-server"
+			docker_img="idoop/zentao:latest"
+			docker_port=82
+			docker_rum="docker run -d -p 82:80 -p 3308:3306 \
+												-e ADMINER_USER="root" -e ADMINER_PASSWD="password" \
+												-e BIND_ADDRESS="false" \
+												-v /home/docker/zentao-server/:/opt/zbox/ \
+												--add-host smtp.exmail.qq.com:163.177.90.125 \
+												--name zentao-server \
+												--restart=always \
+												idoop/zentao:latest"
+			docker_describe="禅道是通用的项目管理软件"
+			docker_url="官网介绍: https://www.zentao.net/"
+			docker_use="echo \"初始用户名: admin\""
+			docker_passwd="echo \"初始密码: 123456\""
+			;;
+
+		# 青龙面板定时任务管理平台
+		"qinglong")
+			docker_name="qinglong"
+			docker_img="whyour/qinglong:latest"
+			docker_port=5700
+			docker_rum="docker run -d \
+								-v /home/docker/qinglong/data:/ql/data \
+								-p 5700:5700 \
+								--name qinglong \
+								--hostname qinglong \
+								--restart unless-stopped \
+								whyour/qinglong:latest"
+			docker_describe="青龙面板是一个定时任务管理平台"
+			docker_url="官网介绍: https://github.com/whyour/qinglong"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# 简单图床图片管理程序
+		"easyimage")
+			docker_name="easyimage"
+			docker_img="ddsderek/easyimage:latest"
+			docker_port=85
+			docker_rum="docker run -d \
+						--name easyimage \
+						-p 85:80 \
+						-e TZ=Asia/Shanghai \
+						-e PUID=1000 \
+						-e PGID=1000 \
+						-v /home/docker/easyimage/config:/app/web/config \
+						-v /home/docker/easyimage/i:/app/web/i \
+						--restart unless-stopped \
+						ddsderek/easyimage:latest"
+			docker_describe="简单图床是一个简单的图床程序"
+			docker_url="官网介绍: https://github.com/icret/EasyImages2.0"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# emby 多媒体管理系统
+		"emby")
+			docker_name="emby"
+			docker_img="linuxserver/emby:latest"
+			docker_port=8096
+			docker_rum="docker run -d --name=emby --restart=always \
+						-v /homeo/docker/emby/config:/config \
+						-v /homeo/docker/emby/share1:/mnt/share1 \
+						-v /homeo/docker/emby/share2:/mnt/share2 \
+						-v /mnt/notify:/mnt/notify \
+						-p 8096:8096 -p 8920:8920 \
+						-e UID=1000 -e GID=100 -e GIDLIST=100 \
+						linuxserver/emby:latest"
+			docker_describe="emby 是一个主从式架构的媒体服务器软件，可以用来整理服务器上的视频和音频，并将音频和视频流式传输到客户端设备"
+			docker_url="官网介绍: https://emby.media/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Speedtest 测速面板
+		"looking-glass")
+			docker_name="looking-glass"
+			docker_img="wikihostinc/looking-glass-server"
+			docker_port=89
+			docker_rum="docker run -d --name looking-glass --restart always -p 89:80 wikihostinc/looking-glass-server"
+			docker_describe="Speedtest 测速面板是一个 VPS 网速测试工具，多项测试功能，还可以实时监控 VPS 进出站流量"
+			docker_url="官网介绍: https://github.com/wikihost-opensource/als"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# AdGuardHome 去广告软件
+		"adguardhome")
+			docker_name="adguardhome"
+			docker_img="adguard/adguardhome"
+			docker_port=3000
+			docker_rum="docker run -d \
+						--name adguardhome \
+						-v /home/docker/adguardhome/work:/opt/adguardhome/work \
+						-v /home/docker/adguardhome/conf:/opt/adguardhome/conf \
+						-p 53:53/tcp \
+						-p 53:53/udp \
+						-p 3000:3000/tcp \
+						--restart always \
+						adguard/adguardhome"
+			docker_describe="AdGuardHome 是一款全网广告拦截与反跟踪软件，未来将不止是一个 DNS 服务器。"
+			docker_url="官网介绍: https://hub.docker.com/r/adguard/adguardhome"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# onlyoffice 在线办公 OFFICE
+		"onlyoffice")
+			docker_name="onlyoffice"
+			docker_img="onlyoffice/documentserver"
+			docker_port=8082
+			docker_rum="docker run -d -p 8082:80 \
+						--restart=always \
+						--name onlyoffice \
+						-v /home/docker/onlyoffice/DocumentServer/logs:/var/log/onlyoffice  \
+						-v /home/docker/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data  \
+						 onlyoffice/documentserver"
+			docker_describe="onlyoffice 是一款开源的在线 office 工具，太强大了！"
+			docker_url="官网介绍: https://www.onlyoffice.com/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# portainer 容器管理面板
+		"portainer")
+			docker_name="portainer"
+			docker_img="portainer/portainer"
+			docker_port=9050
+			docker_rum="docker run -d \
+						--name portainer \
+						-p 9050:9000 \
+						-v /var/run/docker.sock:/var/run/docker.sock \
+						-v /home/docker/portainer:/data \
+						--restart always \
+						portainer/portainer"
+			docker_describe="portainer 是一个轻量级的 docker 容器管理面板"
+			docker_url="官网介绍: https://www.portainer.io/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# VScode 网页版
+		"vscode-web")
+			docker_name="vscode-web"
+			docker_img="codercom/code-server"
+			docker_port=8180
+			docker_rum="docker run -d -p 8180:8080 -v /home/docker/vscode-web:/home/coder/.local/share/code-server --name vscode-web --restart always codercom/code-server"
+			docker_describe="VScode 是一款强大的在线代码编写工具"
+			docker_url="官网介绍: https://github.com/coder/code-server"
+			docker_use="sleep 3"
+			docker_passwd="docker exec vscode-web cat /home/coder/.config/code-server/config.yaml"
+			;;
+
+		# UptimeKuma 监控工具
+		"uptime-kuma")
+			docker_name="uptime-kuma"
+			docker_img="louislam/uptime-kuma:latest"
+			docker_port=3003
+			docker_rum="docker run -d \
+						--name=uptime-kuma \
+						-p 3003:3001 \
+						-v /home/docker/uptime-kuma/uptime-kuma-data:/app/data \
+						--restart=always \
+						louislam/uptime-kuma:latest"
+			docker_describe="Uptime Kuma 易于使用的自托管监控工具"
+			docker_url="官网介绍: https://github.com/louislam/uptime-kuma"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Memos 网页备忘录
+		"memos")
+			docker_name="memos"
+			docker_img="ghcr.io/usememos/memos:latest"
+			docker_port=5230
+			docker_rum="docker run -d --name memos -p 5230:5230 -v /home/docker/memos:/var/opt/memos --restart always ghcr.io/usememos/memos:latest"
+			docker_describe="Memos 是一款轻量级、自托管的备忘录中心"
+			docker_url="官网介绍: https://github.com/usememos/memos"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Webtop 远程桌面网页版
+		"webtop")
+			docker_name="webtop"
+			docker_img="lscr.io/linuxserver/webtop:latest"
+			docker_port=3083
+			docker_rum="docker run -d \
+						--name=webtop \
+						--security-opt seccomp=unconfined \
+						-e PUID=1000 \
+						-e PGID=1000 \
+						-e TZ=Etc/UTC \
+						-e SUBFOLDER=/ \
+						-e TITLE=Webtop \
+						-e LC_ALL=zh_CN.UTF-8 \
+						-e DOCKER_MODS=linuxserver/mods:universal-package-install \
+						-e INSTALL_PACKAGES=font-noto-cjk \
+						-p 3083:3000 \
+						-v /home/docker/webtop/data:/config \
+						-v /var/run/docker.sock:/var/run/docker.sock \
+						--device /dev/dri:/dev/dri \
+						--shm-size="1gb" \
+						--restart unless-stopped \
+						lscr.io/linuxserver/webtop:latest"
+
+			docker_describe="webtop基于 Alpine、Ubuntu、Fedora 和 Arch 的容器，包含官方支持的完整桌面环境，可通过任何现代 Web 浏览器访问"
+			docker_url="官网介绍: https://docs.linuxserver.io/images/docker-webtop/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Nextcloud 网盘
+		"nextcloud")
+			docker_name="nextcloud"
+			docker_img="nextcloud:latest"
+			docker_port=8989
+			rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
+			docker_rum="docker run -d --name nextcloud --restart=always -p 8989:80 -v /home/docker/nextcloud:/var/www/html -e NEXTCLOUD_ADMIN_USER=nextcloud -e NEXTCLOUD_ADMIN_PASSWORD=$rootpasswd nextcloud"
+			docker_describe="Nextcloud 拥有超过 400,000 个部署，是您可以下载的最受欢迎的本地内容协作平台"
+			docker_url="官网介绍: https://nextcloud.com/"
+			docker_use="echo \"账号: nextcloud  密码: $rootpasswd\""
+			docker_passwd=""
+			;;
+
+		# QD-Today 定时任务管理框架
+		"qd")
+			docker_name="qd"
+			docker_img="qdtoday/qd:latest"
+			docker_port=8923
+			docker_rum="docker run -d --name qd -p 8923:80 -v /home/docker/qd/config:/usr/src/app/config qdtoday/qd"
+			docker_describe="QD-Today 是一个 HTTP 请求定时任务自动执行框架"
+			docker_url="官网介绍: https://qd-today.github.io/qd/zh_CN/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Dockge 容器堆栈管理面板
+		"dockge")
+			docker_name="dockge"
+			docker_img="louislam/dockge:latest"
+			docker_port=5003
+			docker_rum="docker run -d --name dockge --restart unless-stopped -p 5003:5001 -v /var/run/docker.sock:/var/run/docker.sock -v /home/docker/dockge/data:/app/data -v  /home/docker/dockge/stacks:/home/docker/dockge/stacks -e DOCKGE_STACKS_DIR=/home/docker/dockge/stacks louislam/dockge"
+			docker_describe="dockge 是一个可视化的 docker-compose 容器管理面板"
+			docker_url="官网介绍: https://github.com/louislam/dockge"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# LibreSpeed 测速工具
+		"speedtest")
+			docker_name="speedtest"
+			docker_img="ghcr.io/librespeed/speedtest:latest"
+			docker_port=6681
+			docker_rum="docker run -d \
+						--name speedtest \
+						--restart always \
+						-e MODE=standalone \
+						-p 6681:80 \
+						ghcr.io/librespeed/speedtest:latest"
+			docker_describe="librespeed 是用 Javascript 实现的轻量级速度测试工具，即开即用"
+			docker_url="官网介绍: https://github.com/librespeed/speedtest"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# searxng 聚合搜索站
+		"searxng")
+			docker_name="searxng"
+			docker_img="alandoyle/searxng:latest"
+			docker_port=8700
+			docker_rum="docker run --name=searxng \
+						-d --init \
+						--restart=unless-stopped \
+						-v /home/docker/searxng/config:/etc/searxng \
+						-v /home/docker/searxng/templates:/usr/local/searxng/searx/templates/simple \
+						-v /home/docker/searxng/theme:/usr/local/searxng/searx/static/themes/simple \
+						-p 8700:8080/tcp \
+						alandoyle/searxng:latest"
+			docker_describe="searxng 是一个私有且隐私的搜索引擎站点"
+			docker_url="官网介绍: https://hub.docker.com/r/alandoyle/searxng"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# PhotoPrism 私有相册系统
+		"photoprism")
+			docker_name="photoprism"
+			docker_img="photoprism/photoprism:latest"
+			docker_port=2342
+			rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
+			docker_rum="docker run -d \
+						--name photoprism \
+						--restart always \
+						--security-opt seccomp=unconfined \
+						--security-opt apparmor=unconfined \
+						-p 2342:2342 \
+						-e PHOTOPRISM_UPLOAD_NSFW="true" \
+						-e PHOTOPRISM_ADMIN_PASSWORD="$rootpasswd" \
+						-v /home/docker/photoprism/storage:/photoprism/storage \
+						-v /home/docker/photoprism/Pictures:/photoprism/originals \
+						photoprism/photoprism"
+			docker_describe="photoprism 非常强大的私有相册系统"
+			docker_url="官网介绍: https://www.photoprism.app/"
+			docker_use="echo \"账号: admin  密码: $rootpasswd\""
+			docker_passwd=""
+			;;
+
+		# StirlingPDF 工具大全
+		"s-pdf")
+			docker_name="s-pdf"
+			docker_img="frooodle/s-pdf:latest"
+			docker_port=8020
+			docker_rum="docker run -d \
+						--name s-pdf \
+						--restart=always \
+						 -p 8020:8080 \
+						 -v /home/docker/s-pdf/trainingData:/usr/share/tesseract-ocr/5/tessdata \
+						 -v /home/docker/s-pdf/extraConfigs:/configs \
+						 -v /home/docker/s-pdf/logs:/logs \
+						 -e DOCKER_ENABLE_SECURITY=false \
+						 frooodle/s-pdf:latest"
+			docker_describe="这是一个强大的本地托管基于 Web 的 PDF 操作工具，使用 docker，允许您对 PDF 文件执行各种操作，例如拆分合并、转换、重新组织、添加图像、旋转、压缩等。"
+			docker_url="官网介绍: https://github.com/Stirling-Tools/Stirling-PDF"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# drawio 免费的在线图表软件
+		"drawio")
+			docker_name="drawio"
+			docker_img="jgraph/drawio"
+			docker_port=7080
+			docker_rum="docker run -d --restart=always --name drawio -p 7080:8080 -v /home/docker/drawio:/var/lib/drawio jgraph/drawio"
+			docker_describe="这是一个强大图表绘制软件。思维导图，拓扑图，流程图，都能画"
+			docker_url="官网介绍: https://www.drawio.com/"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Sun-Panel 导航面板
+		"sun-panel")
+			docker_name="sun-panel"
+			docker_img="hslr/sun-panel"
+			docker_port=3009
+			docker_rum="docker run -d --restart=always -p 3009:3002 \
+						-v /home/docker/sun-panel/conf:/app/conf \
+						-v /home/docker/sun-panel/uploads:/app/uploads \
+						-v /home/docker/sun-panel/database:/app/database \
+						--name sun-panel \
+						hslr/sun-panel"
+			docker_describe="Sun-Panel 服务器、NAS 导航面板、Homepage、浏览器首页"
+			docker_url="官网介绍: https://doc.sun-panel.top/zh_cn/"
+			docker_use="echo \"账号: admin@sun.cc  密码: 12345678\""
+			docker_passwd=""
+			;;
+
+		# Pingvin-Share 文件分享平台
+		"pingvin-share")
+			docker_name="pingvin-share"
+			docker_img="stonith404/pingvin-share"
+			docker_port=3060
+			docker_rum="docker run -d \
+						--name pingvin-share \
+						--restart always \
+						-p 3060:3000 \
+						-v /home/docker/pingvin-share/data:/opt/app/backend/data \
+						stonith404/pingvin-share"
+			docker_describe="Pingvin Share 是一个可自建的文件分享平台，是 WeTransfer 的一个替代品"
+			docker_url="官网介绍: https://github.com/stonith404/pingvin-share"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# 极简朋友圈
+		"moments")
+			docker_name="moments"
+			docker_img="kingwrcy/moments:latest"
+			docker_port=8035
+			docker_rum="docker run -d --restart unless-stopped \
+						-p 8035:3000 \
+						-v /home/docker/moments/data:/app/data \
+						-v /etc/localtime:/etc/localtime:ro \
+						-v /etc/timezone:/etc/timezone:ro \
+						--name moments \
+						kingwrcy/moments:latest"
+			docker_describe="极简朋友圈，高仿微信朋友圈，记录你的美好生活"
+			docker_url="官网介绍: https://github.com/kingwrcy/moments?tab=readme-ov-file"
+			docker_use="echo \"账号: admin  密码: a123456\""
+			docker_passwd=""
+			;;
+
+		# LobeChatAI 聊天聚合网站
+		"lobe-chat")
+			docker_name="lobe-chat"
+			docker_img="lobehub/lobe-chat:latest"
+			docker_port=8036
+			docker_rum="docker run -d -p 8036:3210 \
+						--name lobe-chat \
+						--restart=always \
+						lobehub/lobe-chat"
+			docker_describe="LobeChat 聚合市面上主流的 AI 大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
+			docker_url="官网介绍: https://github.com/lobehub/lobe-chat"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# MyIP 工具箱
+		"myip")
+			docker_name="myip"
+			docker_img="ghcr.io/jason5ng32/myip:latest"
+			docker_port=8037
+			docker_rum="docker run -d -p 8037:18966 --name myip --restart always ghcr.io/jason5ng32/myip:latest"
+			docker_describe="是一个多功能 IP 工具箱，可以查看自己 IP 信息及连通性，用网页面板呈现"
+			docker_url="官网介绍: https://github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+		# Lsky-Pro-Docker 兰空图床
+		"lskypro")
+			docker_name="lskypro"
+			docker_img="coldpig/lskypro-docker:latest"
+			docker_port=4000
+			docker_describe="搭建一个属于自己的云端相册简单，且实用。"
+			docker_url="官网介绍: https://www.lsky.pro/"
+			docker_rum="docker run -d --restart unless-stopped \
+						-p 4000:80
+						--name lsky-pro
+						-v /home/docker/lskypro:/var/www/html \
+						coldpig/lskypro-docker:latest"
+			docker_use=""
+			docker_passwd=""
+			;;
+
+        *)
+            echo "$cyan$bold" "未知的应用名称"
+            return
+    esac
+}
+
+# 函数: 安装 docker 应用
 docker_app() {
 	if docker inspect "$docker_name" &>/dev/null; then
 		clear
@@ -704,7 +1239,7 @@ docker_app() {
 				# 获取外部 IP 地址
 				ip_address
 				echo "您可以使用以下地址访问:"
-				echo "http//:$ipv4_address:$docker_port"
+				echo "http://$ipv4_address:$docker_port"
 				$docker_use
 				$docker_passwd
 				;;
@@ -719,6 +1254,16 @@ docker_app() {
 		esac
 	fi
 
+}
+
+# 函数：安装指定容器
+install_specific_app() {
+    app_name=$1
+    docker_parameter "$app_name"
+    echo "${paramter}"
+    if [ $? -eq 0 ]; then
+        docker_app
+    fi
 }
 
 cluster_python3() {
@@ -1374,8 +1919,44 @@ install_seedbox_custom() {
     bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
 }
 
+# 解析 docker ps -a 输出
+parse_docker_ps() {
+    local docker_output="$1"
 
+    # 计算标题的长度，并打印标题和分割线
+    printf "%-16s | %-16s | %s\n" "容器名称" "端口" "IP 地址"
+#    len=$(($(printf "容器名称" | wc -c) + $(printf "端口" | wc -c) + $(printf "IP 地址" | wc -c) + 21))
+#    line=$(printf "%-${len}s" "")
+#    echo -e "${cyan}${bold}${line// /-}${jiacu}"
 
+    # 解析 docker ps 输出并格式化
+    awk -v ipv4="$ipv4_address" '
+    NR>1 {
+        ports=""
+        first_port=""
+        for (i=NF; i>=1; i--) {
+            if ($i ~ /0\.0\.0\.0:([0-9]+)->([0-9]+)\/tcp/) {
+                split($i, arr, ":")
+                split(arr[2], port_arr, "->")
+                port = port_arr[1]
+                if (first_port == "") {
+                    first_port = port
+                }
+                ports = ports == "" ? port : ports "," port
+            }
+        }
+        printf "%-12s | %-14s | http://%s:%-4s\n", $NF, ports, ipv4, first_port
+    }' <<< "$docker_output" | sort -t, -k1,1
+}
+
+# 函数: 获取已装容器 名称，端口，IP 访问地址
+get_docker_ip() {
+	ip_address
+
+    docker_ps_output=$(docker ps -a)
+    # 调用函数并打印结果
+    parse_docker_ps "$docker_ps_output"
+}
 
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
@@ -1950,6 +2531,7 @@ while true; do
 				echo "4. Docker 镜像管理 ▶"
 				echo "5. Docker 网络管理 ▶"
 				echo "6. Docker 卷管理 ▶"
+#				echo "9. Docker 页面访问 ▶"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "7. 清理无用的 Docker 容器和镜像网络数据卷"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1991,6 +2573,10 @@ while true; do
 						echo -e "${cyan}Docker 网络列表${normal}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						docker network ls
+						echo ""
+						echo -e "${cyan}Docker 容器 IP${normal}"
+						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+						get_docker_ip
 						echo ""
 						;;
 
@@ -2319,6 +2905,11 @@ while true; do
 									;;
 							esac
 						done
+						;;
+
+					# 9 Docker 页面访问
+					9)
+						list_installed_containers
 						;;
 
 					# 清理无用的 Docker 容器和镜像网络数据卷
@@ -3868,7 +4459,7 @@ while true; do
 				echo "31. StirlingPDF 工具大全                32. drawio 免费的在线图表软件"
 				echo "33. Sun-Panel 导航面板                  34. Pingvin-Share 文件分享平台"
 				echo "35. 极简朋友圈                          36. LobeChatAI 聊天聚合网站"
-				echo "37. MyIP 工具箱"
+				echo "37. MyIP 工具箱                         38. Lsky-Pro-Docker 兰空图床"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "51. PVE 开小鸡面板"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -3947,69 +4538,17 @@ while true; do
 
 					# NginxProxyManager 可视化面板
 					4)
-						docker_name="npm"
-						docker_img="jc21/nginx-proxy-manager:latest"
-						docker_port=81
-						docker_rum="docker run -d \
-													--name=$docker_name \
-													-p 80:80 \
-													-p 81:$docker_port \
-													-p 443:443 \
-													-v /home/docker/npm/data:/data \
-													-v /home/docker/npm/letsencrypt:/etc/letsencrypt \
-													--restart=always \
-													$docker_img"
-						docker_describe="如果您已经安装了其他面板工具或者 LDNMP 建站环境，建议先卸载，再安装 npm！"
-						docker_url="官网介绍: https://nginxproxymanager.com/"
-						docker_use="echo \"初始用户名: admin@example.com\""
-						docker_passwd="echo \"初始密码: changeme\""
-
-						docker_app
-
+						install_specific_app "npm"
 						;;
 
 					# AList 多存储文件列表程序
 					5)
-						docker_name="alist"
-						docker_img="xhofe/alist:latest"
-						docker_port=5244
-						docker_rum="docker run -d \
-									--restart=always \
-									-v /home/docker/alist:/opt/alist/data \
-									-p 5244:5244 \
-									-e PUID=0 \
-									-e PGID=0 \
-									-e UMASK=022 \
-									--name="alist" \
-									xhofe/alist:latest"
-						docker_describe="一个支持多种存储，支持网页浏览和 WebDAV 的文件列表程序，由 gin 和 Solidjs 驱动"
-						docker_url="官网介绍: https://alist.nn.ci/zh/"
-						docker_use="docker exec -it alist ./alist admin random"
-						docker_passwd=""
-
-						docker_app
+						install_specific_app "alist"
 						;;
 
 					# Ubuntu 远程桌面网页版
 					6)
-						docker_name="ubuntu-novnc"
-						docker_img="fredblgr/ubuntu-novnc:20.04"
-						docker_port=6080
-						rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
-						docker_rum="docker run -d \
-																--name ubuntu-novnc \
-																-p 6080:80 \
-																-v /home/docker/ubuntu-novnc:/workspace:rw \
-																-e HTTP_PASSWORD=$rootpasswd \
-																-e RESOLUTION=1280x720 \
-																--restart=always \
-																fredblgr/ubuntu-novnc:20.04"
-						docker_describe="一个网页版 Ubuntu 远程桌面，挺好用的！"
-						docker_url="官网介绍: https://hub.docker.com/r/fredblgr/ubuntu-novnc"
-						docker_use="echo \"用户名: root\""
-						docker_passwd="echo \"密码: $rootpasswd\""
-
-						docker_app
+						install_specific_app "ubuntu-novnc"
 						;;
 
 					# 哪吒探针 VPS 监控面板
@@ -4021,29 +4560,7 @@ while true; do
 
 					# QB 离线 BT 磁力下载面板
 					8)
-
-						docker_name="qbittorrent"
-						docker_img="lscr.io/linuxserver/qbittorrent:latest"
-						docker_port=8081
-						docker_rum="docker run -d \
-																	--name=qbittorrent \
-																	-e PUID=1000 \
-																	-e PGID=1000 \
-																	-e TZ=Etc/UTC \
-																	-e WEBUI_PORT=8081 \
-																	-p 8081:8081 \
-																	-p 6881:6881 \
-																	-p 6881:6881/udp \
-																	-v /home/docker/qbittorrent/config:/config \
-																	-v /home/docker/qbittorrent/downloads:/downloads \
-																	--restart unless-stopped \
-																	lscr.io/linuxserver/qbittorrent:latest"
-						docker_describe="qbittorrent 离线 BT 磁力下载服务"
-						docker_url="官网介绍: https://hub.docker.com/r/linuxserver/qbittorrent"
-						docker_use="sleep 3"
-						docker_passwd="docker logs qbittorrent"
-
-						docker_app
+						install_specific_app "qbittorrent"
 						;;
 
 					# Poste.io 邮件服务器程序
@@ -4285,42 +4802,12 @@ while true; do
 
 					# 禅道项目管理软件
 					11)
-						docker_name="zentao-server"
-						docker_img="idoop/zentao:latest"
-						docker_port=82
-						docker_rum="docker run -d -p 82:80 -p 3308:3306 \
-															-e ADMINER_USER="root" -e ADMINER_PASSWD="password" \
-															-e BIND_ADDRESS="false" \
-															-v /home/docker/zentao-server/:/opt/zbox/ \
-															--add-host smtp.exmail.qq.com:163.177.90.125 \
-															--name zentao-server \
-															--restart=always \
-															idoop/zentao:latest"
-						docker_describe="禅道是通用的项目管理软件"
-						docker_url="官网介绍: https://www.zentao.net/"
-						docker_use="echo \"初始用户名: admin\""
-						docker_passwd="echo \"初始密码: 123456\""
-
-						docker_app
+						install_specific_app "zentao-server"
 						;;
 
 					# 青龙面板定时任务管理平台
 					12)
-						docker_name="qinglong"
-						docker_img="whyour/qinglong:latest"
-						docker_port=5700
-						docker_rum="docker run -d \
-											-v /home/docker/qinglong/data:/ql/data \
-											-p 5700:5700 \
-											--name qinglong \
-											--hostname qinglong \
-											--restart unless-stopped \
-											whyour/qinglong:latest"
-						docker_describe="青龙面板是一个定时任务管理平台"
-						docker_url="官网介绍: https://github.com/whyour/qinglong"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "qinglong"
 						;;
 
 					# Cloudreve 网盘
@@ -4428,98 +4915,27 @@ while true; do
 
 					# 简单图床图片管理程序
 					14)
-						docker_name="easyimage"
-						docker_img="ddsderek/easyimage:latest"
-						docker_port=85
-						docker_rum="docker run -d \
-									--name easyimage \
-									-p 85:80 \
-									-e TZ=Asia/Shanghai \
-									-e PUID=1000 \
-									-e PGID=1000 \
-									-v /home/docker/easyimage/config:/app/web/config \
-									-v /home/docker/easyimage/i:/app/web/i \
-									--restart unless-stopped \
-									ddsderek/easyimage:latest"
-						docker_describe="简单图床是一个简单的图床程序"
-						docker_url="官网介绍: https://github.com/icret/EasyImages2.0"
-						docker_use=""
-						docker_passwd=""
-
-						docker_app
+						install_specific_app "easyimage"
 						;;
 
 					# emby 多媒体管理系统
 					15)
-						docker_name="emby"
-						docker_img="linuxserver/emby:latest"
-						docker_port=8096
-						docker_rum="docker run -d --name=emby --restart=always \
-									-v /homeo/docker/emby/config:/config \
-									-v /homeo/docker/emby/share1:/mnt/share1 \
-									-v /homeo/docker/emby/share2:/mnt/share2 \
-									-v /mnt/notify:/mnt/notify \
-									-p 8096:8096 -p 8920:8920 \
-									-e UID=1000 -e GID=100 -e GIDLIST=100 \
-									linuxserver/emby:latest"
-						docker_describe="emby 是一个主从式架构的媒体服务器软件，可以用来整理服务器上的视频和音频，并将音频和视频流式传输到客户端设备"
-						docker_url="官网介绍: https://emby.media/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "emby"
 						;;
 
 					# Speedtest 测速面板
 					16)
-						docker_name="looking-glass"
-						docker_img="wikihostinc/looking-glass-server"
-						docker_port=89
-						docker_rum="docker run -d --name looking-glass --restart always -p 89:80 wikihostinc/looking-glass-server"
-						docker_describe="Speedtest 测速面板是一个 VPS 网速测试工具，多项测试功能，还可以实时监控 VPS 进出站流量"
-						docker_url="官网介绍: https://github.com/wikihost-opensource/als"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "looking-glass"
 						;;
 
 					# AdGuardHome 去广告软件
 					17)
-						docker_name="adguardhome"
-						docker_img="adguard/adguardhome"
-						docker_port=3000
-						docker_rum="docker run -d \
-									--name adguardhome \
-									-v /home/docker/adguardhome/work:/opt/adguardhome/work \
-									-v /home/docker/adguardhome/conf:/opt/adguardhome/conf \
-									-p 53:53/tcp \
-									-p 53:53/udp \
-									-p 3000:3000/tcp \
-									--restart always \
-									adguard/adguardhome"
-						docker_describe="AdGuardHome 是一款全网广告拦截与反跟踪软件，未来将不止是一个 DNS 服务器。"
-						docker_url="官网介绍: https://hub.docker.com/r/adguard/adguardhome"
-						docker_use=""
-						docker_passwd=""
-
-						docker_app
+						install_specific_app "adguardhome"
 						;;
 
 					# onlyoffice 在线办公 OFFICE
 					18)
-						docker_name="onlyoffice"
-						docker_img="onlyoffice/documentserver"
-						docker_port=8082
-						docker_rum="docker run -d -p 8082:80 \
-									--restart=always \
-									--name onlyoffice \
-									-v /home/docker/onlyoffice/DocumentServer/logs:/var/log/onlyoffice  \
-									-v /home/docker/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data  \
-									 onlyoffice/documentserver"
-						docker_describe="onlyoffice 是一款开源的在线 office 工具，太强大了！"
-						docker_url="官网介绍: https://www.onlyoffice.com/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "onlyoffice"
 						;;
 
 					# 雷池 WAF 防火墙面板
@@ -4601,316 +5017,97 @@ while true; do
 
 					# portainer 容器管理面板
 					20)
-						docker_name="portainer"
-						docker_img="portainer/portainer"
-						docker_port=9050
-						docker_rum="docker run -d \
-									--name portainer \
-									-p 9050:9000 \
-									-v /var/run/docker.sock:/var/run/docker.sock \
-									-v /home/docker/portainer:/data \
-									--restart always \
-									portainer/portainer"
-						docker_describe="portainer 是一个轻量级的 docker 容器管理面板"
-						docker_url="官网介绍: https://www.portainer.io/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "portainer"
 						;;
 
 					# VScode 网页版
-						21)
-							docker_name="vscode-web"
-							docker_img="codercom/code-server"
-							docker_port=8180
-							docker_rum="docker run -d -p 8180:8080 -v /home/docker/vscode-web:/home/coder/.local/share/code-server --name vscode-web --restart always codercom/code-server"
-							docker_describe="VScode 是一款强大的在线代码编写工具"
-							docker_url="官网介绍: https://github.com/coder/code-server"
-							docker_use="sleep 3"
-							docker_passwd="docker exec vscode-web cat /home/coder/.config/code-server/config.yaml"
-							docker_app
-							;;
+					21)
+						install_specific_app "vscode-web"
+						;;
 
 					# UptimeKuma 监控工具
-						22)
-							docker_name="uptime-kuma"
-							docker_img="louislam/uptime-kuma:latest"
-							docker_port=3003
-							docker_rum="docker run -d \
-										--name=uptime-kuma \
-										-p 3003:3001 \
-										-v /home/docker/uptime-kuma/uptime-kuma-data:/app/data \
-										--restart=always \
-										louislam/uptime-kuma:latest"
-							docker_describe="Uptime Kuma 易于使用的自托管监控工具"
-							docker_url="官网介绍: https://github.com/louislam/uptime-kuma"
-							docker_use=""
-							docker_passwd=""
-							docker_app
-							;;
+					22)
+						install_specific_app "uptime-kuma"
+						;;
 
 					# Memos 网页备忘录
-						23)
-							docker_name="memos"
-							docker_img="ghcr.io/usememos/memos:latest"
-							docker_port=5230
-							docker_rum="docker run -d --name memos -p 5230:5230 -v /home/docker/memos:/var/opt/memos --restart always ghcr.io/usememos/memos:latest"
-							docker_describe="Memos 是一款轻量级、自托管的备忘录中心"
-							docker_url="官网介绍: https://github.com/usememos/memos"
-							docker_use=""
-							docker_passwd=""
-							docker_app
-							;;
+					23)
+						install_specific_app "memos"
+						;;
 
 					# Webtop 远程桌面网页版
 					24)
-						docker_name="webtop"
-						docker_img="lscr.io/linuxserver/webtop:latest"
-						docker_port=3083
-						docker_rum="docker run -d \
-									--name=webtop \
-									--security-opt seccomp=unconfined \
-									-e PUID=1000 \
-									-e PGID=1000 \
-									-e TZ=Etc/UTC \
-									-e SUBFOLDER=/ \
-									-e TITLE=Webtop \
-									-e LC_ALL=zh_CN.UTF-8 \
-									-e DOCKER_MODS=linuxserver/mods:universal-package-install \
-									-e INSTALL_PACKAGES=font-noto-cjk \
-									-p 3083:3000 \
-									-v /home/docker/webtop/data:/config \
-									-v /var/run/docker.sock:/var/run/docker.sock \
-									--device /dev/dri:/dev/dri \
-									--shm-size="1gb" \
-									--restart unless-stopped \
-									lscr.io/linuxserver/webtop:latest"
-
-						docker_describe="webtop基于 Alpine、Ubuntu、Fedora 和 Arch 的容器，包含官方支持的完整桌面环境，可通过任何现代 Web 浏览器访问"
-						docker_url="官网介绍: https://docs.linuxserver.io/images/docker-webtop/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "webtop"
 						;;
 
 					# Nextcloud 网盘
 					25)
-						docker_name="nextcloud"
-						docker_img="nextcloud:latest"
-						docker_port=8989
-						rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
-						docker_rum="docker run -d --name nextcloud --restart=always -p 8989:80 -v /home/docker/nextcloud:/var/www/html -e NEXTCLOUD_ADMIN_USER=nextcloud -e NEXTCLOUD_ADMIN_PASSWORD=$rootpasswd nextcloud"
-						docker_describe="Nextcloud 拥有超过 400,000 个部署，是您可以下载的最受欢迎的本地内容协作平台"
-						docker_url="官网介绍: https://nextcloud.com/"
-						docker_use="echo \"账号: nextcloud  密码: $rootpasswd\""
-						docker_passwd=""
-						docker_app
+						install_specific_app "nextcloud"
 						;;
 
 					# QD-Today 定时任务管理框架
 					26)
-						docker_name="qd"
-						docker_img="qdtoday/qd:latest"
-						docker_port=8923
-						docker_rum="docker run -d --name qd -p 8923:80 -v /home/docker/qd/config:/usr/src/app/config qdtoday/qd"
-						docker_describe="QD-Today 是一个 HTTP 请求定时任务自动执行框架"
-						docker_url="官网介绍: https://qd-today.github.io/qd/zh_CN/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "qd"
 						;;
 
 					# Dockge 容器堆栈管理面板
 					27)
-						docker_name="dockge"
-						docker_img="louislam/dockge:latest"
-						docker_port=5003
-						docker_rum="docker run -d --name dockge --restart unless-stopped -p 5003:5001 -v /var/run/docker.sock:/var/run/docker.sock -v /home/docker/dockge/data:/app/data -v  /home/docker/dockge/stacks:/home/docker/dockge/stacks -e DOCKGE_STACKS_DIR=/home/docker/dockge/stacks louislam/dockge"
-						docker_describe="dockge 是一个可视化的 docker-compose 容器管理面板"
-						docker_url="官网介绍: https://github.com/louislam/dockge"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "dockge"
 						;;
 
 					# LibreSpeed 测速工具
 					28)
-						docker_name="speedtest"
-						docker_img="ghcr.io/librespeed/speedtest:latest"
-						docker_port=6681
-						docker_rum="docker run -d \
-									--name speedtest \
-									--restart always \
-									-e MODE=standalone \
-									-p 6681:80 \
-									ghcr.io/librespeed/speedtest:latest"
-						docker_describe="librespeed 是用 Javascript 实现的轻量级速度测试工具，即开即用"
-						docker_url="官网介绍: https://github.com/librespeed/speedtest"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "speedtest"
 						;;
 
 					# searxng 聚合搜索站
 					29)
-						docker_name="searxng"
-						docker_img="alandoyle/searxng:latest"
-						docker_port=8700
-						docker_rum="docker run --name=searxng \
-									-d --init \
-									--restart=unless-stopped \
-									-v /home/docker/searxng/config:/etc/searxng \
-									-v /home/docker/searxng/templates:/usr/local/searxng/searx/templates/simple \
-									-v /home/docker/searxng/theme:/usr/local/searxng/searx/static/themes/simple \
-									-p 8700:8080/tcp \
-									alandoyle/searxng:latest"
-						docker_describe="searxng 是一个私有且隐私的搜索引擎站点"
-						docker_url="官网介绍: https://hub.docker.com/r/alandoyle/searxng"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "searxng"
 						;;
 
 					# PhotoPrism 私有相册系统
 					30)
-						docker_name="photoprism"
-						docker_img="photoprism/photoprism:latest"
-						docker_port=2342
-						rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
-						docker_rum="docker run -d \
-									--name photoprism \
-									--restart always \
-									--security-opt seccomp=unconfined \
-									--security-opt apparmor=unconfined \
-									-p 2342:2342 \
-									-e PHOTOPRISM_UPLOAD_NSFW="true" \
-									-e PHOTOPRISM_ADMIN_PASSWORD="$rootpasswd" \
-									-v /home/docker/photoprism/storage:/photoprism/storage \
-									-v /home/docker/photoprism/Pictures:/photoprism/originals \
-									photoprism/photoprism"
-						docker_describe="photoprism 非常强大的私有相册系统"
-						docker_url="官网介绍: https://www.photoprism.app/"
-						docker_use="echo \"账号: admin  密码: $rootpasswd\""
-						docker_passwd=""
-						docker_app
+						install_specific_app "photoprism"
 						;;
 
-					# 31. StirlingPDF 工具大全
+					# StirlingPDF 工具大全
 					31)
-						docker_name="s-pdf"
-						docker_img="frooodle/s-pdf:latest"
-						docker_port=8020
-						docker_rum="docker run -d \
-									--name s-pdf \
-									--restart=always \
-									 -p 8020:8080 \
-									 -v /home/docker/s-pdf/trainingData:/usr/share/tesseract-ocr/5/tessdata \
-									 -v /home/docker/s-pdf/extraConfigs:/configs \
-									 -v /home/docker/s-pdf/logs:/logs \
-									 -e DOCKER_ENABLE_SECURITY=false \
-									 frooodle/s-pdf:latest"
-						docker_describe="这是一个强大的本地托管基于 Web 的 PDF 操作工具，使用 docker，允许您对 PDF 文件执行各种操作，例如拆分合并、转换、重新组织、添加图像、旋转、压缩等。"
-						docker_url="官网介绍: https://github.com/Stirling-Tools/Stirling-PDF"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "s-pdf"
 						;;
 
 					# drawio 免费的在线图表软件
 					32)
-						docker_name="drawio"
-						docker_img="jgraph/drawio"
-						docker_port=7080
-						docker_rum="docker run -d --restart=always --name drawio -p 7080:8080 -v /home/docker/drawio:/var/lib/drawio jgraph/drawio"
-						docker_describe="这是一个强大图表绘制软件。思维导图，拓扑图，流程图，都能画"
-						docker_url="官网介绍: https://www.drawio.com/"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "drawio"
 						;;
 
 					# Sun-Panel 导航面板
 					33)
-						docker_name="sun-panel"
-						docker_img="hslr/sun-panel"
-						docker_port=3009
-						docker_rum="docker run -d --restart=always -p 3009:3002 \
-									-v /home/docker/sun-panel/conf:/app/conf \
-									-v /home/docker/sun-panel/uploads:/app/uploads \
-									-v /home/docker/sun-panel/database:/app/database \
-									--name sun-panel \
-									hslr/sun-panel"
-						docker_describe="Sun-Panel 服务器、NAS 导航面板、Homepage、浏览器首页"
-						docker_url="官网介绍: https://doc.sun-panel.top/zh_cn/"
-						docker_use="echo \"账号: admin@sun.cc  密码: 12345678\""
-						docker_passwd=""
-						docker_app
+						install_specific_app "sun-panel"
 						;;
 
 					# Pingvin-Share 文件分享平台
 					34)
-						docker_name="pingvin-share"
-						docker_img="stonith404/pingvin-share"
-						docker_port=3060
-						docker_rum="docker run -d \
-									--name pingvin-share \
-									--restart always \
-									-p 3060:3000 \
-									-v /home/docker/pingvin-share/data:/opt/app/backend/data \
-									stonith404/pingvin-share"
-						docker_describe="Pingvin Share 是一个可自建的文件分享平台，是 WeTransfer 的一个替代品"
-						docker_url="官网介绍: https://github.com/stonith404/pingvin-share"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "pingvin-share"
 						;;
 
 					# 极简朋友圈
 					35)
-						docker_name="moments"
-						docker_img="kingwrcy/moments:latest"
-						docker_port=8035
-						docker_rum="docker run -d --restart unless-stopped \
-									-p 8035:3000 \
-									-v /home/docker/moments/data:/app/data \
-									-v /etc/localtime:/etc/localtime:ro \
-									-v /etc/timezone:/etc/timezone:ro \
-									--name moments \
-									kingwrcy/moments:latest"
-						docker_describe="极简朋友圈，高仿微信朋友圈，记录你的美好生活"
-						docker_url="官网介绍: https://github.com/kingwrcy/moments?tab=readme-ov-file"
-						docker_use="echo \"账号: admin  密码: a123456\""
-						docker_passwd=""
-						docker_app
+						install_specific_app "moments"
 						;;
 
 					# LobeChatAI 聊天聚合网站
 					36)
-						docker_name="lobe-chat"
-						docker_img="lobehub/lobe-chat:latest"
-						docker_port=8036
-						docker_rum="docker run -d -p 8036:3210 \
-									--name lobe-chat \
-									--restart=always \
-									lobehub/lobe-chat"
-						docker_describe="LobeChat 聚合市面上主流的 AI 大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
-						docker_url="官网介绍: https://github.com/lobehub/lobe-chat"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "lobe-chat"
 						;;
 
 					# MyIP 工具箱
 					37)
-						docker_name="myip"
-						docker_img="ghcr.io/jason5ng32/myip:latest"
-						docker_port=8037
-						docker_rum="docker run -d -p 8037:18966 --name myip --restart always ghcr.io/jason5ng32/myip:latest"
-						docker_describe="是一个多功能 IP 工具箱，可以查看自己 IP 信息及连通性，用网页面板呈现"
-						docker_url="官网介绍: https://github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
-						docker_use=""
-						docker_passwd=""
-						docker_app
+						install_specific_app "myip"
+						;;
+
+					# Lsky-Pro-Docker 兰空图床
+					38)
+						install_specific_app "lskypro"
 						;;
 
 					# 51. PVE 开小鸡面板
@@ -7005,7 +7202,6 @@ EOF
       		break_end
 
     	done
-
     	;;
 
 #		# 幻兽帕鲁开服脚本
