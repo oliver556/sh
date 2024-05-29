@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.31"
+sh_v="1.1.0"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -263,6 +263,38 @@ install_docker() {
 	echo -e "${cyan}Docker 环境已安装${normal}"
 }
 
+# 函数: 重启 docker
+docker_restart() {
+	if [ -f "/etc/alpine-release" ]; then
+		service docker restart
+	else
+		systemctl restart docker
+	fi
+}
+
+# 函数: 开启 docker ipv6
+docker_ipv6_on() {
+	mkdir -p /etc/docker &>/dev/null
+
+	cat > /etc/docker/daemon.json << EOF
+{
+  "ipv6": true,
+  "fixed-cidr-v6": "2001:db8:1::/64"
+}
+EOF
+
+	docker_restart
+	echo -e "${green}Docker 已开启 v 6 访问${normal}"
+}
+
+# 函数: 关闭 docker ipv6
+docker_ipv6_off() {
+	rm -rf etc/docker/daemon.json &>/dev/null
+	docker_restart
+	echo -e "${green}Docker 已关闭 v 6 访问${normal}"
+}
+
+
 # 函数: 开放所有端口
 iptables_open() {
 	# iptables 和 ip6tables 的默认策略设置为接受（ACCEPT），并清空所有防火墙规则，
@@ -390,14 +422,15 @@ install_ldnmp() {
 		"docker exec nginx chmod -R 777 /var/www/html"
 		"docker restart nginx > /dev/null 2>&1"
 
-		"docker exec php sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
-		"docker exec php74 sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+#		"docker exec php sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+#		"docker exec php74 sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
 
 		"docker exec php apk update > /dev/null 2>&1"
 		"docker exec php74 apk update > /dev/null 2>&1"
 
 		# php 安装包管理
-		"curl -sL https://hub.gitmirror.com/https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+#		"curl -sL https://hub.githubusercontent.com/https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+		"curl -sL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
 		"docker exec php mkdir -p /usr/local/bin/ > /dev/null 2>&1"
 		"docker exec php74 mkdir -p /usr/local/bin/ > /dev/null 2>&1"
 		"docker cp /usr/local/bin/install-php-extensions php:/usr/local/bin/ > /dev/null 2>&1"
@@ -483,16 +516,25 @@ install_ldnmp() {
 	  	ldnmp_v
 }
 
-# 函数: 安装 certbot、epel-release 工具
+# 函数: 安装 epel-release、certbot 工具
 install_certbot() {
-    install certbot epel-release
+	if command -v yum &>/dev/null; then
+		install epel-release certbot
+	elif command -v apt &>/dev/null; then
+		install snapd
+		snap install core
+		snap install --classic certbot
+		rm /usr/bin/certbot
+		ln -s /snap/bin/certbot /usr/bin/certbot
+	else
+		install certbot
+	fi
 
     # 切换到一个一致的目录（例如，家目录）
     cd ~ || exit
 
     # 下载并使脚本可执行
-#    curl -O https://raw.gitmirror.com/oliver556/sh/main/auto_cert_renewal.sh
-    curl -O https://raw.gitmirror.com/oliver556/sh/main/auto_cert_renewal.sh
+    curl -O https://raw.githubusercontent.com/oliver556/sh/main/auto_cert_renewal.sh
     chmod +x auto_cert_renewal.sh
 
     # 设置定时任务字符串
@@ -600,7 +642,7 @@ reverse_proxy() {
 	# 获取服务器 IPV4、IPV6 公网地址
 	ip_address
 
-	wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/reverse-proxy.conf
+	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
 	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
 	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
@@ -1154,13 +1196,39 @@ docker_parameter() {
     esac
 }
 
+# 函数: 是否开启 v4、v6
+has_ipv4_has_ipv6() {
+	ip_address
+
+	if [ -z "$ipv4_address" ]; then
+    	has_ipv4=false
+	else
+    	has_ipv4=true
+	fi
+
+	if [ -z "$ipv6_address" ]; then
+    	has_ipv6=false
+	else
+    	has_ipv6=true
+	fi
+}
+
 # 函数: 安装 docker 应用
 docker_app() {
+	has_ipv4_has_ipv6
+
 	if docker inspect "$docker_name" &>/dev/null; then
 		clear
 		echo -e "${green}$docker_name 已安装，访问地址: ${normal}"
-		ip_address
-		echo "http://$ipv4_address:$docker_port"
+
+		if $has_ipv4; then
+			echo "http:$ipv4_address:$docker_port"
+		fi
+
+		if $has_ipv6; then
+			echo "http:[$ipv6_address]:$docker_port"
+		fi
+
 		echo ""
 		echo -e "${cyan}应用操作${normal}"
 		echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -1180,10 +1248,15 @@ docker_app() {
 				clear
 				echo -e "${green}$docker_name 已经安装完成${normal}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				# 获取外部 IP 地址
-				ip_address
 				echo "您可以使用以下地址访问:"
-				echo "http://$ipv4_address:$docker_port"
+				if $has_ipv4; then
+					echo "http:$ipv4_address:$docker_port"
+				fi
+
+				if $has_ipv6; then
+					echo "http:[$ipv6_address]:$docker_port"
+				fi
+				echo ""
 				$docker_use
 				$docker_passwd
 				;;
@@ -1223,11 +1296,15 @@ docker_app() {
 				$docker_rum
 				clear
 				echo "$docker_name 已经安装完成"
-				echo "------------------------"
-				# 获取外部 IP 地址
-				ip_address
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "您可以使用以下地址访问:"
-				echo "http://$ipv4_address:$docker_port"
+				if $has_ipv4; then
+					echo "http:$ipv4_address:$docker_port"
+				fi
+				if $has_ipv6; then
+					echo "http:[$ipv6_address]:$docker_port"
+				fi
+				echo ""
 				$docker_use
 				$docker_passwd
 				;;
@@ -1257,7 +1334,7 @@ install_specific_app() {
 cluster_python3() {
 	cd ~/cluster/
 	# To大Do
-	curl -sS -O https://raw.gitmirror.com/kejilion/python-for-vps/main/cluster/$py_task
+	curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
 	python3 ~/cluster/$py_task
 }
 
@@ -1307,23 +1384,23 @@ f2b_install_sshd() {
 	sleep 3
 	if grep -q 'Alpine' /etc/issue; then
 		cd /path/to/fail2ban/config/fail2ban/filter.d
-		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
-		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
 
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
 
-		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
 
 	elif grep -qi 'CentOS' /etc/redhat-release; then
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
 
 	else
 		install rsyslog
 		systemctl start rsyslog
 		systemctl enable rsyslog
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
+		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
 	fi
 }
 
@@ -1374,6 +1451,17 @@ output_status() {
 			if (tx_total > 1024) { tx_total /= 1024; tx_units = "GB"; }
 			printf("总接收:%*s%.2f %s\n总发送:%*s%.2f %s\n", 10, "", rx_total, rx_units, 10, "", tx_total, tx_units);
 		}' /proc/net/dev)
+}
+
+# 函数: 检查是否已经安装 LDNMP
+ldnmp_install_status_one() {
+   if docker inspect "php" &>/dev/null; then
+    echo -e "${yellow}LDNMP 环境已安装。无法再次安装。可以使用37. 更新 LDNMP 环境${normal}"
+    break_end
+    leon
+   else
+    echo
+   fi
 }
 
 # 函数: 检查是否安装 LDNMP 环境
@@ -1600,31 +1688,6 @@ linux_clean() {
 	fi
 }
 
-# 函数: 修改 SSH 连接端口
-new_ssh_port() {
-	# 备份 SSH 配置文件
-	cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
-
-	# 使用 sed 替换命令将原先注释掉的端口配置取消注释，即将 #Port 改为 Port
-	sed -i 's/^\s*#\?\s*Port/Port/' /etc/ssh/sshd_config
-
-	# 替换 SSH 配置文件中的端口号
-	sed -i "s/Port [0-9]\+/Port $new_port/g" /etc/ssh/sshd_config
-
-	# 重启 SSH 服务
-	service sshd restart
-
-	# 打印消息，确认 SSH 端口已被成功修改
-	echo "SSH 端口已修改为: $new_port"
-
-	clear
-	# 调用函数以打开所有端口
-	open_all_ports
-
-	# 移除一些防火墙相关的软件
-	remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
-}
-
 # 函数: 启用 BBR 拥塞控制算法
 bbr_on() {
 	# 将以下内容覆盖写入 /etc/sysctl.conf 文件中
@@ -1673,6 +1736,31 @@ restart_ssh() {
 		echo -e "${red}无法找到 SSH 服务启动脚本，无法重启 SSH 服务!${normal}"
 		return 1
 	fi
+}
+
+# 函数: 修改 SSH 连接端口
+new_ssh_port() {
+	# 备份 SSH 配置文件
+	cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+	# 使用 sed 替换命令将原先注释掉的端口配置取消注释，即将 #Port 改为 Port
+	sed -i 's/^\s*#\?\s*Port/Port/' /etc/ssh/sshd_config
+
+	# 替换 SSH 配置文件中的端口号
+	sed -i "s/Port [0-9]\+/Port $new_port/g" /etc/ssh/sshd_config
+
+	# 重启 SSH 服务
+	service sshd restart
+
+	# 打印消息，确认 SSH 端口已被成功修改
+	echo "SSH 端口已修改为: $new_port"
+
+	clear
+	# 调用函数以打开所有端口
+	open_all_ports
+
+	# 移除一些防火墙相关的软件
+	remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 }
 
 # 函数: 添加密钥
@@ -1831,7 +1919,7 @@ read_input() {
 
 # 函数: 定义默认安装的函数
 install_seedbox_default() {
-	bash <(wget -qO- https://raw.gitmirror.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+	bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
 }
 
 # 函数: 定义自定义安装的函数
@@ -1922,7 +2010,7 @@ install_seedbox_custom() {
 	fi
 
     # 调用安装脚本并传递参数
-    bash <(wget -qO- https://raw.gitmirror.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
 }
 
 # 解析 docker ps -a 输出
@@ -2509,7 +2597,7 @@ while true; do
 				done
 			else
 				install wget
-				wget --no-check-certificate -O tcpx.sh https://raw.gitmirror.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
+				wget --no-check-certificate -O tcpx.sh https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
 				chmod +x tcpx.sh
 				./tcpx.sh
 			fi
@@ -2533,7 +2621,12 @@ while true; do
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "7. 清理无用的 Docker 容器和镜像网络数据卷"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "8. 卸载 Docker 环境"
+				echo "8. 更换 Docker 源"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			 	echo "11. 开启 Docker-ipv6 访问"
+			  	echo "12. 关闭 Docker-ipv6 访问"
+			  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "99. 卸载 Docker 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "0. 返回主菜单"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -2905,6 +2998,24 @@ while true; do
 						done
 						;;
 
+					# 更换 Docker 源
+					8)
+						clear
+						bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
+						;;
+
+					# 开启 Docker-ipv6 访问
+					11)
+						clear
+					  	docker_ipv6_on
+						;;
+
+					# 关闭 Docker-ipv6 访问
+					12)
+						clear
+					  	docker_ipv6_off
+						;;
+
 					# 9 Docker 页面访问
 					9)
 						list_installed_containers
@@ -2930,7 +3041,7 @@ while true; do
 						;;
 
 					# 卸载 Docker 环境
-          			8)
+          			99)
 						clear
 						read -p "$(echo -e "${red}确定卸载 docker 环境吗？(Y/N): ${normal}")" choice
 
@@ -3010,7 +3121,7 @@ while true; do
 						clear
 						bash <(curl -Ls https://cdn.jsdelivr.net/gh/missuo/OpenAI-Checker/openai.sh)
 #						留存删库备用
-#						bash <(curl -Ls https://raw.gitmirror.com/oliver556/sh/main/third_party/openai.sh)
+#						bash <(curl -Ls https://raw.githubusercontent.com/oliver556/sh/main/third_party/openai.sh)
 						;;
 
 					# Region 流媒体解锁测试
@@ -3048,9 +3159,9 @@ while true; do
 					# mtr_trace 三网回程线路测试
 					12)
 						clear
-						curl https://raw.gitmirror.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
+						curl https://raw.githubusercontent.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
 #						留存删库备用
-#						curl https://raw.gitmirror.com/oliver556/sh/main/third_party/mtr_trace.sh | bash
+#						curl https://raw.githubusercontent.com/oliver556/sh/main/third_party/mtr_trace.sh | bash
 						;;
 
 					# Superspeed 三网测速
@@ -3058,7 +3169,7 @@ while true; do
 						clear
 						bash <(curl -Lso- https://git.io/superspeed_uxh)
 #						留存删库备用
-#						bash <(curl -Lso- https://raw.gitmirror.com/oliver556/sh/main/third_party/superspeed_uxh)
+#						bash <(curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/superspeed_uxh)
 						;;
 
 					# nxtrace 快速回程测试脚本
@@ -3099,7 +3210,7 @@ while true; do
 					# ludashi2020 三网线路测试
 #          			16)
 #              			clear
-#              			curl https://raw.gitmirror.com/ludashi2020/backtrace/main/install.sh -sSf | sh
+#              			curl https://raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh
 #              			;;
 
 					# yabs 性能测试
@@ -3123,7 +3234,7 @@ while true; do
 						clear
 						curl -Lso- bench.sh | bash
 #					  	留存删库备用
-#					  	curl -Lso- https://raw.gitmirror.com/oliver556/sh/main/third_party/bench.sh | bash;
+#					  	curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/bench.sh | bash;
 						;;
 
 					# spiritysdx 融合怪测评
@@ -3135,7 +3246,7 @@ while true; do
 					# Disk Test 硬盘&系统综合测试（杜甫测试）
 					41)
 						clear
-						curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
+						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
 						;;
 
 					0)
@@ -3235,7 +3346,7 @@ while true; do
 
 								read -p "请输入你重装后的密码: " vpspasswd
 								install wget
-								bash <(wget --no-check-certificate -qO- 'https://raw.gitmirror.com/MoeClub/Note/master/InstallNET.sh') $xitong -v 64 -p $vpspasswd -port 22
+								bash <(wget --no-check-certificate -qO- 'https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh') $xitong -v 64 -p $vpspasswd -port 22
 								;;
 
 							[Nn])
@@ -3280,36 +3391,37 @@ while true; do
 				clear
 				echo -e "${baizise}${bold}                  LDNMP 建站                    ${jiacu}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "1.  安装 LDNMP 环境"
+				echo "1.  安装 LDNMP 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "2.  安装 WordPress"
-#				echo  "3. 安装 Discuz 论坛"
-#				echo  "4. 安装可道云桌面"
-#				echo  "5. 安装苹果 CMS 网站"
-#				echo  "6. 安装独角数发卡网"
-#				echo  "7. 安装 flarum 论坛网站"
-#				echo  "8. 安装 typecho 轻量博客网站"
-				echo  "20. 自定义动态站点"
+				echo "2.  安装 WordPress"
+#				echo "3. 安装 Discuz 论坛"
+#				echo "4. 安装可道云桌面"
+#				echo "5. 安装苹果 CMS 网站"
+#				echo "6. 安装独角数发卡网"
+#				echo "7. 安装 flarum 论坛网站"
+#				echo "8. 安装 typecho 轻量博客网站"
+				echo "20. 自定义动态站点"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "21. 仅安装 nginx"
-				echo  "22. 站点重定向"
-				echo  "23. 站点反向代理"
-				echo  "24. 自定义静态站点"
-#				echo  "25. 安装 Bitwarden 密码管理平台"
-#				echo  "26. 安装 Halo 博客网站"
+				echo "21. 仅安装 nginx"
+				echo "22. 站点重定向"
+				echo "23. 站点反向代理 - (IP + 端口)"
+				echo "24. 站点反向代理 - 域名"
+				echo "25. 自定义静态站点"
+#				echo "26. 安装 Bitwarden 密码管理平台"
+#				echo "27. 安装 Halo 博客网站"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "31. 站点数据管理"
-				echo  "32. 备份全站数据"
-				echo  "33. 定时远程备份"
-				echo  "34. 还原全站数据"
+				echo "31. 站点数据管理"
+				echo "32. 备份全站数据"
+				echo "33. 定时远程备份"
+				echo "34. 还原全站数据"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "35. 站点防御程序"
+				echo "35. 站点防御程序"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "36. 优化 LDNMP 环境"
-				echo  "37. 更新 LDNMP 环境"
-				echo  "38. 卸载 LDNMP 环境"
+				echo "36. 优化 LDNMP 环境"
+				echo "37. 更新 LDNMP 环境"
+				echo "38. 卸载 LDNMP 环境"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo  "0. 返回主菜单"
+				echo "0. 返回主菜单"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				read -p "请输入你的选择: " sub_choice
 
@@ -3317,6 +3429,8 @@ while true; do
 					# 安装 LDNMP 环境
 					1)
 						root_use
+						#
+						ldnmp_install_status_one
 						# 检查端口
 						check_port
 						# 安装依赖（wget socat unzip tar）
@@ -3330,16 +3444,16 @@ while true; do
 						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
 
 #						ToDo
-#						wget -O /home/web/nginx.conf https://raw.gitmirror.com/kejilion/nginx/main/nginx10.conf
-#						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/kejilion/nginx/main/default10.conf
-						wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
+#						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
+#						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
 						# 创建自签名的 SSL 证书并将其存储在指定的目录中
 						default_server_ssl
 
 						# 下载 docker-compose.yml 文件并进行替换
-#						wget -O /home/web/docker-compose.yml https://raw.gitmirror.com/kejilion/docker/main/LNMP-docker-compose-10.yml
-						wget -O /home/web/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
+#						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
 
 						dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
 
@@ -3367,7 +3481,7 @@ while true; do
 						#
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/wordpress.com.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/wordpress.com.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -3405,7 +3519,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/discuz.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/discuz.com.conf
 #
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
@@ -3413,8 +3527,8 @@ while true; do
 #						mkdir $yuming
 #						cd $yuming
 #						wget https://github.com/kejilion/Website_source_code/raw/main/Discuz_X3.5_SC_UTF8_20230520.zip
-#						unzip -o Discuz_X3.5_SC_UTF8_20230520.zip
-#						rm Discuz_X3.5_SC_UTF8_20230520.zip
+#						unzip latest.zip
+#						rm latest.zip
 #
 #						restart_ldnmp
 #
@@ -3441,15 +3555,15 @@ while true; do
 #						#
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/kdy.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/kdy.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
 #						mkdir $yuming
 #						cd $yuming
 #						wget https://github.com/kalcaddle/kodbox/archive/refs/tags/1.42.04.zip
-#						unzip -o 1.42.04.zip
-#						rm 1.42.04.zip
+#						unzip -o latest.zip
+#						rm latest.zip
 #
 #						restart_ldnmp
 #
@@ -3476,7 +3590,7 @@ while true; do
 #						#
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/maccms.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/maccms.com.conf
 #
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
@@ -3488,7 +3602,7 @@ while true; do
 #						cd /home/web/html/$yuming/template/ && wget https://github.com/kejilion/Website_source_code/raw/main/DYXS2.zip && unzip DYXS2.zip && rm /home/web/html/$yuming/template/DYXS2.zip
 #						cp /home/web/html/$yuming/template/DYXS2/asset/admin/Dyxs2.php /home/web/html/$yuming/application/admin/controller
 #						cp /home/web/html/$yuming/template/DYXS2/asset/admin/dycms.html /home/web/html/$yuming/application/admin/view/system
-#						mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php https://raw.gitmirror.com/kejilion/Website_source_code/main/maccms.php
+#						mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php https://raw.githubusercontent.com/kejilion/Website_source_code/main/maccms.php
 #
 #						restart_ldnmp
 #
@@ -3515,7 +3629,7 @@ while true; do
 						install_ssltls
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/dujiaoka.com.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/dujiaoka.com.conf
 
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
@@ -3560,7 +3674,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/flarum.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/flarum.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
@@ -3599,7 +3713,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/typecho.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/typecho.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
@@ -3631,7 +3745,7 @@ while true; do
 						install_ssltls
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/php/index_php.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/php/index_php.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -3726,10 +3840,11 @@ while true; do
 						install_docker
 						install_certbot
 
-						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx
+#						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx
+						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
 
-						wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
+						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
 
 						default_server_ssl
 
@@ -3757,7 +3872,7 @@ while true; do
 
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/rewrite.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/rewrite.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/baidu.com/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 
@@ -3769,10 +3884,10 @@ while true; do
 						nginx_status
 						;;
 
-					# 站点反向代理
+					# 站点反向代理 - (IP + 端口)
 					23)
 						clear
-						webname="站点反向代理"
+						webname="反向代理-IP+端口"
 						nginx_install_status
 						ip_address
 						add_yuming
@@ -3781,7 +3896,7 @@ while true; do
 
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/reverse-proxy.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/0000/$port/g" /home/web/conf.d/$yuming.conf
@@ -3794,15 +3909,37 @@ while true; do
 						nginx_status
 						;;
 
-					# 自定义静态站点
+					# 站点反向代理 - 域名
 					24)
+						clear
+						webname="反向代理-域名"
+						nginx_install_status
+						ip_address
+						add_yuming
+						echo -e "域名格式: ${yellow}http://www.google.com${normal}"
+						read -p "请输入你的反代域名: " fandai_yuming
+
+						install_ssltls
+
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy-domain.conf
+						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+						sed -i "s|fandaicom|$fandai_yuming|g" /home/web/conf.d/$yuming.conf
+
+						docker restart nginx
+
+						nginx_web_on
+						nginx_status
+						;;
+
+					# 自定义静态站点
+					25)
 						clear
 						webname="静态站点"
 						nginx_install_status
 						add_yuming
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/html.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/html.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -3842,7 +3979,7 @@ while true; do
 
 					# 安装 Bitwarden 密码管理平台
 
-#					25)
+#					26)
 #						clear
 #						webname="Bitwarden"
 #						nginx_install_status
@@ -3864,7 +4001,7 @@ while true; do
 #						;;
 
 					# 安装 Halo 博客网站
-#					26)
+#					27)
 #						clear
 #						webname="halo"
 #						nginx_install_status
@@ -4069,7 +4206,7 @@ while true; do
 						read -p "输入远程服务器密码: " usepasswd
 
 						cd ~
-						wget -O ${useip}_beifen.sh https://raw.gitmirror.com/oliver556/sh/main/beifen.sh > /dev/null 2>&1
+						wget -O ${useip}_beifen.sh https://raw.githubusercontent.com/oliver556/sh/main/beifen.sh > /dev/null 2>&1
 						chmod +x ${useip}_beifen.sh
 
 						sed -i "s/0.0.0.0/$useip/g" ${useip}_beifen.sh
@@ -4102,6 +4239,9 @@ while true; do
 					# 还原全站数据
 					34)
 						root_use
+						echo -e "请确认 ${yellow}home${normal} 目录中已经放置网站备份的 gz 压缩包，按任意键继续……"
+					  	read -n 1 -s -r -p ""
+					  	echo "开始解压……"
 						cd /home/ && ls -t /home/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
 						check_port
 						install_dependency
@@ -4227,14 +4367,14 @@ while true; do
 										read -p "输入 CF 的账号: " cfuser
 										read -p "输入 CF 的 Global API Key: " cftoken
 
-										wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/kejilion/nginx/main/default11.conf
+										wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default11.conf
 										docker restart nginx
 
 										cd /path/to/fail2ban/config/fail2ban/jail.d/
-										curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
+										curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
 
 										cd /path/to/fail2ban/config/fail2ban/action.d
-										curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/cloudflare-docker.conf
+										curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/cloudflare-docker.conf
 
 										# ToDo
 										sed -i "s/kejilion@outlook.com/$cfuser/g" /path/to/fail2ban/config/fail2ban/action.d/cloudflare-docker.conf
@@ -4280,8 +4420,8 @@ while true; do
 							install_docker
 
 							docker rm -f nginx
-							wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
-							wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
+							wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
+							wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
 							default_server_ssl
 							docker run -d --name nginx --restart always --network web_default -p 80:80 -p 443:443 -p 443:443/udp -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx:alpine
 							docker exec -it nginx chmod -R 777 /var/www/html
@@ -4289,9 +4429,9 @@ while true; do
 							f2b_install_sshd
 
 							cd /path/to/fail2ban/config/fail2ban/filter.d
-							curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/fail2ban-nginx-cc.conf
+							curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/fail2ban-nginx-cc.conf
 							cd /path/to/fail2ban/config/fail2ban/jail.d/
-							curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
+							curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
 							sed -i "/cloudflare/d" /path/to/fail2ban/config/fail2ban/jail.d/nginx-docker-cc.conf
 
 							cd ~
@@ -4321,20 +4461,20 @@ while true; do
 
 									# php 调优
 									# ToDo optimized_php.ini 该脚本为空
-									wget -O /home/optimized_php.ini https://raw.gitmirror.com/oliver556/sh/main/php/optimized_php.ini
+									wget -O /home/optimized_php.ini https://raw.githubusercontent.com/oliver556/sh/main/php/optimized_php.ini
 									docker cp /home/optimized_php.ini php:/usr/local/etc/php/conf.d/optimized_php.ini
 									docker cp /home/optimized_php.ini php74:/usr/local/etc/php/conf.d/optimized_php.ini
 									rm -rf /home/optimized_php.ini
 
 									# php 调优
-									wget -O /home/www.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/www-1.conf
+									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www-1.conf
 									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 									rm -rf /home/www.conf
 
 									# mysql 调优
 									# ToDo custom_mysql_config-1.cnf 该脚本为空
-									wget -O /home/custom_mysql_config.cnf https://raw.gitmirror.com/oliver556/sh/main/mysql/custom_mysql_config-1.cnf
+									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config-1.cnf
 									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 									rm -rf /home/custom_mysql_config.cnf
 
@@ -4354,13 +4494,13 @@ while true; do
 									sed -i 's/worker_connections.*/worker_connections 10240;/' /home/web/nginx.conf
 
 									# php 调优
-									wget -O /home/www.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/www.conf
+									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www.conf
 									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 									rm -rf /home/www.conf
 
 									# mysql 调优
-									wget -O /home/custom_mysql_config.cnf https://raw.gitmirror.com/oliver556/sh/main/mysql/custom_mysql_config.cnf
+									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config.cnf
 									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 									rm -rf /home/custom_mysql_config.cnf
 
@@ -4444,16 +4584,19 @@ while true; do
 				echo "5. AList 多存储文件列表程序             6. Ubuntu 远程桌面网页版"
 				echo "7. 哪吒探针 VPS 监控面板                8. QB 离线 BT 磁力下载面板"
 				echo "9. Poste.io 邮件服务器程序              10. RocketChat 多人在线聊天系统"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "11. 禅道项目管理软件                    12. 青龙面板定时任务管理平台"
 				echo "13. Cloudreve 网盘                      14. 简单图床图片管理程序"
 				echo "15. emby 多媒体管理系统                 16. Speedtest 测速面板"
 				echo "17. AdGuardHome 去广告软件              18. onlyoffice 在线办公 OFFICE"
 				echo "19. 雷池 WAF 防火墙面板                 20. portainer 容器管理面板"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "21. VScode 网页版                       22. UptimeKuma 监控工具"
 				echo "23. Memos 网页备忘录                    24. Webtop 远程桌面网页版"
 				echo "25. Nextcloud 网盘                      26. QD-Today 定时任务管理框架"
 				echo "27. Dockge 容器堆栈管理面板             28. LibreSpeed 测速工具"
 				echo "29. searxng 聚合搜索站                  30. PhotoPrism 私有相册系统"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "31. StirlingPDF 工具大全                32. drawio 免费的在线图表软件"
 				echo "33. Sun-Panel 导航面板                  34. Pingvin-Share 文件分享平台"
 				echo "35. 极简朋友圈                          36. LobeChatAI 聊天聚合网站"
@@ -4552,7 +4695,7 @@ while true; do
 					# 哪吒探针 VPS 监控面板
 					7)
 						clear
-						curl -L https://raw.gitmirror.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
+						curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
 						./nezha.sh
 						;;
 
@@ -4703,11 +4846,17 @@ while true; do
 
 					# RocketChat 多人在线聊天系统
 					10)
+						has_ipv4_has_ipv6
+
 						if docker inspect rocketchat &>/dev/null; then
 							clear
 							echo -e "${green}rocket.chat 已安装，访问地址: ${normal}"
-							ip_address
-							echo "http://$ipv4_address:3897"
+							if $has_ipv4; then
+								echo "http:$ipv4_address:3897"
+							fi
+							if $has_ipv6; then
+								echo "http:[$ipv6_address]:3897"
+							fi
 							echo ""
 
 							echo -e "${cyan}应用操作${normal}"
@@ -4733,7 +4882,12 @@ while true; do
 									echo -e "${green}rocket.chat 已经安装完成${normal}"
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "多等一会，您可以使用以下地址访问 rocket.chat:"
-									echo "http://$ipv4_address:3897"
+									if $has_ipv4; then
+										echo "http:$ipv4_address:3897"
+									fi
+									if $has_ipv6; then
+										echo "http:[$ipv6_address]:3897"
+									fi
 									echo ""
 									;;
 
@@ -4786,7 +4940,12 @@ while true; do
 								echo -e "${green}rocket.chat 已经安装完成${normal}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "多等一会，您可以使用以下地址访问 rocket.chat:"
-								echo "http://$ipv4_address:3897"
+								if $has_ipv4; then
+									echo "http:$ipv4_address:3897"
+								fi
+								if $has_ipv6; then
+									echo "http:[$ipv6_address]:3897"
+								fi
 								echo ""
 								;;
 
@@ -4810,106 +4969,121 @@ while true; do
 
 					# Cloudreve 网盘
 					13)
+						has_ipv4_has_ipv6
+
 						if docker inspect cloudreve &>/dev/null; then
 
-						clear
-						echo -e "${green}cloudreve 已安装，访问地址: ${normal}"
-						ip_address
-						echo "http://$ipv4_address:5212"
-						echo ""
+							clear
+							echo -e "${green}cloudreve 已安装，访问地址: ${normal}"
+							if $has_ipv4; then
+								echo "http:$ipv4_address:5212"
+							fi
+							if $has_ipv6; then
+								echo "http:[$ipv6_address]:5212"
+							fi
 
-						echo -e "${cyan}应用操作${normal}"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo "1. 更新应用             2. 卸载应用"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						echo "0. 返回上一级选单"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						read -p "请输入你的选择: " sub_choice
+							echo ""
 
-						case $sub_choice in
-							# 更新应用
-							1)
+							echo -e "${cyan}应用操作${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "1. 更新应用             2. 卸载应用"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							echo "0. 返回上一级选单"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							read -p "请输入你的选择: " sub_choice
+
+							case $sub_choice in
+								# 更新应用
+								1)
+									clear
+									docker rm -f cloudreve
+									docker rmi -f cloudreve/cloudreve:latest
+									docker rm -f aria2
+									docker rmi -f p3terx/aria2-pro
+
+									cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
+									curl -o /home/docker/cloud/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
+									cd /home/docker/cloud/ && docker compose up -d
+
+									clear
+									echo ""
+									echo -e "${green}cloudreve 已经安装完成${normal}"
+									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+									echo "您可以使用以下地址访问 cloudreve:"
+									if $has_ipv4; then
+										echo "http:$ipv4_address:5212"
+									fi
+									if $has_ipv6; then
+										echo "http:[$ipv6_address]:5212"
+									fi
+									sleep 3
+									docker logs cloudreve
+									echo ""
+									;;
+
+								# 卸载应用
+								2)
+									clear
+									docker rm -f cloudreve
+									docker rmi -f cloudreve/cloudreve:latest
+									docker rm -f aria2
+									docker rmi -f p3terx/aria2-pro
+									rm -rf /home/docker/cloud
+									echo "应用已卸载"
+									;;
+
+								0)
+									break  # 跳出循环，退出菜单
+									;;
+
+								*)
+									break  # 跳出循环，退出菜单
+									;;
+							esac
+
+						else
+
+							clear
+							echo ""
+							echo -e "${cyan}安装提示${normal}"
+							echo "cloudreve 是一个支持多家云存储的网盘系统"
+							echo "官网介绍: https://cloudreve.org/"
+							echo ""
+
+							# 提示用户确认安装
+							read -p "确定安装 cloudreve吗？(Y/N): " choice
+							case "$choice" in
+								[Yy])
 								clear
-								docker rm -f cloudreve
-								docker rmi -f cloudreve/cloudreve:latest
-								docker rm -f aria2
-								docker rmi -f p3terx/aria2-pro
-
+								install_docker
 								cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-								curl -o /home/docker/cloud/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
+								curl -o /home/docker/cloud/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
 								cd /home/docker/cloud/ && docker compose up -d
 
 								clear
-								echo ""
 								echo -e "${green}cloudreve 已经安装完成${normal}"
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "您可以使用以下地址访问 cloudreve:"
-								ip_address
-								echo "http://$ipv4_address:5212"
+								if $has_ipv4; then
+									echo "http:$ipv4_address:5212"
+								fi
+								if $has_ipv6; then
+									echo "http:[$ipv6_address]:5212"
+								fi
 								sleep 3
 								docker logs cloudreve
 								echo ""
+
 								;;
 
-							# 卸载应用
-							2)
-								clear
-								docker rm -f cloudreve
-								docker rmi -f cloudreve/cloudreve:latest
-								docker rm -f aria2
-								docker rmi -f p3terx/aria2-pro
-								rm -rf /home/docker/cloud
-								echo "应用已卸载"
-								;;
+								[Nn])
+									;;
 
-							0)
-								break  # 跳出循环，退出菜单
-								;;
-
-							*)
-								break  # 跳出循环，退出菜单
-								;;
-						esac
-
-					else
-
-						clear
-						echo ""
-						echo -e "${cyan}安装提示${normal}"
-						echo "cloudreve 是一个支持多家云存储的网盘系统"
-						echo "官网介绍: https://cloudreve.org/"
-						echo ""
-
-						# 提示用户确认安装
-						read -p "确定安装 cloudreve吗？(Y/N): " choice
-						case "$choice" in
-							[Yy])
-							clear
-							install_docker
-							cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-							curl -o /home/docker/cloud/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
-							cd /home/docker/cloud/ && docker compose up -d
-
-							clear
-							echo -e "${green}cloudreve 已经安装完成${normal}"
-							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							echo "您可以使用以下地址访问 cloudreve:"
-							ip_address
-							echo "http://$ipv4_address:5212"
-							sleep 3
-							docker logs cloudreve
-							echo ""
-
-							;;
-
-							[Nn])
-								;;
-
-							*)
-								;;
-						esac
-					fi
-					;;
+								*)
+									;;
+							esac
+						fi
+						;;
 
 					# 简单图床图片管理程序
 					14)
@@ -5111,7 +5285,7 @@ while true; do
 					# 51. PVE 开小鸡面板
 					51)
 						clear
-						curl -L https://raw.gitmirror.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
+						curl -L https://raw.githubusercontent.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
 						;;
 
 					0)
@@ -5132,8 +5306,8 @@ while true; do
 			while true; do
 				clear
 				echo -e "${baizise}${bold}                  ▶ 我的工作区                  ${jiacu}"
-				echo "系统将为你提供 5 个后台运行的工作区，你可以用来执行长时间的任务"
-				echo "即使你断开 SSH，工作区中的任务也不会中断，非常方便！来试试吧！"
+				echo "系统将为你提供可以后台运行的工作区，你可以用来执行长时间的任务"
+				echo "即使你断开 SSH，工作区中的任务也不会中断，后台常驻任务。"
 				echo -e "${yellow}注意: 进入工作区后使用 Ctrl + b 再单独按 d，退出工作区！normal{bai}"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "1. 1 号工作区"
@@ -5147,7 +5321,9 @@ while true; do
 #				echo "9. 9 号工作区"
 #				echo "10. 10 号工作区"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "99. 工作区状态"
+				echo "11. 自定义工作区"
+				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+				echo "99. 工作区状态管理"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "b. 卸载工作区"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -5229,11 +5405,43 @@ while true; do
 #						SESSION_NAME="work10"
 #						tmux_run
 #						;;
+					11)
+						clear
+					  	install tmux
+					  	clear
+					  	echo -e "${cyan}当前已存在的工作区列表${normal}"
+					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+					  	tmux list-sessions
+					  	echo ""
+					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+					  	read -p "请输入您自定义的工作区名称，如: 1001 leon001 work10）: " SESSION_NAME
+					  	tmux_run
+						;;
 
 					99)
-						clear
-						install tmux
-						tmux list-sessions
+						while true; do
+							clear
+							echo -e "${cyan}当前已存在的工作区列表${normal}"
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							tmux list-sessions
+							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+							read -p "1. 删除指定工作区    0. 退出: " gongzuoqu_del
+
+							case "$gongzuoqu_del" in
+								1)
+									read -p "请输入要删除的工作区名称: " gongzuoqu_name
+									tmux kill-window -t $gongzuoqu_name
+									;;
+
+								0)
+									break
+									;;
+
+								*)
+								  echo "无效的选择，请输入 Y 或 N。"
+								  ;;
+							  esac
+						done
 						;;
 
 					0)
@@ -5466,26 +5674,34 @@ while true; do
 
 					# 一键重装系统
 					8)
-
-						dd_xitong_2() {
-							echo -e "任意键继续，重装后初始用户名: ${yellow}root${normal}  初始密码: ${yellow}LeitboGi0ro${normal}  初始端口: ${yellow}22${normal}"
+					  	dd_xitong_1() {
+							echo -e "重装后初始用户名: ${yellow}root${normal}  初始密码: ${yellow}LeitboGi0ro${normal}  初始端口: ${yellow}22${normal}"
+							echo -e "按任意键继续..."
 							read -n 1 -s -r -p ""
 							install wget
-							wget --no-check-certificate -qO InstallNET.sh 'https://raw.gitmirror.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+					  	}
+
+						dd_xitong_2() {
+							echo -e "重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}Teddysun.com${normal}  初始端口: ${yellow}3389${normal}"
+							read -n 1 -s -r -p ""
+							install wget
+							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
 						}
 
 						dd_xitong_3() {
-							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}Teddysun.com${normal}  初始端口: ${yellow}3389${normal}"
+							echo -e "重装后初始用户名: ${yellow}root${normal}  初始密码: ${yellow}123@@@${normal}  初始端口: ${yellow}22${normal}"
 							read -n 1 -s -r -p ""
 							install wget
-							wget --no-check-certificate -qO InstallNET.sh 'https://raw.gitmirror.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+							curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
 						}
 
 						dd_xitong_4() {
-							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}123@@@${normal}  初始端口: ${yellow}3389${normal}"
+							echo -e "重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}123@@@${normal}  初始端口: ${yellow}3389${normal}"
+							echo -e "按任意键继续..."
 							read -n 1 -s -r -p ""
 							install wget
-							curl -O https://raw.gitmirror.com/bin456789/reinstall/main/reinstall.sh
+							curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
 						}
 
 
@@ -5513,7 +5729,7 @@ while true; do
 									echo "22. CentOS 8"
 									echo "23. CentOS 7"
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-									echo "31. Alpine 3.19"
+									echo "31. Alpine Linux"
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "41. Windows 11"
 									echo "42. Windows 10"
@@ -5527,7 +5743,7 @@ while true; do
 									case "$sys_choice" in
 										# Debian 12
 										1)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -debian 12
 											reboot
 											exit
@@ -5535,7 +5751,7 @@ while true; do
 
 										# Debian 11
 										2)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -debian 11
 											reboot
 											exit
@@ -5543,7 +5759,7 @@ while true; do
 
 										# # Debian 10
 										3)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -debian 10
 											reboot
 											exit
@@ -5551,7 +5767,7 @@ while true; do
 
 										# Debian 9
 										4)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -debian 9
 											reboot
 											exit
@@ -5559,7 +5775,7 @@ while true; do
 
 										# Ubuntu 24.04
 										11)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -ubuntu 24.04
 											reboot
 											exit
@@ -5567,7 +5783,7 @@ while true; do
 
 										# Ubuntu 22.04
 										12)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -ubuntu 22.04
 											reboot
 											exit
@@ -5575,7 +5791,7 @@ while true; do
 
 										# Ubuntu 20.04
 										13)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -ubuntu 20.04
 											reboot
 											exit
@@ -5583,7 +5799,7 @@ while true; do
 
 										# Ubuntu 18.04
 										14)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -ubuntu 18.04
 											reboot
 											exit
@@ -5591,7 +5807,7 @@ while true; do
 
 										# CentOS 9
 										21)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -centos 9
 											reboot
 											exit
@@ -5599,7 +5815,7 @@ while true; do
 
 										# CentOS 8
 										22)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -centos 8
 											reboot
 											exit
@@ -5607,7 +5823,7 @@ while true; do
 
 										# CentOS 7
 										23)
-											dd_xitong_2
+											dd_xitong_1
 											bash InstallNET.sh -centos 7
 											reboot
 											exit
@@ -5615,7 +5831,7 @@ while true; do
 
 										# Alpine 3.19
 										31)
-											dd_xitong_2
+											dd_xitong_3
 											bash InstallNET.sh -alpine
 											reboot
 											exit
@@ -5623,7 +5839,7 @@ while true; do
 
 										# Windows 11
 										41)
-											dd_xitong_3
+											dd_xitong_2
 											bash InstallNET.sh -windows 11 -lang "cn"
 											reboot
 											exit
@@ -5631,7 +5847,7 @@ while true; do
 
 										# Windows 10
 										42)
-											dd_xitong_3
+											dd_xitong_2
 											bash InstallNET.sh -windows 10 -lang "cn"
 											reboot
 											exit
@@ -5639,23 +5855,32 @@ while true; do
 
 										# Windows 7
 										43)
-											dd_xitong_4
-											bash reinstall.sh windows --image-name 'Windows 7 Professional' --lang zh-cn
-											reboot
-											exit
+										  	dd_xitong_4
+										  	URL="https://massgrave.dev/windows_7_links"
+										  	web_content=$(wget -q -O - "$URL")
+										  	iso_link=$(echo "$web_content" | grep -oP '(?<=href=")[^"]*cn[^"]*windows_7[^"]*professional[^"]*x64[^"]*\.iso')
+										  	# bash reinstall.sh windows --image-name 'Windows 7 Professional' --lang zh-cn
+										  	# bash reinstall.sh windows --iso='$iso_link' --image-name='Windows 7 PROFESSIONAL'
+										  	bash reinstall.sh windows --iso="$iso_link" --image-name='Windows 7 PROFESSIONAL'
+
+										  	reboot
+										  	exit
 											;;
 
 										# Windows Server 2022
 										44)
 											dd_xitong_4
-											bash reinstall.sh windows --image-name 'Windows Server 2022 SERVERDATACENTER' --lang zh-cn
+											URL="https://massgrave.dev/windows_server_links"
+											web_content=$(wget -q -O - "$URL")
+											iso_link=$(echo "$web_content" | grep -oP '(?<=href=")[^"]*cn[^"]*windows_server[^"]*2022[^"]*x64[^"]*\.iso')
+											bash reinstall.sh windows --iso="$iso_link" --image-name='Windows Server 2022 SERVERDATACENTER'
 											reboot
 											exit
 											;;
 
 										# Windows Server 2019
 										45)
-											dd_xitong_3
+											dd_xitong_2
 											bash InstallNET.sh -windows 2019 -lang "cn"
 											reboot
 											exit
@@ -5663,7 +5888,7 @@ while true; do
 
 										# Windows Server 2016
 										46)
-											dd_xitong_3
+											dd_xitong_2
 											bash InstallNET.sh -windows 2016 -lang "cn"
 											reboot
 											exit
@@ -6019,12 +6244,12 @@ while true; do
 										apt purge -y 'linux-*xanmod1*'
 										update-grub
 
-										wget -qO - https://raw.gitmirror.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+										wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 										# 步骤3：添加存储库
 										echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-										version=$(wget -q https://raw.gitmirror.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+										version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 										apt update -y
 										apt install -y linux-xanmod-x64v$version
@@ -6089,12 +6314,12 @@ while true; do
 									add_swap
 									install wget gnupg
 
-									wget -qO - https://raw.gitmirror.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+									wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 									# 步骤3：添加存储库
 									echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-									version=$(wget -q https://raw.gitmirror.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+									version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 									apt update -y
 									apt install -y linux-xanmod-x64v$version
@@ -6811,7 +7036,7 @@ EOF
 								echo "如果实际服务器就100G流量，可设置阈值为95G，提前关机，以免出现流量误差或溢出."
 								read -p "请输入流量阈值（单位为GB）: " threshold_gb
 								cd ~
-								curl -Ss -O https://raw.gitmirror.com/oliver556/sh/main/Limiting_Shut_down.sh
+								curl -Ss -O https://raw.githubusercontent.com/oliver556/sh/main/Limiting_Shut_down.sh
 								chmod +x ~/Limiting_Shut_down.sh
 								sed -i "s/110/$threshold_gb/g" ~/Limiting_Shut_down.sh
 								crontab -l | grep -v '~/Limiting_Shut_down.sh' | crontab -
@@ -7135,7 +7360,7 @@ EOF
 #                          		py_task=custom_tasks.py
 #                          		cd ~/cluster/
 ##                          		ToDo 需要新增脚本
-#                          		curl -sS -O https://raw.gitmirror.com/kejilion/python-for-vps/main/cluster/$py_task
+#                          		curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
 #							  	sed -i "s#Customtasks#$mingling#g" ~/cluster/$py_task
 #							  	python3 ~/cluster/$py_task
 #							  	;;
@@ -7205,7 +7430,7 @@ EOF
 #		# 幻兽帕鲁开服脚本
 #		p)
 #			cd ~
-#			curl -sS -O https://raw.gitmirror.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
+#			curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
 #			exit
 #			;;
 
@@ -7215,12 +7440,10 @@ EOF
 			clear
 			echo -e "${cyan}更新日志${normal}"
 			echo "------------------------"
-			echo "全部日志: https://raw.gitmirror.com/oliver556/sh/main/leon_sh_log.txt"
+			echo "全部日志: https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt"
 			echo "------------------------"
-			curl -s https://raw.gitmirror.com/oliver556/sh/main/leon_sh_log.txt | tail -n 35
-			echo ""
-			echo ""
-			sh_v_new=$(curl -s https://raw.gitmirror.com/oliver556/sh/main/leon.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
+			curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt | tail -n 35
+			sh_v_new=$(curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
 			if [ "$sh_v" = "$sh_v_new" ]; then
 				echo -e "${green}你已经是最新版本！${yellow}v$sh_v${normal}"
@@ -7232,7 +7455,7 @@ EOF
 				case "$choice" in
 					[Yy])
 						clear
-						curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
+						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
 						cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
 						echo -e "${green}脚本已更新到最新版本！${yellow}v$sh_v_new${normal}"
 						break_end
