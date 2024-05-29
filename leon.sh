@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.0.30"
+sh_v="1.0.31"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -50,51 +50,74 @@ cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
 # ToDo 以下属于通用函数
 
 # 函数: 提示用户按任意键继续
-
-
-
-
-
-
-
-# 函数: 判断服务器系统类型
-detect_system() {
-	if [ -f /etc/os-release ]; then
-		. /etc/os-release
-		if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ]; then
-			echo "This is a Debian or Ubuntu based system"
-			echo "这是基于 Debian 或 Ubuntu 的系统"
-		elif [ "$ID" = "centos" ]; then
-			echo "This is a CentOS based system"
-		else
-			echo "Unknown distribution"
-			exit 1
-		fi
-	elif [ -f /etc/debian_version ]; then
-		echo "This is a Debian based system"
-	elif [ -f /etc/redhat-release ]; then
-		echo "This is a CentOS based system"
-	else
-		echo "Unknown distribution"
-		exit 1
-	fi
+break_end() {
+	echo -e "${green}操作完成${normal}"
+	echo "按任意键继续..."
+	read -n 1 -s -r -p ""
+	echo ""
+	clear
 }
 
+# 函数: 重头执行函数
+leon() {
+	n
+	exit
+}
 
-# ToDo ====================================================================================================
-# ToDo 以下属于 kejilion 函数
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
-# ToDo ====================================================================================================
+# 函数: 操作系统判断函数
+detect_os() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "$ID"
+    else
+        echo "unsupported"
+    fi
+}
 
 # 获取服务器 IPV4、IPV6 公网地址
 ip_address() {
 	ipv4_address=$(curl -s ipv4.ip.sb)
 	ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
+}
+
+# 定义一个函数来安装 snap，如果它尚未安装
+install_snap() {
+    # 检查 snap 是否已经安装
+    if ! command -v snap &>/dev/null; then
+        echo "snap 未安装，正在安装 snap..."
+        # 更新包列表
+        sudo apt update
+        # 安装 snap 包
+        sudo apt install -y snapd
+        # 启用并启动 snap 服务
+        sudo systemctl enable --now snapd
+        sudo systemctl start snapd
+        # 再次检查 snap 是否成功安装
+        if ! command -v snap &>/dev/null; then
+            echo "snap 安装失败，无法安装 $1。"
+            return 1
+        fi
+    fi
+}
+
+# 定义一个函数来使用 snap 安装 btop
+install_btop() {
+    # 使用传递的参数调用 install_snap 函数，以确保 snap 已安装
+    install_snap "$@"
+    if [ $? -eq 0 ]; then
+        echo "正在通过 snap 安装 $1..."
+        # 使用 snap 安装传递的包名
+        sudo snap install "$1"
+        if [ $? -eq 0 ]; then
+            echo "$1 安装成功。"
+        else
+            echo "$1 安装失败。"
+            return 1
+        fi
+    else
+        echo "由于 snap 安装失败，无法安装 $1。"
+        return 1
+    fi
 }
 
 # 函数: 安装软件包
@@ -107,23 +130,25 @@ install() {
 	for package in "$@"; do
 		if ! command -v "$package" &>/dev/null; then
 			if command -v dnf &>/dev/null; then
-				dnf -y update && dnf install -y "$package"
+				echo "${package} 未安装，正在安装 ${package}..."
+				sudo dnf -y update && sudo dnf install -y "$package"
 			elif command -v yum &>/dev/null; then
-				yum -y update && yum -y install "$package"
+				echo "${package} 未安装，正在安装 ${package}..."
+				sudo yum -y update && sudo yum -y install "$package"
 			elif command -v apt &>/dev/null; then
-				apt update -y && apt install -y "$package" || (echo "尝试使用 snap 进行安装" && sudo snap install "$package")
+				echo "${package} 未安装，正在安装 ${package}..."
+				sudo apt update -y && sudo apt install -y "$package"
 			elif command -v apk &>/dev/null; then
-				apk update && apk add "$package"
+				echo "${package} 未安装，正在安装 ${package}..."
+				sudo apk update && sudo apk add "$package"
 			else
 				echo "未知的包管理器!"
 				return 1
 			fi
-
 		else
-			echo "$package 已经安装"
+			echo "$package 已安装，跳过安装步骤..."
 		fi
 	done
-
 	return 0
 }
 
@@ -140,22 +165,8 @@ remove() {
 		return 1
 	fi
 
-#	for package in "$@"; do
-#		if command -v dnf &>/dev/null; then
-#			dnf remove -y "${package}*"
-#		elif command -v yum &>/dev/null; then
-#			yum remove -y "${package}*"
-#		elif command -v apt &>/dev/null; then
-#			apt purge -y "${package}*"
-#		elif command -v apk &>/dev/null; then
-#			apk del "${package}*"
-#		else
-#			echo "未知的包管理器!"
-#			return 1
-#		fi
-#	done
-
 	for package in "$@"; do
+#		snap 卸载
 		if command -v snap &>/dev/null && snap list | grep -q "$package"; then
 			sudo snap remove "$package"
 		elif command -v dnf &>/dev/null; then
@@ -173,20 +184,6 @@ remove() {
 	done
 
 	return 0
-}
-
-break_end() {
-	echo -e "${green}操作完成${normal}"
-	echo "按任意键继续..."
-	read -n 1 -s -r -p ""
-	echo ""
-	clear
-}
-
-# 函数: 重头执行函数
-leon() {
-	n
-	exit
 }
 
 # 函数: 检查端口
@@ -217,26 +214,6 @@ check_port() {
 	fi
 }
 
-# 函数: 安装更新 Docker 环境
-#install_add_docker() {
-#	#  Alpine Linux 使用 apk 包管理器进行安装
-#	if [ -f "/etc/alpine-release" ]; then
-#		# 更新包管理器并安装 Docker
-#		apk update
-#		# 更新包管理器并安装 Docker Compose
-#		apk add docker docker-compose
-#		# 将 Docker 添加到默认的启动项
-#		rc-update add docker default
-#		# 启动 Docker
-#		service docker start
-#	else
-#		curl -fsSL https://get.docker.com | sh
-#		systemctl start docker
-#		systemctl enable docker
-#	fi
-#
-#	sleep 2
-#}
 # 函数: 安装更新 Docker 环境
 install_add_docker() {
 	#  Alpine Linux 使用 apk 包管理器进行安装
@@ -1738,7 +1715,6 @@ root_use() {
 }
 
 # ToDo ====================================================================================================
-# ToDo 以下属于个人新增函数
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
@@ -1749,41 +1725,61 @@ root_use() {
 
 # 函数: speedtest 测速工具
 speed_test_tool() {
-	# 判断是否安装了 curl
-	if ! command -v curl &> /dev/null; then
-		echo "curl 未安装，开始安装..."
-		install curl
-	else
-		# 更新一下
-		install curl
-	fi
+	# 检查操作系统类型
+    OS=$(detect_os)
 
-	# 使用 curl 安装 speedtest-cli
-	if ! command -v speedtest-cli &> /dev/null
-	then
-		curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
-	fi
+    # 检查 speedtest 是否已安装
+    if command -v speedtest &> /dev/null; then
+        echo "speedtest 已安装，正在执行 speedtest..."
+        echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+        speedtest
+        exit 0
+    else
+        echo "speedtest 未安装，正在安装..."
+    fi
 
-	# 检查 speedtest 是否已安装
-	if ! command -v speedtest &> /dev/null; then
-		clear
-		echo "speedtest 未安装，开始安装..."
-		# 安装 speedtest
-		install speedtest
-		echo ""
-		clear
-		echo "------------------------"
-		echo "安装已完成"
-		echo "正在运行 Speedtest"
-		speedtest
-	else
-		# 如果已安装，直接运行 speedtest
-		clear
-		echo ""
-		echo "------------------------"
-		echo "正在运行 Speedtest"
-		speedtest
-	fi
+    case "$OS" in
+		ubuntu|debian)
+			# 调用安装函数安装 curl
+			install curl
+
+			# 安装 speedtest
+			echo "正在安装 speedtest..."
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "1. 安装 speed-cli"
+			curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "2. 安装 Speedtest"
+			install speedtest
+			;;
+
+		fedora|centos|rhel)
+			# 调用安装函数安装 curl
+			install curl
+
+			# 安装 speedtest
+			echo "正在安装 speedtest..."
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "1. 安装 speed-cli"
+			curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.rpm.sh | sudo bash
+			echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+			echo "2. 安装 Speedtest"
+			install speedtest
+			;;
+
+		*)
+			echo "不支持的操作系统: $OS"
+			exit 1
+			;;
+	esac
+
+    # 安装完成后执行 speedtest
+    clear
+    echo "安装完成，正在执行 speedtest..."
+    echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+    speedtest
+
+    break_end
 }
 
 # 函数: 函数用于检查命令是否已安装，未安装的进行安装
@@ -1825,8 +1821,6 @@ read_input() {
 install_seedbox_default() {
 	bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
 }
-
-
 
 # 函数: 定义自定义安装的函数
 install_seedbox_custom() {
@@ -2291,17 +2285,9 @@ while true; do
 					# btop 现代化监控工具
 					11)
 						clear
-						install btop
-						clear
-						# 检查 btop 是否安装成功
-                        if command -v btop &>/dev/null; then
-                            clear
-                            btop
-                        else
-                            echo "btop: command not found" | tee -a install.log
-                            exit 1
-                        fi
-#						btop
+                        install_btop "btop"
+					  	clear
+					  	btop
 						;;
 
 					# ranger 文件管理工具
@@ -5272,7 +5258,8 @@ while true; do
 				echo "21. 本机 host 解析                     22. fail2banSSH 防御程序"
 				echo "23. 限流自动关机                       24. ROOT 私钥登录模式"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "31. 留言板                             66. 一条龙系统调优"
+#				echo "31. 留言板                             66. 一条龙系统调优"
+				echo "66. 一条龙系统调优"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "99. 重启服务器"
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
@@ -6866,43 +6853,42 @@ EOF
 						;;
 
 					# 留言板
-					31)
-						clear
-						install sshpass
-
-						remote_ip="66.42.61.110"
-						remote_user="liaotian123"
-						remote_file="/home/liaotian123/liaotian.txt"
-						password="leonYYDS"  # 替换为您的密码
-
-						clear
-						echo "leon 留言板"
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-						# 显示已有的留言内容
-						sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "cat '${remote_file}'"
-						echo ""
-						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-
-						# 判断是否要留言
-						read -p "是否要留言？(y/n): " leave_message
-
-						if [ "$leave_message" == "y" ] || [ "$leave_message" == "Y" ]; then
-							# 输入新的留言内容
-							read -p "输入你的昵称: " nicheng
-							read -p "输入你的聊天内容: " neirong
-
-							# 添加新留言到远程文件
-							sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "echo -e '${nicheng}: ${neirong}' >> '${remote_file}'"
-							echo "已添加留言: "
-							echo "${nicheng}: ${neirong}"
-							echo ""
-						else
-							echo "您选择了不留言。"
-						fi
-
-						echo "留言板操作完成。"
-
-						;;
+#					31)
+#						clear
+#						install sshpass
+#
+#						remote_ip="66.42.61.110"
+#						remote_user="liaotian123"
+#						remote_file="/home/liaotian123/liaotian.txt"
+#						password="leonYYDS"  # 替换为您的密码
+#
+#						clear
+#						echo "leon 留言板"
+#						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#						# 显示已有的留言内容
+#						sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "cat '${remote_file}'"
+#						echo ""
+#						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#
+#						# 判断是否要留言
+#						read -p "是否要留言？(y/n): " leave_message
+#
+#						if [ "$leave_message" == "y" ] || [ "$leave_message" == "Y" ]; then
+#							# 输入新的留言内容
+#							read -p "输入你的昵称: " nicheng
+#							read -p "输入你的聊天内容: " neirong
+#
+#							# 添加新留言到远程文件
+#							sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "echo -e '${nicheng}: ${neirong}' >> '${remote_file}'"
+#							echo "已添加留言: "
+#							echo "${nicheng}: ${neirong}"
+#							echo ""
+#						else
+#							echo "您选择了不留言。"
+#						fi
+#
+#						echo "留言板操作完成。"
+#						;;
 
 					# 一条龙系统调优
 					66)
@@ -6913,11 +6899,11 @@ EOF
 						echo "1. 更新系统到最新"
 						echo "2. 清理系统垃圾文件"
 						echo -e "3. 设置虚拟内存${yellow}1G${normal}"
-						echo -e "4. 设置SSH端口号为${yellow}5522${normal}"
+						echo -e "4. 设置 SSH 端口号为${yellow}5522${normal}"
 						echo -e "5. 开放所有端口"
 						echo -e "6. 开启${yellow}BBR${normal}加速"
 						echo -e "7. 设置时区到${yellow}上海${normal}"
-						echo -e "8. 优化DNS地址到${yellow}1111 8888${normal}"
+						echo -e "8. 优化 DNS 地址到${yellow}1111 8888${normal}"
 						echo -e "9. 安装常用工具${yellow}docker wget sudo tar unzip socat btop${normal}"
 						echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 						read -p "确定一键保养吗？(Y/N): " choice
