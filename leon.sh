@@ -390,11 +390,14 @@ install_ldnmp() {
 		"docker exec nginx chmod -R 777 /var/www/html"
 		"docker restart nginx > /dev/null 2>&1"
 
+		"docker exec php sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+		"docker exec php74 sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+
 		"docker exec php apk update > /dev/null 2>&1"
 		"docker exec php74 apk update > /dev/null 2>&1"
 
 		# php 安装包管理
-		"curl -sL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
+		"curl -sL https://hub.gitmirror.com/https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions > /dev/null 2>&1"
 		"docker exec php mkdir -p /usr/local/bin/ > /dev/null 2>&1"
 		"docker exec php74 mkdir -p /usr/local/bin/ > /dev/null 2>&1"
 		"docker cp /usr/local/bin/install-php-extensions php:/usr/local/bin/ > /dev/null 2>&1"
@@ -480,15 +483,16 @@ install_ldnmp() {
 	  	ldnmp_v
 }
 
-# 函数: 安装 certbot 工具
+# 函数: 安装 certbot、epel-release 工具
 install_certbot() {
-    install certbot
+    install certbot epel-release
 
     # 切换到一个一致的目录（例如，家目录）
     cd ~ || exit
 
     # 下载并使脚本可执行
-    curl -O https://raw.githubusercontent.com/oliver556/sh/main/auto_cert_renewal.sh
+#    curl -O https://raw.gitmirror.com/oliver556/sh/main/auto_cert_renewal.sh
+    curl -O https://raw.gitmirror.com/oliver556/sh/main/auto_cert_renewal.sh
     chmod +x auto_cert_renewal.sh
 
     # 设置定时任务字符串
@@ -511,7 +515,8 @@ install_ssltls() {
 	docker stop nginx > /dev/null 2>&1
 	iptables_open
 	cd ~
-	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+#	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+	certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal --key-type ecdsa
 	cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/web/certs/${yuming}_cert.pem
 	cp /etc/letsencrypt/live/$yuming/privkey.pem /home/web/certs/${yuming}_key.pem
 	docker start nginx > /dev/null 2>&1
@@ -520,7 +525,13 @@ install_ssltls() {
 # 函数: 创建自签名的 SSL 证书并将其存储在指定的目录中
 default_server_ssl() {
 	install openssl
-	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+#	openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+	if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+        openssl req -x509 -nodes -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+    else
+        openssl genpkey -algorithm Ed25519 -out /home/web/certs/default_server.key
+        openssl req -x509 -key /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+    fi
 }
 
 # 函数: 检查 docker、证书申请 状态
@@ -589,7 +600,7 @@ reverse_proxy() {
 	# 获取服务器 IPV4、IPV6 公网地址
 	ip_address
 
-	wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
+	wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/reverse-proxy.conf
 	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
 	sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
@@ -1246,7 +1257,7 @@ install_specific_app() {
 cluster_python3() {
 	cd ~/cluster/
 	# To大Do
-	curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
+	curl -sS -O https://raw.gitmirror.com/kejilion/python-for-vps/main/cluster/$py_task
 	python3 ~/cluster/$py_task
 }
 
@@ -1296,23 +1307,23 @@ f2b_install_sshd() {
 	sleep 3
 	if grep -q 'Alpine' /etc/issue; then
 		cd /path/to/fail2ban/config/fail2ban/filter.d
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
+		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-sshd.conf
+		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-sshd-ddos.conf
 
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
 
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
+		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/alpine-ssh.conf
 
 	elif grep -qi 'CentOS' /etc/redhat-release; then
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
+		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/centos-ssh.conf
 
 	else
 		install rsyslog
 		systemctl start rsyslog
 		systemctl enable rsyslog
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
+		curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/linux-ssh.conf
 	fi
 }
 
@@ -1667,7 +1678,8 @@ restart_ssh() {
 # 函数: 添加密钥
 add_sshkey() {
 
-	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
+#	ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
+	ssh-keygen -t ed25519 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
 
 	cat ~/.ssh/sshkey.pub >> ~/.ssh/authorized_keys
 	chmod 600 ~/.ssh/authorized_keys
@@ -1819,7 +1831,7 @@ read_input() {
 
 # 函数: 定义默认安装的函数
 install_seedbox_default() {
-	bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
+	bash <(wget -qO- https://raw.gitmirror.com/jerry048/Dedicated-Seedbox/main/Install.sh) -u admin -p adminadmin -c 3072 -q 4.3.9 -l v1.2.19 -v -x
 }
 
 # 函数: 定义自定义安装的函数
@@ -1910,7 +1922,7 @@ install_seedbox_custom() {
 	fi
 
     # 调用安装脚本并传递参数
-    bash <(wget -qO- https://raw.githubusercontent.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
+    bash <(wget -qO- https://raw.gitmirror.com/jerry048/Dedicated-Seedbox/main/Install.sh) $params
 }
 
 # 解析 docker ps -a 输出
@@ -2497,7 +2509,7 @@ while true; do
 				done
 			else
 				install wget
-				wget --no-check-certificate -O tcpx.sh https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
+				wget --no-check-certificate -O tcpx.sh https://raw.gitmirror.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
 				chmod +x tcpx.sh
 				./tcpx.sh
 			fi
@@ -2998,7 +3010,7 @@ while true; do
 						clear
 						bash <(curl -Ls https://cdn.jsdelivr.net/gh/missuo/OpenAI-Checker/openai.sh)
 #						留存删库备用
-#						bash <(curl -Ls https://raw.githubusercontent.com/oliver556/sh/main/third_party/openai.sh)
+#						bash <(curl -Ls https://raw.gitmirror.com/oliver556/sh/main/third_party/openai.sh)
 						;;
 
 					# Region 流媒体解锁测试
@@ -3036,9 +3048,9 @@ while true; do
 					# mtr_trace 三网回程线路测试
 					12)
 						clear
-						curl https://raw.githubusercontent.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
+						curl https://raw.gitmirror.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
 #						留存删库备用
-#						curl https://raw.githubusercontent.com/oliver556/sh/main/third_party/mtr_trace.sh | bash
+#						curl https://raw.gitmirror.com/oliver556/sh/main/third_party/mtr_trace.sh | bash
 						;;
 
 					# Superspeed 三网测速
@@ -3046,7 +3058,7 @@ while true; do
 						clear
 						bash <(curl -Lso- https://git.io/superspeed_uxh)
 #						留存删库备用
-#						bash <(curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/superspeed_uxh)
+#						bash <(curl -Lso- https://raw.gitmirror.com/oliver556/sh/main/third_party/superspeed_uxh)
 						;;
 
 					# nxtrace 快速回程测试脚本
@@ -3087,7 +3099,7 @@ while true; do
 					# ludashi2020 三网线路测试
 #          			16)
 #              			clear
-#              			curl https://raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh
+#              			curl https://raw.gitmirror.com/ludashi2020/backtrace/main/install.sh -sSf | sh
 #              			;;
 
 					# yabs 性能测试
@@ -3111,7 +3123,7 @@ while true; do
 						clear
 						curl -Lso- bench.sh | bash
 #					  	留存删库备用
-#					  	curl -Lso- https://raw.githubusercontent.com/oliver556/sh/main/third_party/bench.sh | bash;
+#					  	curl -Lso- https://raw.gitmirror.com/oliver556/sh/main/third_party/bench.sh | bash;
 						;;
 
 					# spiritysdx 融合怪测评
@@ -3123,7 +3135,7 @@ while true; do
 					# Disk Test 硬盘&系统综合测试（杜甫测试）
 					41)
 						clear
-						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
+						curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/third_party/A.sh && chmod +x A.sh && ./A.sh
 						;;
 
 					0)
@@ -3223,7 +3235,7 @@ while true; do
 
 								read -p "请输入你重装后的密码: " vpspasswd
 								install wget
-								bash <(wget --no-check-certificate -qO- 'https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh') $xitong -v 64 -p $vpspasswd -port 22
+								bash <(wget --no-check-certificate -qO- 'https://raw.gitmirror.com/MoeClub/Note/master/InstallNET.sh') $xitong -v 64 -p $vpspasswd -port 22
 								;;
 
 							[Nn])
@@ -3318,16 +3330,16 @@ while true; do
 						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
 
 #						ToDo
-#						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
-#						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+#						wget -O /home/web/nginx.conf https://raw.gitmirror.com/kejilion/nginx/main/nginx10.conf
+#						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/kejilion/nginx/main/default10.conf
+						wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
 						# 创建自签名的 SSL 证书并将其存储在指定的目录中
 						default_server_ssl
 
 						# 下载 docker-compose.yml 文件并进行替换
-#						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
-						wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
+#						wget -O /home/web/docker-compose.yml https://raw.gitmirror.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+						wget -O /home/web/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/LNMP-docker-compose-10.yml
 
 						dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
 
@@ -3355,7 +3367,7 @@ while true; do
 						#
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/wordpress.com.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/wordpress.com.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -3393,7 +3405,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/discuz.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/discuz.com.conf
 #
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
@@ -3429,7 +3441,7 @@ while true; do
 #						#
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/kdy.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/kdy.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
@@ -3464,7 +3476,7 @@ while true; do
 #						#
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/maccms.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/maccms.com.conf
 #
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
@@ -3476,7 +3488,7 @@ while true; do
 #						cd /home/web/html/$yuming/template/ && wget https://github.com/kejilion/Website_source_code/raw/main/DYXS2.zip && unzip DYXS2.zip && rm /home/web/html/$yuming/template/DYXS2.zip
 #						cp /home/web/html/$yuming/template/DYXS2/asset/admin/Dyxs2.php /home/web/html/$yuming/application/admin/controller
 #						cp /home/web/html/$yuming/template/DYXS2/asset/admin/dycms.html /home/web/html/$yuming/application/admin/view/system
-#						mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php https://raw.githubusercontent.com/kejilion/Website_source_code/main/maccms.php
+#						mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php https://raw.gitmirror.com/kejilion/Website_source_code/main/maccms.php
 #
 #						restart_ldnmp
 #
@@ -3503,7 +3515,7 @@ while true; do
 						install_ssltls
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/dujiaoka.com.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/dujiaoka.com.conf
 
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
@@ -3548,7 +3560,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/flarum.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/flarum.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
@@ -3587,7 +3599,7 @@ while true; do
 #						install_ssltls
 #						add_db
 #
-#						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/typecho.com.conf
+#						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/kejilion/nginx/main/typecho.com.conf
 #						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 #
 #						cd /home/web/html
@@ -3619,7 +3631,7 @@ while true; do
 						install_ssltls
 						add_db
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/php/index_php.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/php/index_php.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -3716,8 +3728,8 @@ while true; do
 
 						cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx
 
-						wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
-						wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+						wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
+						wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
 
 						default_server_ssl
 
@@ -3745,7 +3757,7 @@ while true; do
 
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/rewrite.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/rewrite.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/baidu.com/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 
@@ -3769,7 +3781,7 @@ while true; do
 
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/reverse-proxy.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/reverse-proxy.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 						sed -i "s/0000/$port/g" /home/web/conf.d/$yuming.conf
@@ -3790,7 +3802,7 @@ while true; do
 						add_yuming
 						install_ssltls
 
-						wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/html.conf
+						wget -O /home/web/conf.d/$yuming.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/html.conf
 						sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 
 						cd /home/web/html
@@ -4057,7 +4069,7 @@ while true; do
 						read -p "输入远程服务器密码: " usepasswd
 
 						cd ~
-						wget -O ${useip}_beifen.sh https://raw.githubusercontent.com/oliver556/sh/main/beifen.sh > /dev/null 2>&1
+						wget -O ${useip}_beifen.sh https://raw.gitmirror.com/oliver556/sh/main/beifen.sh > /dev/null 2>&1
 						chmod +x ${useip}_beifen.sh
 
 						sed -i "s/0.0.0.0/$useip/g" ${useip}_beifen.sh
@@ -4215,14 +4227,14 @@ while true; do
 										read -p "输入 CF 的账号: " cfuser
 										read -p "输入 CF 的 Global API Key: " cftoken
 
-										wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default11.conf
+										wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/kejilion/nginx/main/default11.conf
 										docker restart nginx
 
 										cd /path/to/fail2ban/config/fail2ban/jail.d/
-										curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
+										curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
 
 										cd /path/to/fail2ban/config/fail2ban/action.d
-										curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/cloudflare-docker.conf
+										curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/cloudflare-docker.conf
 
 										# ToDo
 										sed -i "s/kejilion@outlook.com/$cfuser/g" /path/to/fail2ban/config/fail2ban/action.d/cloudflare-docker.conf
@@ -4268,8 +4280,8 @@ while true; do
 							install_docker
 
 							docker rm -f nginx
-							wget -O /home/web/nginx.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/nginx10.conf
-							wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/default10.conf
+							wget -O /home/web/nginx.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/nginx10.conf
+							wget -O /home/web/conf.d/default.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/default10.conf
 							default_server_ssl
 							docker run -d --name nginx --restart always --network web_default -p 80:80 -p 443:443 -p 443:443/udp -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx:alpine
 							docker exec -it nginx chmod -R 777 /var/www/html
@@ -4277,9 +4289,9 @@ while true; do
 							f2b_install_sshd
 
 							cd /path/to/fail2ban/config/fail2ban/filter.d
-							curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/fail2ban-nginx-cc.conf
+							curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/fail2ban-nginx-cc.conf
 							cd /path/to/fail2ban/config/fail2ban/jail.d/
-							curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
+							curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/config/fail2ban/nginx-docker-cc.conf
 							sed -i "/cloudflare/d" /path/to/fail2ban/config/fail2ban/jail.d/nginx-docker-cc.conf
 
 							cd ~
@@ -4309,20 +4321,20 @@ while true; do
 
 									# php 调优
 									# ToDo optimized_php.ini 该脚本为空
-									wget -O /home/optimized_php.ini https://raw.githubusercontent.com/oliver556/sh/main/php/optimized_php.ini
+									wget -O /home/optimized_php.ini https://raw.gitmirror.com/oliver556/sh/main/php/optimized_php.ini
 									docker cp /home/optimized_php.ini php:/usr/local/etc/php/conf.d/optimized_php.ini
 									docker cp /home/optimized_php.ini php74:/usr/local/etc/php/conf.d/optimized_php.ini
 									rm -rf /home/optimized_php.ini
 
 									# php 调优
-									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www-1.conf
+									wget -O /home/www.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/www-1.conf
 									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 									rm -rf /home/www.conf
 
 									# mysql 调优
 									# ToDo custom_mysql_config-1.cnf 该脚本为空
-									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config-1.cnf
+									wget -O /home/custom_mysql_config.cnf https://raw.gitmirror.com/oliver556/sh/main/mysql/custom_mysql_config-1.cnf
 									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 									rm -rf /home/custom_mysql_config.cnf
 
@@ -4342,13 +4354,13 @@ while true; do
 									sed -i 's/worker_connections.*/worker_connections 10240;/' /home/web/nginx.conf
 
 									# php 调优
-									wget -O /home/www.conf https://raw.githubusercontent.com/oliver556/sh/main/nginx/www.conf
+									wget -O /home/www.conf https://raw.gitmirror.com/oliver556/sh/main/nginx/www.conf
 									docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 									docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 									rm -rf /home/www.conf
 
 									# mysql 调优
-									wget -O /home/custom_mysql_config.cnf https://raw.githubusercontent.com/oliver556/sh/main/mysql/custom_mysql_config.cnf
+									wget -O /home/custom_mysql_config.cnf https://raw.gitmirror.com/oliver556/sh/main/mysql/custom_mysql_config.cnf
 									docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 									rm -rf /home/custom_mysql_config.cnf
 
@@ -4540,7 +4552,7 @@ while true; do
 					# 哪吒探针 VPS 监控面板
 					7)
 						clear
-						curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
+						curl -L https://raw.gitmirror.com/naiba/nezha/master/script/install.sh  -o nezha.sh && chmod +x nezha.sh
 						./nezha.sh
 						;;
 
@@ -4824,7 +4836,7 @@ while true; do
 								docker rmi -f p3terx/aria2-pro
 
 								cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-								curl -o /home/docker/cloud/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
+								curl -o /home/docker/cloud/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
 								cd /home/docker/cloud/ && docker compose up -d
 
 								clear
@@ -4875,7 +4887,7 @@ while true; do
 							clear
 							install_docker
 							cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-							curl -o /home/docker/cloud/docker-compose.yml https://raw.githubusercontent.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
+							curl -o /home/docker/cloud/docker-compose.yml https://raw.gitmirror.com/oliver556/sh/main/docker/cloudreve-docker-compose.yml
 							cd /home/docker/cloud/ && docker compose up -d
 
 							clear
@@ -5099,7 +5111,7 @@ while true; do
 					# 51. PVE 开小鸡面板
 					51)
 						clear
-						curl -L https://raw.githubusercontent.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
+						curl -L https://raw.gitmirror.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
 						;;
 
 					0)
@@ -5459,21 +5471,21 @@ while true; do
 							echo -e "任意键继续，重装后初始用户名: ${yellow}root${normal}  初始密码: ${yellow}LeitboGi0ro${normal}  初始端口: ${yellow}22${normal}"
 							read -n 1 -s -r -p ""
 							install wget
-							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+							wget --no-check-certificate -qO InstallNET.sh 'https://raw.gitmirror.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
 						}
 
 						dd_xitong_3() {
 							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}Teddysun.com${normal}  初始端口: ${yellow}3389${normal}"
 							read -n 1 -s -r -p ""
 							install wget
-							wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+							wget --no-check-certificate -qO InstallNET.sh 'https://raw.gitmirror.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
 						}
 
 						dd_xitong_4() {
 							echo -e "任意键继续，重装后初始用户名: ${yellow}Administrator${normal}  初始密码: ${yellow}123@@@${normal}  初始端口: ${yellow}3389${normal}"
 							read -n 1 -s -r -p ""
 							install wget
-							curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
+							curl -O https://raw.gitmirror.com/bin456789/reinstall/main/reinstall.sh
 						}
 
 
@@ -6007,12 +6019,12 @@ while true; do
 										apt purge -y 'linux-*xanmod1*'
 										update-grub
 
-										wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+										wget -qO - https://raw.gitmirror.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 										# 步骤3：添加存储库
 										echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-										version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+										version=$(wget -q https://raw.gitmirror.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 										apt update -y
 										apt install -y linux-xanmod-x64v$version
@@ -6077,12 +6089,12 @@ while true; do
 									add_swap
 									install wget gnupg
 
-									wget -qO - https://raw.githubusercontent.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+									wget -qO - https://raw.gitmirror.com/oliver556/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 									# 步骤3：添加存储库
 									echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
-									version=$(wget -q https://raw.githubusercontent.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+									version=$(wget -q https://raw.gitmirror.com/oliver556/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 									apt update -y
 									apt install -y linux-xanmod-x64v$version
@@ -6799,7 +6811,7 @@ EOF
 								echo "如果实际服务器就100G流量，可设置阈值为95G，提前关机，以免出现流量误差或溢出."
 								read -p "请输入流量阈值（单位为GB）: " threshold_gb
 								cd ~
-								curl -Ss -O https://raw.githubusercontent.com/oliver556/sh/main/Limiting_Shut_down.sh
+								curl -Ss -O https://raw.gitmirror.com/oliver556/sh/main/Limiting_Shut_down.sh
 								chmod +x ~/Limiting_Shut_down.sh
 								sed -i "s/110/$threshold_gb/g" ~/Limiting_Shut_down.sh
 								crontab -l | grep -v '~/Limiting_Shut_down.sh' | crontab -
@@ -7123,7 +7135,7 @@ EOF
 #                          		py_task=custom_tasks.py
 #                          		cd ~/cluster/
 ##                          		ToDo 需要新增脚本
-#                          		curl -sS -O https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
+#                          		curl -sS -O https://raw.gitmirror.com/kejilion/python-for-vps/main/cluster/$py_task
 #							  	sed -i "s#Customtasks#$mingling#g" ~/cluster/$py_task
 #							  	python3 ~/cluster/$py_task
 #							  	;;
@@ -7193,7 +7205,7 @@ EOF
 #		# 幻兽帕鲁开服脚本
 #		p)
 #			cd ~
-#			curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
+#			curl -sS -O https://raw.gitmirror.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh && ./palworld.sh
 #			exit
 #			;;
 
@@ -7203,12 +7215,12 @@ EOF
 			clear
 			echo -e "${cyan}更新日志${normal}"
 			echo "------------------------"
-			echo "全部日志: https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt"
+			echo "全部日志: https://raw.gitmirror.com/oliver556/sh/main/leon_sh_log.txt"
 			echo "------------------------"
-			curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon_sh_log.txt | tail -n 35
+			curl -s https://raw.gitmirror.com/oliver556/sh/main/leon_sh_log.txt | tail -n 35
 			echo ""
 			echo ""
-			sh_v_new=$(curl -s https://raw.githubusercontent.com/oliver556/sh/main/leon.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
+			sh_v_new=$(curl -s https://raw.gitmirror.com/oliver556/sh/main/leon.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
 			if [ "$sh_v" = "$sh_v_new" ]; then
 				echo -e "${green}你已经是最新版本！${yellow}v$sh_v${normal}"
@@ -7220,7 +7232,8 @@ EOF
 				case "$choice" in
 					[Yy])
 						clear
-						curl -sS -O https://raw.githubusercontent.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
+						curl -sS -O https://raw.gitmirror.com/oliver556/sh/main/leon.sh && chmod +x leon.sh
+						cp ./leon.sh /usr/local/bin/n > /dev/null 2>&1
 						echo -e "${green}脚本已更新到最新版本！${yellow}v$sh_v_new${normal}"
 						break_end
 						leon
