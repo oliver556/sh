@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 脚本版本
-sh_v="1.1.0"
+sh_v="1.1.1"
 
 # 颜色 --------------------------------------------------------------------------------------------------------
 # 文本颜色 -----------------------------------------------------------------------------------------------------
@@ -167,9 +167,10 @@ remove() {
 
 	for package in "$@"; do
 #		snap 卸载
-		if command -v snap &>/dev/null && snap list | grep -q "$package"; then
-			sudo snap remove "$package"
-		elif command -v dnf &>/dev/null; then
+#		if command -v snap &>/dev/null && snap list | grep -q "$package"; then
+#			sudo snap remove "$package"
+#		el
+		if command -v dnf &>/dev/null; then
 			dnf remove -y "${package}*"
 		elif command -v yum &>/dev/null; then
 			yum remove -y "${package}*"
@@ -816,9 +817,9 @@ docker_parameter() {
 			docker_img="linuxserver/emby:latest"
 			docker_port=8096
 			docker_rum="docker run -d --name=emby --restart=always \
-						-v /homeo/docker/emby/config:/config \
-						-v /homeo/docker/emby/share1:/mnt/share1 \
-						-v /homeo/docker/emby/share2:/mnt/share2 \
+						-v /home/docker/emby/config:/config \
+						-v /home/docker/emby/share1:/mnt/share1 \
+						-v /home/docker/emby/share2:/mnt/share2 \
 						-v /mnt/notify:/mnt/notify \
 						-p 8096:8096 -p 8920:8920 \
 						-e UID=1000 -e GID=100 -e GIDLIST=100 \
@@ -1222,11 +1223,11 @@ docker_app() {
 		echo -e "${green}$docker_name 已安装，访问地址: ${normal}"
 
 		if $has_ipv4; then
-			echo "http:$ipv4_address:$docker_port"
+			echo "http://$ipv4_address:$docker_port"
 		fi
 
 		if $has_ipv6; then
-			echo "http:[$ipv6_address]:$docker_port"
+			echo "http://[$ipv6_address]:$docker_port"
 		fi
 
 		echo ""
@@ -1250,11 +1251,11 @@ docker_app() {
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "您可以使用以下地址访问:"
 				if $has_ipv4; then
-					echo "http:$ipv4_address:$docker_port"
+					echo "http://$ipv4_address:$docker_port"
 				fi
 
 				if $has_ipv6; then
-					echo "http:[$ipv6_address]:$docker_port"
+					echo "http://[$ipv6_address]:$docker_port"
 				fi
 				echo ""
 				$docker_use
@@ -1299,10 +1300,10 @@ docker_app() {
 				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 				echo "您可以使用以下地址访问:"
 				if $has_ipv4; then
-					echo "http:$ipv4_address:$docker_port"
+					echo "http://$ipv4_address:$docker_port"
 				fi
 				if $has_ipv6; then
-					echo "http:[$ipv6_address]:$docker_port"
+					echo "http://[$ipv6_address]:$docker_port"
 				fi
 				echo ""
 				$docker_use
@@ -1346,7 +1347,7 @@ tmux_run() {
 		# 会话不存在，创建一个新的会话
 		tmux new -s $SESSION_NAME
 	else
-		# 会话存在，附加
+		# 会话存在，附加(进入会话)
 		tmux attach-session -t $SESSION_NAME
 	fi
 }
@@ -2052,6 +2053,349 @@ get_docker_ip() {
     parse_docker_ps "$docker_ps_output"
 }
 
+tmux_check() {
+	# 函数: 检查会话是否存在
+    check_sessions() {
+        if tmux list-sessions &>/dev/null; then
+            return 0
+        else
+            echo "暂无会话"
+            return 1
+        fi
+    }
+
+    # 函数: 检查窗口是否存在
+    check_windows() {
+        if tmux list-windows &>/dev/null; then
+            return 0
+        else
+            echo "暂无窗口"
+            return 1
+        fi
+    }
+
+    # 函数: 显示所有会话
+    display_all_sessions() {
+        if ! check_sessions; then
+            return
+        fi
+        echo "所有会话列表:"
+        tmux list-sessions
+    }
+
+    # 函数: 显示所有窗口
+    display_all_windows() {
+        if ! check_windows; then
+            return
+        fi
+        echo "当前会话的所有窗口列表:"
+        tmux list-windows
+    }
+
+    # 函数: 显示当前会话
+    display_current_session() {
+        if ! check_sessions; then
+            return
+        fi
+        echo "当前会话: $(tmux display-message -p "#S")"
+    }
+
+    # 函数: 显示当前窗口
+    display_current_window() {
+        if ! check_windows; then
+            return
+        fi
+        echo "当前窗口: $(tmux display-message -p "#W")"
+    }
+
+    # 函数: 显示当前会话分配的窗口索引
+    display_current_session_window() {
+        if ! check_sessions; then
+            return
+        fi
+        local session_name=$(tmux display-message -p "#S")
+        local window_index=$(tmux display-message -p "#I")
+        echo "当前会话 '$session_name' 分配的窗口索引: $window_index"
+    }
+
+
+	echo "所有会话"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#	tmux list-sessions
+	display_all_sessions
+	echo ""
+	echo "所有窗口"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#	tmux list-windows
+	display_all_windows
+	echo""
+	echo "当前会话"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#	tmux display-message -p "#S"
+	display_current_session
+ 	echo""
+	echo "当前窗口"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#	tmux display-message -p "#W"
+	display_current_window
+	echo ""
+	echo "当前会话分配的窗口索引"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#	tmux display-message -p "#I"
+	display_current_session_window
+	echo ""
+}
+
+# 函数: 安装 tmux
+install_tmux() {
+	if command -V tmux &>/dev/null; then
+		echo "tmux 已安装"
+		break_end
+		leon
+	else
+		echo "tmux 未安装，正在安装..."
+	fi
+
+    local os=$(detect_os)
+
+    case "$os" in
+        ubuntu|debian)
+            sudo apt-get install -y tmux
+            ;;
+        centos|fedora)
+            sudo yum install -y tmux
+            ;;
+        macos)
+            brew install tmux
+            ;;
+        *)
+            echo "不支持的操作系统: $os"
+            exit 1
+            ;;
+    esac
+}
+
+
+# 函数: 新增窗口
+add_window() {
+	tmux_check
+    read -p "输入已有会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在，请先创建会话。"
+        return
+    fi
+    read -p "输入新窗口名称: " window_name
+    tmux new-window -t "$session_name" -n "$window_name"
+    echo "在会话 '$session_name' 中创建新窗口 '$window_name'。"
+}
+
+# 函数: 新增会话
+add_session() {
+	clear
+	tmux_check
+    read -p "输入新会话名称: " session_name
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话名称 '$session_name' 已存在，请选择其他名称。"
+        return
+    fi
+    tmux new-session -d -s "$session_name"
+    echo "新会话 '$session_name' 已创建。"
+}
+
+# 函数: 删除窗口
+delete_window() {
+	tmux_check
+    read -p "输入已有会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在，请先创建会话。"
+        return
+    fi
+    tmux list-windows -t "$session_name"
+    read -p "输入要删除的窗口索引: " window_index
+    tmux kill-window -t "$session_name:$window_index"
+    echo "会话 '$session_name' 中的窗口索引 '$window_index' 已删除。"
+}
+
+# 函数: 删除会话
+delete_session() {
+	tmux_check
+    read -p "输入要删除的会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在。"
+        return
+    fi
+    tmux kill-session -t "$session_name"
+    echo "会话 '$session_name' 已删除。"
+}
+
+# 函数: 修改窗口
+modify_window() {
+	tmux_check
+    read -p "输入已有会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在，请先创建会话。"
+        return
+    fi
+    tmux list-windows -t "$session_name"
+    read -p "输入要修改的窗口索引: " window_index
+    read -p "输入新窗口名称: " new_window_name
+    tmux rename-window -t "$session_name:$window_index" "$new_window_name"
+    echo "会话 '$session_name' 中的窗口索引 '$window_index' 已修改为 '$new_window_name'。"
+}
+
+# 函数: 修改会话
+modify_session() {
+	tmux_check
+    read -p "输入已有会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在，请先创建会话。"
+        return
+    fi
+    read -p "输入新会话名称: " new_session_name
+    tmux rename-session -t "$session_name" "$new_session_name"
+    echo "会话 '$session_name' 已修改为 '$new_session_name'。"
+}
+
+# 函数: 查看窗口
+view_windows() {
+	tmux_check
+    read -p "输入已有会话名称: " session_name
+    if ! tmux has-session -t "$session_name" 2>/dev/null; then
+        echo "会话 '$session_name' 不存在，请先创建会话。"
+        return
+    fi
+    tmux list-windows -t "$session_name"
+}
+
+# 函数: 查看会话
+view_sessions() {
+    tmux list-sessions
+}
+
+# 函数: 卸载工作区
+uninstall_workspace() {
+    read -p "您确定要卸载 tmux 及其相关配置吗？(y/n): " confirm
+    if [[ $confirm == [Yy] ]]; then
+        echo "正在卸载 tmux..."
+        if command -V tmux &>/dev/null; then
+            if command -V apt-get &>/dev/null; then
+                sudo apt-get purge -y tmux
+            elif command -V yum &>/dev/null; then
+                sudo yum remove -y tmux
+            elif command -V brew &>/dev/null; then
+                brew uninstall tmux
+            else
+                echo "未知的包管理器，无法卸载 tmux。"
+                return
+            fi
+            echo "tmux 已成功卸载。"
+        else
+            echo "tmux 未安装，无需卸载。"
+        fi
+    else
+        echo "已取消卸载。"
+    fi
+}
+
+# 函数: 切换到指定会话和窗口
+switch_to_session_window() {
+	local session_name=$1
+	local window_name=${2:-1}  # 默认为第一个窗口（索引为1）
+	tmux attach-session -t "$session_name:$window_name"
+}
+
+
+# 主菜单
+tmux_menu() {
+	# https://www.matpool.com/supports/doc-tmux-matpool/
+	# https://www.ruanyifeng.com/blog/2019/10/tmux.html
+	# 在 tmux 中，会话 (session) 和窗口 (window) 有层次包含关系。具体来说：
+
+	# 会话 (Session)：
+	# 一个会话是 tmux 的最高层次单位，它代表一个独立的 tmux 实例，可以包含多个窗口。
+	# 每个会话有一个唯一的名称，用户可以创建、删除、附加到特定的会话。
+
+	# 窗口 (Window)：
+	# 一个窗口是会话中的一个子单元，相当于一个虚拟的终端窗口。
+	# 每个窗口可以包含多个窗格 (pane)，每个窗格又是一个独立的终端窗口。
+	# 窗口在会话中是有序排列的，并且有一个索引（从 0 开始）。
+
+	#	Session 1
+	#	├── Window 0
+	#	│   ├── Pane 0
+	#	│   └── Pane 1
+	#	├── Window 1
+	#	│   └── Pane 0
+	#	└── Window 2
+	#		├── Pane 0
+	#		└── Pane 1
+	#
+	# 在上面的关系图中：
+	# Session 1 包含了三个窗口 (Window 0、Window 1、Window 2)。
+	# Window 0 和 Window 2 中又分别包含了两个窗格。
+	# Session 2 只有一个窗口，并且这个窗口只有一个窗格。
+
+    echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo -e "${cyan}${bold}tmux 管理工具${normal}"
+    echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "1. 安装 tmux 环境"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "2. 查看所有窗口、会话"
+	echo "3. 新增会话"
+	echo "4. 新增窗口"
+	echo "5. 删除会话"
+	echo "6. 删除窗口"
+	echo "7. 修改会话"
+	echo "8. 修改窗口"
+#	echo "8. 查看会话"
+#	echo "9. 查看窗口"
+#	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "88. 关闭所有窗口、会话"
+	echo "99. 卸载 tmux 环境"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	echo "0. 返回主菜单"
+	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+	read -p "请输入您的选择: " choice
+
+	case $choice in
+		# 安装 tmux 环境
+		1) install_tmux ;;
+		# 查看所有窗口、会话
+		2)
+			clear
+			tmux_check
+			echo "进入会话"
+			read -p "请输入您要进入的会话名、窗口名: " session_name window_name
+			switch_to_session_window "$session_name" "$window_name"
+			;;
+		# 新增会话
+		3) add_session ;;
+		# 新增窗口
+		4) add_window ;;
+		# 删除会话
+		5) delete_session ;;
+		# 删除窗口
+		6) delete_window ;;
+		# 修改会话
+		7) modify_session ;;
+		# 修改窗口
+		8) modify_window ;;
+#		8) view_sessions ;;
+#		9) view_windows ;;
+		11)
+			tmux kill-server
+			;;
+		88) uninstall_workspace ;;
+		0)
+			leon
+			;;
+		*)
+			echo "无效的选择，请重新输入。"
+			;;
+	esac
+}
+
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
 # ToDo ====================================================================================================
@@ -2262,7 +2606,7 @@ while true; do
 				echo "8. tar GZ 压缩解压工具"
 				echo "9. tmux 多路后台运行工具"
 				echo "10. ffmpeg 视频编码直播推流工具"
-			  	echo "11. btop 现代化监控工具"
+#			  	echo "11. btop 现代化监控工具"
 	      		echo "12. ranger 文件管理工具"
 				echo "13. gdu 磁盘占用查看工具"
 				echo "14. fzf 全局搜索工具"
@@ -2383,12 +2727,12 @@ while true; do
 						;;
 
 					# btop 现代化监控工具
-					11)
-						clear
-                        install_btop "btop"
-					  	clear
-					  	btop
-						;;
+#					11)
+#						clear
+#                        install_btop "btop"
+#					  	clear
+#					  	btop
+#						;;
 
 					# ranger 文件管理工具
 					12)
@@ -4852,10 +5196,10 @@ while true; do
 							clear
 							echo -e "${green}rocket.chat 已安装，访问地址: ${normal}"
 							if $has_ipv4; then
-								echo "http:$ipv4_address:3897"
+								echo "http://$ipv4_address:3897"
 							fi
 							if $has_ipv6; then
-								echo "http:[$ipv6_address]:3897"
+								echo "http://[$ipv6_address]:3897"
 							fi
 							echo ""
 
@@ -4883,10 +5227,10 @@ while true; do
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "多等一会，您可以使用以下地址访问 rocket.chat:"
 									if $has_ipv4; then
-										echo "http:$ipv4_address:3897"
+										echo "http://$ipv4_address:3897"
 									fi
 									if $has_ipv6; then
-										echo "http:[$ipv6_address]:3897"
+										echo "http://[$ipv6_address]:3897"
 									fi
 									echo ""
 									;;
@@ -4941,10 +5285,10 @@ while true; do
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "多等一会，您可以使用以下地址访问 rocket.chat:"
 								if $has_ipv4; then
-									echo "http:$ipv4_address:3897"
+									echo "http://$ipv4_address:3897"
 								fi
 								if $has_ipv6; then
-									echo "http:[$ipv6_address]:3897"
+									echo "http://[$ipv6_address]:3897"
 								fi
 								echo ""
 								;;
@@ -4976,10 +5320,10 @@ while true; do
 							clear
 							echo -e "${green}cloudreve 已安装，访问地址: ${normal}"
 							if $has_ipv4; then
-								echo "http:$ipv4_address:5212"
+								echo "http://$ipv4_address:5212"
 							fi
 							if $has_ipv6; then
-								echo "http:[$ipv6_address]:5212"
+								echo "http://[$ipv6_address]:5212"
 							fi
 
 							echo ""
@@ -5011,10 +5355,10 @@ while true; do
 									echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 									echo "您可以使用以下地址访问 cloudreve:"
 									if $has_ipv4; then
-										echo "http:$ipv4_address:5212"
+										echo "http://$ipv4_address:5212"
 									fi
 									if $has_ipv6; then
-										echo "http:[$ipv6_address]:5212"
+										echo "http://[$ipv6_address]:5212"
 									fi
 									sleep 3
 									docker logs cloudreve
@@ -5065,10 +5409,10 @@ while true; do
 								echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
 								echo "您可以使用以下地址访问 cloudreve:"
 								if $has_ipv4; then
-									echo "http:$ipv4_address:5212"
+									echo "http://$ipv4_address:5212"
 								fi
 								if $has_ipv6; then
-									echo "http:[$ipv6_address]:5212"
+									echo "http://[$ipv6_address]:5212"
 								fi
 								sleep 3
 								docker logs cloudreve
@@ -5308,150 +5652,251 @@ while true; do
 				echo -e "${baizise}${bold}                  ▶ 我的工作区                  ${jiacu}"
 				echo "系统将为你提供可以后台运行的工作区，你可以用来执行长时间的任务"
 				echo "即使你断开 SSH，工作区中的任务也不会中断，后台常驻任务。"
-				echo -e "${yellow}注意: 进入工作区后使用 Ctrl + b 再单独按 d，退出工作区！normal{bai}"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "1. 1 号工作区"
-				echo "2. 2 号工作区"
-				echo "3. 3 号工作区"
-				echo "4. 4 号工作区"
-				echo "5. 5 号工作区"
-#				echo "6. 6 号工作区"
-#				echo "7. 7 号工作区"
-#				echo "8. 8 号工作区"
-#				echo "9. 9 号工作区"
-#				echo "10. 10 号工作区"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "11. 自定义工作区"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "99. 工作区状态管理"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "b. 卸载工作区"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				echo "0. 返回主菜单"
-				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-				read -p "请输入你的选择: " sub_choice
+				echo -e "工作区列表以 ${yellow}会话${normal} 为媒介"
+				echo -e "${yellow}注意: 进入工作区后使用 Ctrl + b 再单独按 d，退出工作区！${normal}"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "单窗口单会话: "
+#                echo "适用情况：适用于需要简单、独立、快速的临时工作，或者只需在一个会话中完成所有任务的情况。如果你的工作流程相对简单，只需要一个会话进行临时操作，那么单窗口单会话可能是最适合的。"
+#                echo ""
+#                echo "单窗口多会话: "
+#                echo "适用情况：适用于同时处理多个任务或项目的情况，但每个任务或项目之间并不需要频繁切换，或者需要长时间保持会话状态的情况。单窗口多会话允许你在同一个窗口中轻松切换不同的会话，从而更好地组织你的工作流程。"
+#                echo ""
+#                echo "多窗口单会话: "
+#                echo "适用情况: 适用于需要在不同的窗口中同时处理同一个任务或项目的情况，但并不需要同时处理多个不相关的任务。每个窗口可以代表任务的不同方面，比如不同的文件、不同的终端等。"
+#                echo ""
+#                echo "多窗口多会话: "
+#                echo "适用情况: 适用于需要同时处理多个不相关的任务或项目的情况，或者需要频繁在不同任务之间切换的情况。多窗口多会话允许你在不同的窗口中同时管理不同的会话，从而更灵活地组织你的工作流程。"
+                tmux_menu
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "1.  安装工作区环境"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "2.  新增窗口、会话"
+#				echo "3.  删除窗口、会话"
+#				echo "4.  修改窗口、会话"
+#				echo "5.  查看窗口、会话"
 
-				case $sub_choice in
-					b)
-						clear
-						remove tmux
-						;;
-					1)
-						clear
-						install tmux
-						SESSION_NAME="work1"
-						tmux_run
-						;;
+#				echo "2.  工作区列表"
+#				echo "3.  自定义名工作区"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "11. 自定义工作区"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "99. 工作区状态管理"
 
-					2)
-						clear
-						install tmux
-						SESSION_NAME="work2"
-						tmux_run
-						;;
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "99. 卸载工作区环境"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				echo "0. 返回主菜单"
+#				echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#				read -p "请输入你的选择: " sub_choice
 
-					3)
-						clear
-						install tmux
-						SESSION_NAME="work3"
-						tmux_run
-						;;
-
-					4)
-						clear
-						install tmux
-						SESSION_NAME="work4"
-						tmux_run
-						;;
-
-					5)
-						clear
-						install tmux
-						SESSION_NAME="work5"
-						tmux_run
-						;;
-
-#					6)
+#				case $sub_choice in
+#					b)
 #						clear
-#						install tmux
-#						SESSION_NAME="work6"
-#						tmux_run
+#						remove tmux
 #						;;
 #
-#					7)
+#					# 安装 tmux 环境
+#					1)
 #						clear
-#						install tmux
-#						SESSION_NAME="work7"
-#						tmux_run
+#						install_tmux
 #						;;
 #
-#					8)
+#					# 新增窗口、会话
+#					2)
 #						clear
-#						install tmux
-#						SESSION_NAME="work8"
-#						tmux_run
+#
+#						# 函数: 检查会话名称是否已存在
+#                        session_exists() {
+#                            tmux has-session -t "$1" 2>/dev/null
+#                        }
+#
+#                        # 函数: 检查窗口名称是否已存在
+#                        window_exists() {
+#                            tmux list-windows -t "$1" | grep -q "$2"
+#                        }
+#
+#
+#
+#                        # 函数: 创建新会话
+#                        create_session() {
+#                            read -p "输入新会话名称: " session_name
+#                            if session_exists "$session_name"; then
+#                                echo "会话名称 '$session_name' 已存在，请选择其他名称。"
+#                            else
+#                                tmux new-session -d -s "$session_name"
+#                                echo "新会话 '$session_name' 已创建。"
+#                                attach_to_window "$session_name"
+#                            fi
+#                        }
+#
+#                        # 函数: 创建新窗口
+#                        create_window() {
+#                            read -p "输入已有会话名称: " session_name
+#                            if ! session_exists "$session_name"; then
+#                                echo "会话 '$session_name' 不存在，请先创建会话。"
+#                            else
+#                                read -p "输入新窗口名称: " window_name
+#                                if window_exists "$session_name" "$window_name"; then
+#                                    echo "窗口名称 '$window_name' 已存在，请选择其他名称。"
+#                                else
+#                                    tmux new-window -t "$session_name" -n "$window_name"
+#                                    echo "在会话 '$session_name' 中创建新窗口 '$window_name'。"
+#                                fi
+#                            fi
+#                        }
+#
+#                        # 函数: 附加到窗口
+#                        attach_to_window() {
+#                        	tmux_check
+#                            echo ""
+#                            local session_name="$1"
+#                            echo "请选择要附加到的窗口:"
+#                            tmux list-windows -t "$session_name"
+#                            read -p "输入要附加到的窗口索引（默认附加到第一个窗口）: " window_index
+#                            window_index=${window_index:-0}
+#                            tmux select-window -t "$session_name:$window_index"
+#                            tmux attach-session -t "$session_name"
+#                        }
+#
+#						echo "请选择操作:"
+#						echo "1. 新增会话"
+#						echo "2. 新增窗口"
+#						read -p "输入你的选择: " choice
+#						case $choice in
+#							1) create_session ;;
+#							2) create_window ;;
+#							0) break ;;
+#							*) echo "无效的选择，请重新输入。" ;;
+#						esac
+#
 #						;;
 #
-#					9)
+#					# 删除窗口、会话
+#					3)
 #						clear
-#						install tmux
-#						SESSION_NAME="work9"
-#						tmux_run
+#
+#						# 删除指定会话
+#                        delete_session() {
+#                            echo "当前存在的会话列表:"
+#                            tmux list-sessions
+#                            echo ""
+#                            read -p "输入要删除的会话名称: " session_name
+#                            if session_exists "$session_name"; then
+#                                tmux kill-session -t "$session_name"
+#                                echo "会话 '$session_name' 已删除。"
+#                            else
+#                                echo "会话 '$session_name' 不存在。"
+#                            fi
+#                        }
+#
+#                        # 删除指定窗口
+#                        delete_window() {
+#                            echo "当前存在的会话列表:"
+#                            tmux list-sessions
+#                            echo ""
+#                            read -p "输入已有会话名称: " session_name
+#                            if ! session_exists "$session_name"; then
+#                                echo "会话 '$session_name' 不存在，请先创建会话。"
+#                            else
+#                                echo "当前会话 '$session_name' 中的窗口列表:"
+#                                tmux list-windows -t "$session_name"
+#                                echo ""
+#                                read -p "输入要删除的窗口索引: " window_index
+#                                if tmux list-windows -t "$session_name" | grep -q "^$window_index:"; then
+#                                    tmux kill-window -t "$session_name:$window_index"
+#                                    echo "会话 '$session_name' 中的窗口索引 '$window_index' 已删除。"
+#                                else
+#                                    echo "会话 '$session_name' 中的窗口索引 '$window_index' 不存在。"
+#                                fi
+#                            fi
+#                        }
+#
+#						echo "请选择操作:"
+#						echo "1. 删除指定会话"
+#						echo "2. 删除指定窗口"
+#						read -p "输入你的选择: " choice
+#						case $choice in
+#							1)
+#								clear
+#								delete_session
+#								;;
+#
+#							2)
+#								clear
+#								delete_window
+#								;;
+#
+#							0) break ;;
+#							*) echo "无效的选择，请重新输入。" ;;
+#						esac
 #						;;
 #
-#					10)
-#						clear
-#						install tmux
-#						SESSION_NAME="work10"
-#						tmux_run
+#					# 修改窗口、会话
+#					4)
+#
 #						;;
-					11)
-						clear
-					  	install tmux
-					  	clear
-					  	echo -e "${cyan}当前已存在的工作区列表${normal}"
-					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-					  	tmux list-sessions
-					  	echo ""
-					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-					  	read -p "请输入您自定义的工作区名称，如: 1001 leon001 work10）: " SESSION_NAME
-					  	tmux_run
-						;;
-
-					99)
-						while true; do
-							clear
-							echo -e "${cyan}当前已存在的工作区列表${normal}"
-							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							tmux list-sessions
-							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
-							read -p "1. 删除指定工作区    0. 退出: " gongzuoqu_del
-
-							case "$gongzuoqu_del" in
-								1)
-									read -p "请输入要删除的工作区名称: " gongzuoqu_name
-									tmux kill-window -t $gongzuoqu_name
-									;;
-
-								0)
-									break
-									;;
-
-								*)
-								  echo "无效的选择，请输入 Y 或 N。"
-								  ;;
-							  esac
-						done
-						;;
-
-					0)
-						leon
-						;;
-
-					*)
-						echo "无效的输入!"
-						;;
-				esac
+#
+#					# 查看窗口、会话
+#					5)
+#						clear
+#						tmux_check
+#						;;
+#
+#
+#
+#					11)
+#						clear
+#					  	install tmux
+#					  	clear
+#					  	echo -e "${cyan}当前已存在的工作区列表${normal}"
+#					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#					  	tmux list-sessions
+#					  	echo ""
+#					  	echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#					  	read -p "请输入您自定义的工作区名称，如: 1001 leon001 work10）: " SESSION_NAME
+#					  	tmux_run
+#						;;
+#
+#					99)
+#						while true; do
+#							clear
+#							echo -e "${cyan}当前已存在的工作区列表${normal}"
+#							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+##							tmux list-sessions
+#							tmux list-sessions -F "#S"
+#							echo -e "${cyan}${bold}------------------------------------------------${jiacu}"
+#							read -p "1. 删除指定工作区    2. 进入指定工作区    0. 退出: " gongzuoqu_del
+#
+#							case "$gongzuoqu_del" in
+#								1)
+#									read -p "请输入要删除的工作区名称: " gongzuoqu_name
+#									tmux kill-window -t $gongzuoqu_name
+#									;;
+#
+#								2)
+#									read -p "请输入要进入的会话名称: " session_name
+#									tmux attach-session -t $session_name
+#									;;
+#
+#								0)
+#									break
+#									;;
+#
+#								*)
+#								  echo "无效的选择，请输入 Y 或 N。"
+#								  ;;
+#							  esac
+#						done
+#						;;
+#
+#					0)
+#						leon
+#						;;
+#
+#					*)
+#						echo "无效的输入!"
+#						;;
+#				esac
 				break_end
 
 			done
