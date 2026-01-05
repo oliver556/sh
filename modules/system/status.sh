@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# modules/system/status.sh
+# ============================================================
+# 系统状态展示模块
+# ============================================================
+
+# ------------------------------
+# 引入全局库
+# ------------------------------
+# BASE_DIR 需在 core/main.sh 中定义
+. "$BASE_DIR/lib/ui.sh"        # UI 输出库
+. "$BASE_DIR/lib/system.sh"    # 系统信息函数库
+. "$BASE_DIR/lib/os.sh"        # 系统信息函数库
+. "$BASE_DIR/lib/network.sh"   # 网络信息函数库
+
+# ------------------------------
+# 工具函数：格式化输出
+# ------------------------------
+status_print_line() {
+    # 参数1：标签
+    # 参数2：值
+    # %-12s 表示左对齐，占12个字符宽度
+    printf "%-12s %s\n" "$1:" "$2"
+}
+
+# ------------------------------
+# 展示系统概览信息 (系统身份与状态)
+# ------------------------------
+status_show_system_info() {
+    ui clear
+    ui print info_header "🖥️  系统信息查询"
+
+    ui line_2
+
+    ui item_list "主机名" 15 "$_sys_get_hostname"
+    ui item_list "系统版本" 15 "$_os_get_pretty_name"
+    ui item_list "Linux版本" 15 "$_sys_get_kernel"
+    
+    ui line_2
+}
+
+# ------------------------------
+# 展示 CPU 信息 (处理器性能)
+# ------------------------------
+status_show_cpu_info() {
+    ui item_list "CPU架构" 15 "$_sys_get_arch"
+    ui item_list "CPU型号" 15 "$_sys_get_cpu_model"
+    ui item_list "CPU核心数" 15 "$_sys_get_cpu_cores"
+    ui item_list "CPU频率" 15 "$_sys_get_cpu_mhz"
+    ui item_list "CPU占用" 15 "$_sys_get_cpu_usage"
+    ui item_list "系统负载" 15 "$_sys_get_load_avg"
+
+    ui line_2
+}
+
+# ------------------------------
+# 展示内存信息 (存储与资源)
+# ------------------------------
+status_show_memory_info() {
+    ui item_list "物理内存" 15 "$_sys_get_mem_usage"
+    ui item_list "虚拟内存" 15 "$_sys_get_swap_usage"
+    ui item_list "硬盘占用" 15 "$_sys_get_disk_usage"
+
+    ui line_2
+}
+
+# ------------------------------
+# 展示磁盘信息
+# ------------------------------
+# status_show_disk_info() {
+#     # ui print info_header "💾  磁盘状态"
+
+#     # 输出表格形式的磁盘占用
+#     # sys_get_disk_usage | while read -r line; do
+#     #     echo "$line"
+#     # done
+
+#     :
+# }
+
+# ------------------------------
+# 展示网络信息 (网络标识)
+# ------------------------------
+status_show_network_info() {
+    ui item_list "运营商" 15 "$_net_get_isp"
+    ui item_list "IPv4公网" 15 "$_net_get_ipv4"
+    # ui item_list "IPv4 内网" 15 "$_net_get_private_ipv4"
+    ui item_list "IPv6公网" 15 "$_net_get_ipv6"
+    # ui item_list "IPv6 内网" 15 "$_net_get_private_ipv6"
+    ui item_list "DNS服务器" 15 "$_net_get_dns"
+    # ui item_list "默认网关" 15 "$_net_get_gateway"
+    # ui item_list "网络连通性" 15 "$_net_test_connectivity"
+
+    ui line_2
+}
+
+# ------------------------------
+# 展示系统运行时间 传输统计
+# ------------------------------
+status_show_transmission_info() {
+    # 
+    ui item_list "总接收" 15 "$_net_get_total_rx"
+    ui item_list "总发送" 15 "$_net_get_total_tx"
+
+    ui line_2
+}
+
+# ------------------------------
+# 展示系统网络优化
+# ------------------------------
+status_show_algo_info() {
+    ui item_list "网络算法" 15 "$_net_get_algo"
+
+    ui line_2
+}
+
+# ------------------------------
+# 展示系统地理位置与系统时间
+# ------------------------------
+status_show_tz_time_info() {
+    ui item_list "地理位置" 15 "$_net_get_geo"
+    ui item_list "系统时间" 15 "$_sys_get_tz_time"
+    
+    ui line_2
+}
+
+# ------------------------------
+# 展示系统运行时间
+# ------------------------------
+status_show_run_time_info() {
+    ui item_list "运行时间" 15 "$_sys_get_uptime"
+}
+
+# ------------------------------
+# 统一获取需要的信息
+# ------------------------------
+_get_sys_info() {
+    _sys_get_hostname=$(sys_get_hostname)
+    _os_get_pretty_name=$(os_get_pretty_name)
+    _sys_get_kernel=$(sys_get_kernel)
+    _sys_get_uptime=$(sys_get_uptime)
+    _sys_get_tz_time="$(sys_get_timezone) $(sys_get_datetime)"
+    _net_get_geo=$(net_get_geo)
+
+    _sys_get_arch=$(sys_get_arch)
+    _sys_get_cpu_model=$(sys_get_cpu_model)
+    _sys_get_cpu_cores=$(sys_get_cpu_cores)
+    _sys_get_cpu_mhz=$(sys_get_cpu_mhz)
+    _sys_get_cpu_usage=$(sys_get_cpu_usage)
+    _sys_get_load_avg=$(sys_get_load_avg)
+
+    _sys_get_mem_usage=$(sys_get_mem_usage)
+    _sys_get_swap_usage=$(sys_get_swap_usage)
+    _sys_get_disk_usage=$(sys_get_disk_usage)
+
+    _net_get_isp=$(net_get_isp)
+    _net_get_ipv4=$(net_get_ipv4)
+    # _net_get_private_ipv4=$(net_get_private_ipv4)
+    _net_get_ipv6=$(net_get_ipv6)
+    # _net_get_private_ipv6=$(net_get_private_ipv6)
+    # _net_get_dns=$(net_get_dns | tr '\n' ', ' | sed 's/, $//')
+    _net_get_dns=$(net_get_dns | xargs | sed 's/ /, /g')
+    # _net_get_gateway=$(net_get_gateway)
+    # _net_test_connectivity=$(net_test_connectivity)
+
+    _net_get_total_rx=$(net_get_total_rx)
+    _net_get_total_tx=$(net_get_total_tx)
+    _net_get_algo="$(net_get_congestion_control) $(net_get_qdisc)"
+
+}
+
+# ------------------------------
+# 展示完整状态信息
+# ------------------------------
+status_show_all() {
+    ui clear
+
+    ui echo "${BLUE}正在查询中，请稍后...${LIGHT_WHITE}"
+
+    _get_sys_info
+    
+    # ui echo "${GREEN}查询完成${LIGHT_WHITE}"
+
+    ui clear
+
+    status_show_system_info
+    status_show_cpu_info
+    status_show_memory_info
+    # status_show_disk_info
+    status_show_network_info
+    status_show_transmission_info
+    status_show_algo_info
+    status_show_tz_time_info
+    status_show_run_time_info
+
+    # ui item_list "运行时间" 15 "$(sys_get_uptime)"
+
+    ui wait_return
+}
