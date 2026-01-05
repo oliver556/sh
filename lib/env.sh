@@ -63,7 +63,6 @@ LIBS=(
     "network.sh"         # 网络信息 & 统计
     "geo.sh"             # ISP / 地理位置
     "system.sh"          # 系统信息
-    "pagkage.sh"         # 包管理
     "router.sh"          # 路由分发 (依赖以上所有)
     # 辅助/守护库
     "guards/check.sh"    # 检查 + 提示（不修复）
