@@ -61,30 +61,23 @@ do_uninstall() {
     echo -e "\n${BOLD_CYAN}正在清理系统环境...${RESET}"
 
     # 1. 移除软链接
-    echo -e "--> 移除快捷命令..."
     rm -f "$BIN_LINK" "$BIN_SHORT_LINK" 2>/dev/null || true
 
     # 2. 移除主目录
     if [ -d "$INSTALL_DIR" ]; then
-        echo -e "--> 移除安装目录: $INSTALL_DIR"
         rm -rf "$INSTALL_DIR" || true
     fi
 
-    # 3. 核心修复：清理 Bash 命令哈希缓存
-    # 这能解决 "-bash: /usr/local/bin/v: No such file or directory" 报错
+    # 3. 核心修复：自动清理 Bash 命令哈希缓存
+    # 直接在卸载脚本里执行，确保即便不重连 SSH，逻辑也尽力生效
     hash -r 2>/dev/null || true
 
-    echo -e "\n${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
-    echo -e "${BOLD_YELLOW}提示：如果输入 'v' 仍报错，请重新连接 SSH 或手动执行 'hash -r'。${RESET}"
-    echo
+    # 4. 视觉优化：清屏并显示最后一行
+    clear
+    echo -e "${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
     
-    sleep 1
-
-    # 4. 核心修复：强制杀死父进程
-    # 使用 pkill 匹配进程名，确保主菜单循环 (maintain.sh) 被强制终结
-    # 这样就不会再弹回菜单界面了
-    pkill -9 -f "VpsScriptKit" 2>/dev/null || true
-    kill -9 $$ 2>/dev/null || true
+    # 退出当前脚本，让 maintain.sh 捕捉到目录消失信号并静默结束
+    exit 0
 }
 
 # 执行卸载
