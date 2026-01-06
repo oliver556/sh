@@ -64,16 +64,14 @@ do_uninstall() {
     rm -f "$BIN_LINK" "$BIN_SHORT_LINK" 2>/dev/null || true
     [ -d "$INSTALL_DIR" ] && rm -rf "$INSTALL_DIR" 2>/dev/null || true
 
-    # 2. 尝试在当前子 shell 刷新 hash (虽然这改变不了你的主 SSH 窗口，但必须做)
+    # 2. 清理当前 shell 缓存
     hash -r 2>/dev/null || true
 
-    # 3. 视觉极致优化：彻底清屏，只留下一句温情的告别
-    echo
+    # 3. 视觉优化：直接清屏
+    clear
     echo -e "${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
-    sleep 2
-
-    # 4. 正常退出。
-    # 此时父进程 maintain.sh 会检测到目录消失，然后跟着 exit，整个过程无缝衔接。
+    
+    # 4. 正常退出，让父进程 maintain.sh 接手退出
     exit 0
 }
 
