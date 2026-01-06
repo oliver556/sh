@@ -328,7 +328,7 @@ ui_main_menu() {
 
   ui line
 
-  ui item 99 "${BOLD_GREY}脚本工具${RESET}"
+  ui item 99 "脚本工具 ▶"
 
   # 脚本工具菜单项
 

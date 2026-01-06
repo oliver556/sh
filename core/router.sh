@@ -79,9 +79,10 @@ router_main() {
 
     99)
       # 用户输入 99 → 脚本工具模块占位
-      source "${BASE_DIR}/modules/tools/entry.sh"
+      # source "${BASE_DIR}/modules/tools/entry.sh"
+      source "${BASE_DIR}/modules/system/maintain.sh"
       # 加载占位模块文件
-      tools_entry
+      maintain_entry
       # 调用占位模块入口函数
       ;;
 

@@ -53,7 +53,7 @@ jobs:
           # Release 的标题直接使用版本号
           name: Release ${{ github.ref_name }}
           # 🚀 这是 Release 的描述内容
-          body: "VpsScriptKit 项目，简称 vsk 项目。"
+          body: "感谢使用 VpsScriptKit！本次发布包含了最新的代码优化。"
           files: |
             ${{ env.ASSET_NAME }}
             ${{ env.SHA_NAME }}
