@@ -30,7 +30,7 @@ _refresh_local_version() {
 maintain_entry() {
     while true; do
         # 如果安装目录都没了，说明脚本已经被卸载，主循环强制跳出
-        if [[ ! -d "$BASE_DIR" && ! -f "/usr/local/bin/v" ]]; then
+         if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ]; then
             clear
             exit 0
         fi
@@ -113,10 +113,13 @@ maintain_entry() {
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
                     # 运行卸载脚本
                     bash "$BASE_DIR/uninstall.sh"
-                    # 如果子脚本执行成功且目录确实没了，主脚本直接退出
-                    if [[ ! -f "/usr/local/bin/v" && ! -f "/usr/bin/v" ]]; then
-                        # 在当前进程尝试刷新一遍 hash
+                    
+                    # 卸载脚本返回后，无论结果如何，只要检测到文件消失，立即强制结束
+                    # 甚至不需要 return，直接 exit 确保进程树关闭
+                    if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ]; then
                         hash -r 2>/dev/null || true
+                        clear
+                        echo -e "\033[32m✅ 卸载成功，江湖有缘再见！\033[0m"
                         exit 0
                     fi
                 else
