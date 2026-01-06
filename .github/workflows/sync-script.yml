@@ -29,23 +29,30 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }} # 使用密码 Secret
+          password: ${{ secrets.SERVER_PASSWORD }}
           source: "vsk.sh"
           target: ${{ secrets.REMOTE_PATH }}
           strip_components: 0
 
-      # 4. 通过 SSH 执行命令设置权限（使用密码模式）
-      - name: Set Permissions on Server
+      # 4. 通过 SSH 执行命令设置权限、用户组
+      - name: Set Permissions and Ownership on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }} # 使用密码 Secret
+          password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            # 确保文件同步成功并修正权限
-            if [ -f "${{ secrets.REMOTE_PATH }}/vsk.sh" ]; then
-              chmod 644 ${{ secrets.REMOTE_PATH }}/vsk.sh
-              echo "✅ 同步成功：vsk.sh 已就绪"
+            TARGET_FILE="${{ secrets.REMOTE_PATH }}/vsk.sh"
+            
+            if [ -f "$TARGET_FILE" ]; then
+              # 1. 设置文件权限为 0755 (所有者读写执行，组/其他读执行)
+              chmod 0755 "$TARGET_FILE"
+              
+              # 2. 设置用户组为 root:root (UID 0 / GID 0)
+              chown root:root "$TARGET_FILE"
+              
+              echo "✅ 同步成功：vsk.sh 已就绪，权限已设为 0755，用户组已设为 root:root"
+              ls -l "$TARGET_FILE"
             else
               echo "❌ 错误：在目标路径未找到 vsk.sh"
               exit 1
