@@ -29,7 +29,7 @@ _refresh_local_version() {
 # ------------------------------
 maintain_entry() {
     while true; do
-        # 如果安装目录都没了，说明脚本已经被卸载，主循环必须强制跳出
+        # 如果安装目录都没了，说明脚本已经被卸载，主循环强制跳出
         if [[ ! -d "$BASE_DIR" && ! -f "/usr/local/bin/v" ]]; then
             clear
             exit 0
