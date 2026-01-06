@@ -306,42 +306,79 @@ install_latest_release() {
     download_and_extract "$latest_url"
 }
 
+
 # ------------------------------
-# set_permissions
-# @描述: 本函数用于: 设置权限
+# setup_system
+# @描述: 本函数用于: 设置文件权限并创建统一的 bin/v 链接
 # @参数: 无
 # @返回值: 无
-# @示例: set_permissions
+# @示例: setup_system
 # ------------------------------
-set_permissions() {
-    # 设置执行权限并创建快捷命令
-    echo -e "${BOLD_BLUE}--> 正在设置文件权限...${BOLD_WHITE}"
+setup_system() {
+    echo -e "${BOLD_BLUE}--> 正在配置系统权限与链接...${BOLD_WHITE}"
+    
+    # 1. 给所有 .sh 脚本赋予执行权限，并确保 bin/v 可执行
     find "$INSTALL_DIR" -type f -name "*.sh" -exec chmod +x {} +
-}
+    if [ -f "$INSTALL_DIR/bin/v" ]; then
+        chmod +x "$INSTALL_DIR/bin/v"
+    fi
 
-# ------------------------------
-# quick_start
-# @描述: 本函数用于: 创建快捷命令
-# @参数: 无
-# @返回值: 无
-# @示例: quick_start
-# ------------------------------
-quick_start() {
-    echo -e "${BOLD_BLUE}--> 正在创建快速启动命令...${BOLD_WHITE}"
-
-    # ===========================
-    # [新增] 确保目录存在
-    # ===========================
+    # 2. 创建快捷命令链接
     mkdir -p "$(dirname "$BIN_LINK")"
 
-    if [ -f "$INSTALL_DIR/core/main.sh" ]; then
-        # 指向主入口 main.sh
-        ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_LINK"
-        ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_SHORT_LINK"
+    if [ -f "$INSTALL_DIR/bin/v" ]; then
+        # 核心: 无论 v 还是 vsk，全部指向 bin/v 包装器
+        ln -sf "$INSTALL_DIR/bin/v" "$BIN_LINK"
+        ln -sf "$INSTALL_DIR/bin/v" "$BIN_SHORT_LINK"
+        echo -e "${BOLD_GREEN}✅ 启动器链接已创建${BOLD_WHITE}"
     else
-        echo -e "${BOLD_YELLOW}警告: 未在仓库找到 main.sh，跳过创建快捷命令。${BOLD_WHITE}"
+        # 兜底逻辑: 如果包装器没找到，尝试链接到 main.sh
+        if [ -f "$INSTALL_DIR/core/main.sh" ]; then
+            ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_LINK"
+            ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_SHORT_LINK"
+            echo -e "${BOLD_YELLOW}警告: 未找到包装器 bin/v，已链接至 main.sh 原始脚本${BOLD_WHITE}"
+        else
+            error_exit "未找到可执行的主程序入口"
+        fi
     fi
 }
+
+# # ------------------------------
+# # set_permissions
+# # @描述: 本函数用于: 设置权限
+# # @参数: 无
+# # @返回值: 无
+# # @示例: set_permissions
+# # ------------------------------
+# set_permissions() {
+#     # 设置执行权限并创建快捷命令
+#     echo -e "${BOLD_BLUE}--> 正在设置文件权限...${BOLD_WHITE}"
+#     find "$INSTALL_DIR" -type f -name "*.sh" -exec chmod +x {} +
+# }
+
+# # ------------------------------
+# # quick_start
+# # @描述: 本函数用于: 创建快捷命令
+# # @参数: 无
+# # @返回值: 无
+# # @示例: quick_start
+# # ------------------------------
+# quick_start() {
+#     echo -e "${BOLD_BLUE}--> 正在创建快速启动命令...${BOLD_WHITE}"
+
+#     # ===========================
+#     # [新增] 确保目录存在
+#     # ===========================
+#     mkdir -p "$(dirname "$BIN_LINK")"
+
+#     if [ -f "$INSTALL_DIR/core/main.sh" ]; then
+#         # 指向主入口 main.sh
+#         ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_LINK"
+#         ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_SHORT_LINK"
+#     else
+#         echo -e "${BOLD_YELLOW}警告: 未在仓库找到 main.sh，跳过创建快捷命令。${BOLD_WHITE}"
+#     fi
+# }
 
 # ------------------------------
 # install_success
@@ -395,11 +432,14 @@ main() {
     # 4 & 5. 获取并安装最新版本
     install_latest_release
 
-    # 6. 设置权限
-    set_permissions
+    # # 6. 设置权限
+    # set_permissions
 
-    # 7. 创建快速启动命令
-    quick_start
+    # # 7. 创建快速启动命令
+    # quick_start
+    
+    # 6 & 7. 配置权限与链接 (已合并)
+    setup_system
 
     # 8. 成功提示
     install_success
