@@ -60,18 +60,27 @@ do_uninstall() {
 
     echo -e "\n${LIGHT_CYAN}🧹 正在清理卸载...${LIGHT_WHITE}"
 
-    # 1. 静默移除软链接和目录
-    rm -f "$BIN_LINK" "$BIN_SHORT_LINK" 2>/dev/null || true
-    [ -d "$INSTALL_DIR" ] && rm -rf "$INSTALL_DIR" 2>/dev/null || true
+    # --- 开始物理清理 ---
+    # 1. 强制删除所有可能的二进制/链接
+    for path in "${BIN_PATHS[@]}"; do
+        rm -f "$path" 2>/dev/null || true
+    done
 
-    # 2. 清理当前 shell 缓存
+    # 2. 删除主目录
+    rm -rf "$INSTALL_DIR" 2>/dev/null || true
+
+    # 3. 强制刷新当前 Shell 缓存
     hash -r 2>/dev/null || true
 
-    # 3. 视觉优化：直接清屏
+    # 4. 视觉终点
     clear
     echo -e "${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
     
-    # 4. 正常退出，让父进程 maintain.sh 接手退出
+    # --- 终极手段：自杀并杀掉父进程 ---
+    # 找到所有包含 VpsScriptKit 字符的 bash 进程并全部杀掉
+    # 这样能确保 maintain.sh 的循环被物理切断，绝对无法回到菜单
+    # 使用 2>/dev/null 隐藏 Killed 提示，追求极致纯净
+    (sleep 1 && pkill -9 -f "VpsScriptKit") & 
     exit 0
 }
 

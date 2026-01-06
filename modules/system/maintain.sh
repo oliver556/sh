@@ -114,7 +114,9 @@ maintain_entry() {
                     # 运行卸载脚本
                     bash "$BASE_DIR/uninstall.sh"
                     # 如果子脚本执行成功且目录确实没了，主脚本直接退出
-                    if [[ $? -eq 0 && ! -d "$BASE_DIR" ]]; then
+                    if [[ ! -f "/usr/local/bin/v" && ! -f "/usr/bin/v" ]]; then
+                        # 在当前进程尝试刷新一遍 hash
+                        hash -r 2>/dev/null || true
                         exit 0
                     fi
                 else
