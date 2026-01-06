@@ -46,36 +46,44 @@ do_uninstall() {
     echo -e "${BOLD_WHITE}这将彻底从系统中移除脚本主目录及所有快捷命令 (${BOLD_YELLOW}v${BOLD_WHITE}/${BOLD_YELLOW}vsk${BOLD_WHITE})。${RESET}"
     echo
     
-    # 直接进行是与否的确认，不再列出多余的菜单
     local choice
     printf "${BOLD_CYAN}您确定要执行完全卸载吗？(y/N): ${RESET}"
-    # 使用 /dev/tty 确保能捕获输入
+    # 强制从终端使用 /dev/tty读取输入，确保管道调用时也能交互
     read -r choice < /dev/tty || choice="n"
     
     choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
     if [[ "$choice" != "y" ]]; then
         echo -e "\n${BOLD_GREEN}已取消操作，未进行任何更改。${RESET}"
         sleep 1
-        return 0
+        exit 1 # 返回 1 告诉 maintain.sh 卸载取消，不要退出程序
     fi
 
     echo -e "\n${BOLD_CYAN}正在清理系统环境...${RESET}"
 
     # 1. 移除软链接
-    [ -L "$BIN_LINK" ] || [ -f "$BIN_LINK" ] && rm -f "$BIN_LINK" && echo -e "  - 移除 $BIN_LINK"
-    [ -L "$BIN_SHORT_LINK" ] || [ -f "$BIN_SHORT_LINK" ] && rm -f "$BIN_SHORT_LINK" && echo -e "  - 移除 $BIN_SHORT_LINK"
+    echo -e "--> 移除快捷命令..."
+    rm -f "$BIN_LINK" "$BIN_SHORT_LINK" 2>/dev/null || true
 
     # 2. 移除主目录
     if [ -d "$INSTALL_DIR" ]; then
-        rm -rf "$INSTALL_DIR"
-        echo -e "  - 移除 $INSTALL_DIR"
+        echo -e "--> 移除安装目录: $INSTALL_DIR"
+        # 即使目录内有文件正在被占用，也尝试强制递归删除
+        rm -rf "$INSTALL_DIR" || {
+            echo -e "${BOLD_YELLOW}普通删除失败，尝试提升权限强制清理...${RESET}"
+            rm -rf "$INSTALL_DIR" 2>/dev/null || true
+        }
     fi
 
-    echo -e "\n${BOLD_GREEN}✅ 卸载成功！VpsScriptKit 已彻底移除。${RESET}"
-    echo -e "${BOLD_YELLOW}期待下次与您相遇！${RESET}"
+    # 再次验证目录是否消失（防止设备忙等特殊情况）
+    if [ -d "$INSTALL_DIR" ]; then
+        echo -e "${BOLD_RED}提示: 目录 $INSTALL_DIR 仍有部分残留，建议手动运行 rm -rf $INSTALL_DIR${RESET}"
+    fi
+
+    echo -e "${LIGHT_CYAN}✅ 卸载成功，江湖有缘再见！${LIGHT_WHITE}"
+    echo -e "${BOLD_YELLOW}注意: 如果输入 'v' 仍报错，请运行 'hash -r' 刷新 Shell 缓存。${RESET}"
     echo
     
-    # 卸载后强制退出，防止回到已不存在的菜单
+    # 成功卸载返回 0，让 maintain.sh 捕捉到并退出整个脚本
     exit 0
 }
 

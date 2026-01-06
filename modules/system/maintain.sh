@@ -106,7 +106,16 @@ maintain_entry() {
             3)
                 # 调用根目录下的卸载脚本
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
-                    bash "$BASE_DIR/uninstall.sh"
+                    # 运行卸载脚本
+                    if bash "$BASE_DIR/uninstall.sh"; then
+                        # 卸载成功后强制刷新 hash 并退出
+                        hash -r 2>/dev/null || true
+                        clear
+                        exit 0
+                    fi
+                else
+                    ui error "未找到卸载脚本 uninstall.sh"
+                    ui wait_return
                 fi
                 ;;
             0)
