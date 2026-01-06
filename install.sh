@@ -324,7 +324,6 @@ install_latest_release() {
     download_and_extract "$latest_url"
 }
 
-
 # ------------------------------
 # setup_system
 # @描述: 本函数用于: 设置文件权限并创建统一的 bin/v 链接
