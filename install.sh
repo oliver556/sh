@@ -25,6 +25,7 @@ REPO="oliver556/sh"               # 仓库地址
 AGREEMENT_ACCEPTED="false"        # 用户许可协议同意
 BIN_LINK="/usr/local/bin/vsk"     # 
 BIN_SHORT_LINK="/usr/local/bin/v" # 
+SKIP_AGREEMENT="false"            # 初始化，防止 set -u 报错
 
 # ------------------------------
 # 参数处理：检查是否带有 --skip-agreement

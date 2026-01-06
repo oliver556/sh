@@ -69,14 +69,14 @@ do_update() {
     fi
 
     echo -e "${BOLD_YELLOW}🚀 发现新版本 $REMOTE_VER (当前: v$LOCAL_VER)${RESET}"
-    echo -e "${BOLD_BLUE}正在下载并执行覆盖更新...${RESET}"
+    echo -e "${BOLD_BLUE}正在执行更新...${RESET}"
     sleep 1
     
     # 核心逻辑：直接调用远程的一键安装脚本
-    if curl -sL vsk.viplee.cc | bash; then
+    if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         echo -e "\n${BOLD_GREEN}✅ 更新完成！${RESET}"
-        echo -e "${BOLD_CYAN}🔄 正在原地重启脚本以加载新功能...${RESET}"
-        sleep 2
+        echo -e "${BOLD_CYAN}🔄 正在原地重启脚本...${RESET}"
+        sleep 1
         
         # 原地重启：替换当前进程
         if command -v v >/dev/null 2>&1; then
