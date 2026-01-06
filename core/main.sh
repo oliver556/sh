@@ -65,8 +65,9 @@ source "${BASE_DIR}/modules/system/status.sh" # 系统信息展示
 _cleanup() {
     ui clear
     ui line
-    echo -e "\n${BOLD_GREEN}👋 感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
+    echo -e "${BOLD_GREEN}👋 感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
     ui line
+    sleep 1
     exit 0
 }
 trap _cleanup SIGINT SIGTERM
