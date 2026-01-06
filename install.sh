@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # =================================================================================
-# @名称:         install.sh
+# @名称:        install.sh
 # @功能描述:     VpsScriptKit 一键安装脚本
-# @入口:         curl -sL vsk.viplee.cc | bash
-# @作者:         jamison
-# @版本:         1.0.0
+# @入口:        curl -sL vsk.viplee.cc | bash
+# @作者:        jamison
+# @版本:        1.0.0
 # @创建日期:     2026-01-01
 # @修改日期:     2026-01-06
 #
-# @依赖:         curl
+# @依赖:        curl
 # @许可证:       MIT
 # =================================================================================
 
@@ -98,7 +98,7 @@ clear_version() {
         
         sleep 1
         echo
-        echo -e "${BOLD_CYAN}✅ 脚本已清理，即将覆盖安装！${BOLD_WHITE}"
+        echo -e "${BOLD_CYAN}✓ 脚本已清理，即将覆盖安装！${BOLD_WHITE}"
         sleep 2
         clear
     fi
@@ -171,7 +171,7 @@ verify_sha256() {
         error_exit "SHA256 校验失败，可能遭到劫持！"
     fi
 
-    echo -e "${BOLD_GREEN}✅ SHA256 校验通过${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}✓ SHA256 校验通过${BOLD_WHITE}"
 }
 
 # ------------------------------
@@ -212,7 +212,7 @@ show_install_path() {
     echo -e "  主程序: ${BOLD_YELLOW}$INSTALL_DIR/core/main.sh${BOLD_WHITE}"
     echo -e "  快捷命令:"
     echo -e "    - ${BOLD_YELLOW}vsk${BOLD_WHITE} -> $BIN_LINK"
-    echo -e "    - ${BOLD_YELLOW}v${BOLD_WHITE}   -> $BIN_SHORT_LINK"
+    echo -e "    - ${BOLD_YELLOW}v${BOLD_WHITE}   -> $BIN_SHORT_LINK${RESET}"
 }
 
 # ------------------------------
@@ -330,7 +330,7 @@ setup_system() {
         # 核心: 无论 v 还是 vsk，全部指向 bin/v 包装器
         ln -sf "$INSTALL_DIR/bin/v" "$BIN_LINK"
         ln -sf "$INSTALL_DIR/bin/v" "$BIN_SHORT_LINK"
-        echo -e "${BOLD_GREEN}✅ 启动器链接已创建${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✓ 启动器链接已创建${BOLD_WHITE}"
     else
         # 兜底逻辑: 如果包装器没找到，尝试链接到 main.sh
         if [ -f "$INSTALL_DIR/core/main.sh" ]; then
@@ -343,43 +343,6 @@ setup_system() {
     fi
 }
 
-# # ------------------------------
-# # set_permissions
-# # @描述: 本函数用于: 设置权限
-# # @参数: 无
-# # @返回值: 无
-# # @示例: set_permissions
-# # ------------------------------
-# set_permissions() {
-#     # 设置执行权限并创建快捷命令
-#     echo -e "${BOLD_BLUE}--> 正在设置文件权限...${BOLD_WHITE}"
-#     find "$INSTALL_DIR" -type f -name "*.sh" -exec chmod +x {} +
-# }
-
-# # ------------------------------
-# # quick_start
-# # @描述: 本函数用于: 创建快捷命令
-# # @参数: 无
-# # @返回值: 无
-# # @示例: quick_start
-# # ------------------------------
-# quick_start() {
-#     echo -e "${BOLD_BLUE}--> 正在创建快速启动命令...${BOLD_WHITE}"
-
-#     # ===========================
-#     # [新增] 确保目录存在
-#     # ===========================
-#     mkdir -p "$(dirname "$BIN_LINK")"
-
-#     if [ -f "$INSTALL_DIR/core/main.sh" ]; then
-#         # 指向主入口 main.sh
-#         ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_LINK"
-#         ln -sf "$INSTALL_DIR/core/main.sh" "$BIN_SHORT_LINK"
-#     else
-#         echo -e "${BOLD_YELLOW}警告: 未在仓库找到 main.sh，跳过创建快捷命令。${BOLD_WHITE}"
-#     fi
-# }
-
 # ------------------------------
 # install_success
 # @描述: 本函数用于: 成功提示
@@ -390,17 +353,11 @@ setup_system() {
 install_success() {
     clear
 
-    cat <<-EOF
-+----------------------------------------------------------------------------------------------------+
-|  ██╗     ██╗█████████╗███████╗  ███████╗ ██████╗██████╗ ██╗██████╗ ████████╗  ██╗  ██╗██╗████████╗ |
-|  ██╗     ██║██╔════██║██╔════╝  ██╔════╝██╔════╝██╔══██╗██║██╔══██╗╚══██╔══╝  ██║ ██╔╝██║╚══██╔══╝ |
-|   ██╗   ██╗ █████████║███████╗  ███████╗██║     ██████╔╝██║██████╔╝   ██║     █████╔╝ ██║   ██║    |
-|    ██╗ ██╗  ██╔══════╝╚════██║  ╚════██║██║     ██╔══██╗██║██╔═══╝    ██║     ██╔═██╗ ██║   ██║    |
-|     ████╗  ║██║       ███████║  ███████║╚██████╗██║  ██║██║██║        ██║     ██║  ██╗██║   ██║    |
-|     ╚═══╝  ╚══╝       ╚══════╝  ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝        ╚═╝     ╚═╝  ╚═╝╚═╝   ╚═╝    |
-+----------------------------------------------------------------------------------------------------+
-EOF
-    echo -e "${BOLD_GREEN}✅ 安装完成！${BOLD_WHITE} "
+    if [[ -f "$INSTALL_DIR/banner" ]]; then
+        cat "$INSTALL_DIR/banner"
+    fi
+
+    echo -e "${BOLD_GREEN}✓ 安装完成！${BOLD_WHITE} "
     echo -e "${BOLD_GREEN}   现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。。${BOLD_WHITE}"
 
     show_install_path
@@ -432,12 +389,6 @@ main() {
     # 4 & 5. 获取并安装最新版本
     install_latest_release
 
-    # # 6. 设置权限
-    # set_permissions
-
-    # # 7. 创建快速启动命令
-    # quick_start
-    
     # 6 & 7. 配置权限与链接 (已合并)
     setup_system
 

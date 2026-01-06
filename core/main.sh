@@ -74,7 +74,6 @@ trap _cleanup SIGINT SIGTERM
 
 main_loop() {
   while true; do
-    # 清屏
     ui clear
 
     # 头部渲染

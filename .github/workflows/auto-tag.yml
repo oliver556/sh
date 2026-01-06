@@ -1,0 +1,53 @@
+name: Auto Tag on Version Change
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'version' # 只有当 version 文件变动时才触发
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 必须赋予写入权限以创建标签
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录以确保能检测到已存在的标签
+
+      - name: Get version from file
+        id: get_version
+        run: |
+          # 读取 version 文件，去掉空格，并拼接 v 前缀
+          VERSION=$(cat version | xargs)
+          echo "NEW_TAG=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          # 检查标签是否已经存在
+          if git rev-parse "${{ steps.get_version.outputs.NEW_TAG }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get_version.outputs.NEW_TAG }} already exists. Skipping."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and Push Tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          # 修正之前的配置项笔误
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          TAG_NAME="${{ steps.get_version.outputs.NEW_TAG }}"
+          echo "Creating new tag: $TAG_NAME"
+          
+          git tag $TAG_NAME
+          # 注意：使用默认 GITHUB_TOKEN 推送的标签可能不会触发后续的 Release 工作流
+          git push origin $TAG_NAME

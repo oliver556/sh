@@ -94,7 +94,7 @@ CLI 入口层      →  v 命令
 示例：
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 exec /usr/local/VpsScriptKit/core/main.sh "$@"
 ```
 
