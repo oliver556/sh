@@ -12,16 +12,20 @@
 
 # 严谨模式
 set -Eeuo pipefail
-trap 'echo -e "\n${BOLD_RED}错误: 卸载过程中出现异常${RESET}" >&2' ERR
+trap 'echo -e "\n${BOLD_RED}错误: 卸载过程中出现异常，请检查权限${RESET}" >&2' ERR
 
 # ------------------------------
 # 1. 基础配置
 # ------------------------------
 INSTALL_DIR="/opt/VpsScriptKit"
-BIN_LINK="/usr/local/bin/vsk"
-BIN_SHORT_LINK="/usr/local/bin/v"
-BIN_PATHS=("/usr/local/bin/vsk" "/usr/local/bin/v" "/usr/bin/vsk" "/usr/bin/v")
-    
+# 定义所有可能存在的快捷命令路径，彻底解决残留问题
+BIN_PATHS=(
+    "/usr/local/bin/v"
+    "/usr/local/bin/vsk"
+    "/usr/bin/v"
+    "/usr/bin/vsk"
+)
+
 # 颜色定义
 BOLD_RED=$(tput bold)$(tput setaf 1) || BOLD_RED=""
 BOLD_GREEN=$(tput bold)$(tput setaf 2) || BOLD_GREEN=""
@@ -54,35 +58,33 @@ do_uninstall() {
     
     choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
     if [[ "$choice" != "y" ]]; then
-        echo -e "\n${BOLD_GREEN}已取消操作，未进行任何更改。${RESET}"
+        echo -e "\n${BOLD_GREEN}已取消卸载，未进行任何更改。${RESET}"
         sleep 1
-        exit 1 # 返回 1 告诉 maintain.sh 卸载取消，不要退出程序
+        exit 1 # 返回 1 告知父进程：操作已取消
     fi
 
     echo -e "\n${LIGHT_CYAN}🧹 正在清理卸载...${LIGHT_WHITE}"
 
-    # --- 开始物理清理 ---
-    # 1. 强制删除所有可能的二进制/链接
+     # 1. 遍历清理所有快捷链接 (物理抹除)
     for path in "${BIN_PATHS[@]}"; do
-        rm -f "$path" 2>/dev/null || true
+        if [ -L "$path" ] || [ -f "$path" ]; then
+            echo -e "--> 移除命令: $path"
+            rm -f "$path" 2>/dev/null || true
+        fi
     done
 
-    # 2. 删除主目录
-    rm -rf "$INSTALL_DIR" 2>/dev/null || true
+    # 2. 移除安装主目录
+    if [ -d "$INSTALL_DIR" ]; then
+        echo -e "--> 移除安装目录: $INSTALL_DIR"
+        rm -rf "$INSTALL_DIR" 2>/dev/null || true
+    fi
 
-    # 3. 强制刷新当前 Shell 缓存
+    # 3. 刷新子进程的命令哈希
     hash -r 2>/dev/null || true
 
-    # 4. 视觉终点
-    clear
-    echo -e "${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
-    
-    # --- 终极手段：自杀并杀掉父进程 ---
-    # 找到所有包含 VpsScriptKit 字符的 bash 进程并全部杀掉
-    # 这样能确保 maintain.sh 的循环被物理切断，绝对无法回到菜单
-    # 使用 2>/dev/null 隐藏 Killed 提示，追求极致纯净
-    (sleep 1 && pkill -9 -f "VpsScriptKit") & 
-    exit 0
+    # 4. 返回约定好的信号码 15
+    # 这个状态码告诉 maintain.sh：卸载已完成，请执行自毁并告别
+    exit 15
 }
 
 # 执行卸载

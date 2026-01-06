@@ -3,8 +3,7 @@
 # ============================================================
 # VpsScriptKit - 更新中心界面
 # @名称:         system/maintain.sh
-# @职责:
-# - VpsScriptKit 更新菜单
+# @职责: 处理维护任务，并响应卸载脚本发出的退出信号
 # @作者:         Jamison
 # @版本:         0.1.0
 # @创建日期:     2026-01-06
@@ -25,10 +24,7 @@ BIN_SHORT_LINK="/usr/local/bin/v"
 # ------------------------------
 _refresh_local_version() {
     V_LOCAL="Unknown"
-    # 从项目根目录的 version 文件读取最新版本号
-    if [[ -f "$BASE_DIR/version" ]]; then
-        V_LOCAL=$(cat "$BASE_DIR/version" | xargs)
-    fi
+    [[ -f "$BASE_DIR/version" ]] && V_LOCAL=$(cat "$BASE_DIR/version" | xargs)
 }
 
 # ------------------------------
@@ -36,13 +32,6 @@ _refresh_local_version() {
 # ------------------------------
 maintain_entry() {
     while true; do
-        # --- 核心修复 1：物理路径强制锁定 ---
-        # 只要快捷命令 'v' 在所有常见路径都消失了，说明已被卸载
-        # 此时内存中的循环必须强制终止，防止回弹
-        if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ] && [ ! -f "/usr/local/bin/vsk" ]; then
-            clear
-            exit 0
-        fi
 
         # 每次循环刷新版本号，确保更新后重启前显示一致
         _refresh_local_version
@@ -120,19 +109,20 @@ maintain_entry() {
                 # ;;
             3)
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
-                    # 运行卸载脚本
+                    # 执行卸载并捕获返回码
                     bash "$BASE_DIR/uninstall.sh"
-                    
-                    # --- 核心修复 2：卸载执行完毕后强制自检 ---
-                    # 只要快捷命令消失，说明子脚本已完成任务，父进程立即自杀
-                    if [[ ! -f "$BIN_SHORT_LINK" ]]; then
-                        hash -r 2>/dev/null || true
+                    local exit_signal=$?
+
+                    # 约定：返回码 15 代表卸载成功且需要退出
+                    if [[ $exit_signal -eq 15 ]]; then
                         clear
                         echo -e "${LIGHT_CYAN}✅ 脚本已卸载，江湖有缘再见！${LIGHT_WHITE}"
+                        # 执行最后的系统级清理
+                        hash -r 2>/dev/null || true
                         exit 0
                     fi
                 else
-                    ui error "未找到卸载脚本"
+                    ui error "未找到卸载脚本 uninstall.sh"
                     ui wait_return
                 fi
                 ;;
