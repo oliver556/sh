@@ -2,23 +2,20 @@
 
 # =================================================================================
 # @名称:        uninstall.sh
-# @功能描述:     VpsScriptKit 卸载脚本 (精简直接确认版)
+# @功能描述:     VpsScriptKit 卸载脚本
 # @作者:        Jamison
-# @版本:        1.1.0
-# @修改日期:     2026-01-06
-#
+# @版本:        1.3.0
+# @修改日期:     2026-01-07
 # @许可证:       MIT
 # =================================================================================
 
-# 严谨模式
 set -Eeuo pipefail
-trap 'echo -e "\n${BOLD_RED}错误: 卸载过程中出现异常，请检查权限${RESET}" >&2' ERR
 
 # ------------------------------
-# 1. 基础配置
+# 基础配置
 # ------------------------------
 INSTALL_DIR="/opt/VpsScriptKit"
-# 定义所有可能存在的快捷命令路径，彻底解决残留问题
+
 BIN_PATHS=(
     "/usr/local/bin/v"
     "/usr/local/bin/vsk"
@@ -26,66 +23,72 @@ BIN_PATHS=(
     "/usr/bin/vsk"
 )
 
+# ------------------------------
 # 颜色定义
-BOLD_RED=$(tput bold)$(tput setaf 1) || BOLD_RED=""
-BOLD_GREEN=$(tput bold)$(tput setaf 2) || BOLD_GREEN=""
-BOLD_YELLOW=$(tput bold)$(tput setaf 3) || BOLD_YELLOW=""
-BOLD_CYAN=$(tput bold)$(tput setaf 6) || BOLD_CYAN=""
-BOLD_WHITE=$(tput bold)$(tput setaf 7) || BOLD_WHITE=""
-RESET=$(tput sgr0) || RESET=""
+# ------------------------------
+BOLD_RED=$(tput bold 2>/dev/null; tput setaf 1 2>/dev/null) || BOLD_RED=""
+BOLD_GREEN=$(tput bold 2>/dev/null; tput setaf 2 2>/dev/null) || BOLD_GREEN=""
+BOLD_CYAN=$(tput bold 2>/dev/null; tput setaf 6 2>/dev/null) || BOLD_CYAN=""
+BOLD_WHITE=$(tput bold 2>/dev/null; tput setaf 7 2>/dev/null) || BOLD_WHITE=""
+RESET=$(tput sgr0 2>/dev/null) || RESET=""
+
+trap 'echo -e "\n${BOLD_RED}❌ 卸载过程中出现异常${RESET}" >&2' ERR
 
 # ------------------------------
-# 2. 卸载逻辑
+# 功能：执行卸载
 # ------------------------------
 do_uninstall() {
-    # 权限检查
-    if [ "$(id -u)" -ne 0 ]; then
-        echo -e "${BOLD_RED}错误: 请使用 root 权限运行此脚本。${RESET}"
-        exit 1
+
+    if [[ "$(id -u)" -ne 0 ]]; then
+        echo -e "${BOLD_RED}错误：请使用 root 权限执行卸载${RESET}"
+        return 1
     fi
 
     clear
     echo -e "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "${BOLD_RED}        ⚠️  警告：正在执行 VpsScriptKit 卸载程序${RESET}"
+    echo -e "${BOLD_RED}        ⚠️  正在卸载 VpsScriptKit${RESET}"
     echo -e "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "${BOLD_WHITE}这将彻底从系统中移除脚本主目录及所有快捷命令 (${BOLD_YELLOW}v${BOLD_WHITE}/${BOLD_YELLOW}vsk${BOLD_WHITE})。${RESET}"
     echo
-    
-    local choice
-    printf "${BOLD_CYAN}您确定要执行完全卸载吗？(y/N): ${RESET}"
-    # 强制从终端使用 /dev/tty读取输入，确保管道调用时也能交互
-    read -r choice < /dev/tty || choice="n"
-    
-    choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
-    if [[ "$choice" != "y" ]]; then
-        echo -e "\n${BOLD_GREEN}已取消卸载，未进行任何更改。${RESET}"
-        sleep 1
-        exit 1 # 返回 1 告知父进程：操作已取消
+    echo -e "${BOLD_WHITE}该操作将完全移除脚本及所有命令。${RESET}"
+    echo
+
+    printf "${BOLD_CYAN}确认继续卸载？(y/N): ${RESET}"
+    read -r confirm < /dev/tty || confirm="n"
+    confirm="${confirm,,}"
+
+    if [[ "$confirm" != "y" ]]; then
+        echo
+        echo -e "${BOLD_GREEN}已取消卸载。${RESET}"
+        echo
+        return 0
     fi
 
-    echo -e "\n${LIGHT_CYAN}🧹 正在清理卸载...${LIGHT_WHITE}"
+    echo
 
-     # 1. 遍历清理所有快捷链接 (物理抹除)
+    echo -e "${BOLD_CYAN}🧹 正在清理系统...${RESET}"
+
     for path in "${BIN_PATHS[@]}"; do
-        if [ -L "$path" ] || [ -f "$path" ]; then
-            echo -e "--> 移除命令: $path"
-            rm -f "$path" 2>/dev/null || true
-        fi
+        [[ -e "$path" || -L "$path" ]] && rm -f "$path"
     done
 
-    # 2. 移除安装主目录
-    if [ -d "$INSTALL_DIR" ]; then
-        echo -e "--> 移除安装目录: $INSTALL_DIR"
-        rm -rf "$INSTALL_DIR" 2>/dev/null || true
-    fi
+    [[ -d "$INSTALL_DIR" ]] && rm -rf "$INSTALL_DIR"
 
-    # 3. 刷新子进程的命令哈希
-    hash -r 2>/dev/null || true
+    # hash -r 2>/dev/null || true
 
-    # 4. 返回约定好的信号码 15
-    # 这个状态码告诉 maintain.sh：卸载已完成，请执行自毁并告别
-    exit 15
+    echo
+    echo -e "${BOLD_GREEN}✅ VpsScriptKit 已彻底卸载完成${RESET}"
+    echo
+    echo -e "${BOLD_CYAN}📦 所有组件已清理，感谢使用。${RESET}"
+    echo
+
+    sleep 2
+
+    clear
 }
 
-# 执行卸载
-do_uninstall
+# ------------------------------
+# 脚本入口
+# ------------------------------
+do_uninstall "$@"
+
+exit 0

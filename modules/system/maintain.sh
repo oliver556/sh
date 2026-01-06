@@ -16,8 +16,6 @@
 # 基础配置
 # ------------------------------
 INSTALL_DIR="/opt/VpsScriptKit"
-BIN_LINK="/usr/local/bin/vsk"
-BIN_SHORT_LINK="/usr/local/bin/v"
 
 # ------------------------------
 # 内部工具：实时刷新本地版本显示
@@ -25,6 +23,14 @@ BIN_SHORT_LINK="/usr/local/bin/v"
 _refresh_local_version() {
     V_LOCAL="Unknown"
     [[ -f "$BASE_DIR/version" ]] && V_LOCAL=$(cat "$BASE_DIR/version" | xargs)
+}
+
+# ------------------------------
+# 功能：卸载（终止程序）
+# ------------------------------
+do_uninstall() {
+    clear
+    exec bash "$INSTALL_DIR/uninstall.sh"
 }
 
 # ------------------------------
@@ -108,23 +114,7 @@ maintain_entry() {
                 # :
                 # ;;
             3)
-                if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
-                    # 执行卸载并捕获返回码
-                    bash "$BASE_DIR/uninstall.sh"
-                    local exit_signal=$?
-
-                    # 约定：返回码 15 代表卸载成功且需要退出
-                    if [[ $exit_signal -eq 15 ]]; then
-                        clear
-                        echo -e "${LIGHT_CYAN}✅ 脚本已卸载，江湖有缘再见！${LIGHT_WHITE}"
-                        # 执行最后的系统级清理
-                        hash -r 2>/dev/null || true
-                        exit 0
-                    fi
-                else
-                    ui error "未找到卸载脚本 uninstall.sh"
-                    ui wait_return
-                fi
+                do_uninstall
                 ;;
             0)
                 # 返回上级（由 router 自动处理）
