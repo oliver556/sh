@@ -58,25 +58,22 @@ do_uninstall() {
         exit 1 # 返回 1 告诉 maintain.sh 卸载取消，不要退出程序
     fi
 
-    echo -e "\n${BOLD_CYAN}正在清理系统环境...${RESET}"
+    echo -e "\n${LIGHT_CYAN}🧹 正在清理卸载...${LIGHT_WHITE}"
 
-    # 1. 移除软链接
+    # 1. 静默移除软链接和目录
     rm -f "$BIN_LINK" "$BIN_SHORT_LINK" 2>/dev/null || true
+    [ -d "$INSTALL_DIR" ] && rm -rf "$INSTALL_DIR" 2>/dev/null || true
 
-    # 2. 移除主目录
-    if [ -d "$INSTALL_DIR" ]; then
-        rm -rf "$INSTALL_DIR" || true
-    fi
-
-    # 3. 核心修复：自动清理 Bash 命令哈希缓存
-    # 直接在卸载脚本里执行，确保即便不重连 SSH，逻辑也尽力生效
+    # 2. 尝试在当前子 shell 刷新 hash (虽然这改变不了你的主 SSH 窗口，但必须做)
     hash -r 2>/dev/null || true
 
-    # 4. 视觉优化：清屏并显示最后一行
-    clear
+    # 3. 视觉极致优化：彻底清屏，只留下一句温情的告别
+    echo
     echo -e "${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
-    
-    # 退出当前脚本，让 maintain.sh 捕捉到目录消失信号并静默结束
+    sleep 2
+
+    # 4. 正常退出。
+    # 此时父进程 maintain.sh 会检测到目录消失，然后跟着 exit，整个过程无缝衔接。
     exit 0
 }
 

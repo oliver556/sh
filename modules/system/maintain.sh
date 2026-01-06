@@ -112,20 +112,15 @@ maintain_entry() {
             3)
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
                     # 运行卸载脚本
-                    # 不用判断 if，因为 uninstall.sh 内部成功后会直接 kill 掉本进程
                     bash "$BASE_DIR/uninstall.sh"
-                    
-                    # 如果执行到这里说明卸载被取消了，或者 kill 没成功
-                    # 再次手动刷新 hash 并尝试退出
-                    if [[ ! -d "$BASE_DIR" ]]; then
-                        hash -r 2>/dev/null
+                    # 如果子脚本执行成功且目录确实没了，主脚本直接退出
+                    if [[ $? -eq 0 && ! -d "$BASE_DIR" ]]; then
                         exit 0
                     fi
                 else
                     ui error "未找到卸载脚本 uninstall.sh"
                     ui wait_return
                 fi
-                ;;
             0)
                 # 返回上级（由 router 自动处理）
                 return
