@@ -31,6 +31,7 @@ BOLD_RED=$(tput bold)$(tput setaf 1)
 BOLD_GREEN=$(tput bold)$(tput setaf 2)
 BOLD_YELLOW=$(tput bold)$(tput setaf 3)
 BOLD_BLUE=$(tput bold)$(tput setaf 4)
+BOLD_CYAN=$(tput bold)$(tput setaf 6)
 RESET=$(tput sgr0)
 
 # ------------------------------
