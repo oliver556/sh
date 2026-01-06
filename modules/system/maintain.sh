@@ -29,6 +29,12 @@ _refresh_local_version() {
 # ------------------------------
 maintain_entry() {
     while true; do
+        # 如果安装目录都没了，说明脚本已经被卸载，主循环必须强制跳出
+        if [[ ! -d "$BASE_DIR" && ! -f "/usr/local/bin/v" ]]; then
+            clear
+            exit 0
+        fi
+
         # 每次循环刷新版本号，确保更新后重启前显示一致
         _refresh_local_version
         
@@ -104,13 +110,15 @@ maintain_entry() {
                 # :
                 # ;;
             3)
-                # 调用根目录下的卸载脚本
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
                     # 运行卸载脚本
-                    if bash "$BASE_DIR/uninstall.sh"; then
-                        # 卸载成功后强制刷新 hash 并退出
-                        hash -r 2>/dev/null || true
-                        clear
+                    # 不用判断 if，因为 uninstall.sh 内部成功后会直接 kill 掉本进程
+                    bash "$BASE_DIR/uninstall.sh"
+                    
+                    # 如果执行到这里说明卸载被取消了，或者 kill 没成功
+                    # 再次手动刷新 hash 并尝试退出
+                    if [[ ! -d "$BASE_DIR" ]]; then
+                        hash -r 2>/dev/null
                         exit 0
                     fi
                 else

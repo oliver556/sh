@@ -67,24 +67,24 @@ do_uninstall() {
     # 2. 移除主目录
     if [ -d "$INSTALL_DIR" ]; then
         echo -e "--> 移除安装目录: $INSTALL_DIR"
-        # 即使目录内有文件正在被占用，也尝试强制递归删除
-        rm -rf "$INSTALL_DIR" || {
-            echo -e "${BOLD_YELLOW}普通删除失败，尝试提升权限强制清理...${RESET}"
-            rm -rf "$INSTALL_DIR" 2>/dev/null || true
-        }
+        rm -rf "$INSTALL_DIR" || true
     fi
 
-    # 再次验证目录是否消失（防止设备忙等特殊情况）
-    if [ -d "$INSTALL_DIR" ]; then
-        echo -e "${BOLD_RED}提示: 目录 $INSTALL_DIR 仍有部分残留，建议手动运行 rm -rf $INSTALL_DIR${RESET}"
-    fi
+    # 3. 核心修复：清理 Bash 命令哈希缓存
+    # 这能解决 "-bash: /usr/local/bin/v: No such file or directory" 报错
+    hash -r 2>/dev/null || true
 
-    echo -e "${LIGHT_CYAN}✅ 卸载成功，江湖有缘再见！${LIGHT_WHITE}"
-    echo -e "${BOLD_YELLOW}注意: 如果输入 'v' 仍报错，请运行 'hash -r' 刷新 Shell 缓存。${RESET}"
+    echo -e "\n${BOLD_GREEN}✅ 卸载成功，江湖有缘再见！${RESET}"
+    echo -e "${BOLD_YELLOW}提示：如果输入 'v' 仍报错，请重新连接 SSH 或手动执行 'hash -r'。${RESET}"
     echo
     
-    # 成功卸载返回 0，让 maintain.sh 捕捉到并退出整个脚本
-    exit 0
+    sleep 1
+
+    # 4. 核心修复：强制杀死父进程
+    # 使用 pkill 匹配进程名，确保主菜单循环 (maintain.sh) 被强制终结
+    # 这样就不会再弹回菜单界面了
+    pkill -9 -f "VpsScriptKit" 2>/dev/null || true
+    kill -9 $$ 2>/dev/null || true
 }
 
 # 执行卸载
