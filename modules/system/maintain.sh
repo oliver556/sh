@@ -121,6 +121,7 @@ maintain_entry() {
                     ui error "未找到卸载脚本 uninstall.sh"
                     ui wait_return
                 fi
+                ;;
             0)
                 # 返回上级（由 router 自动处理）
                 return
