@@ -1,0 +1,15 @@
+# git archive 在创建压缩包时要忽略哪些文件和目录。
+
+# 忽略 GitHub Actions 的工作流目录
+.github/ export-ignore
+
+# 忽略这个配置文件本身
+.gitattributes export-ignore
+
+# 忽略所有文档和项目配置文件
+*.md export-ignore
+LICENSE export-ignore
+art_word.toml export-ignore
+
+# 忽略所有日志文件
+*.log export-ignore

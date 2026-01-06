@@ -87,22 +87,17 @@ router_main() {
 
     0)
       # 用户输入 0 → 退出程序
-      ui info "已退出脚本，感谢使用 👋"
-
-      # 清屏
       ui clear
       
-      # 输出退出提示信息
       ui line
-      echo -e "${BOLD_GREEN}感谢使用，再见！${LIGHT_WHITE}"
+      echo -e "${BOLD_GREEN}感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
       ui line
+
       sleep 1
 
-      # 清屏
       ui clear
       
       exit 0
-      # 正常退出整个脚本
       ;;
 
     *)

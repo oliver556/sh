@@ -12,72 +12,87 @@
 # ============================================================
 
 # ------------------------------
-# 全局变量
+# 1. 环境初始化
 # ------------------------------
 
-# 脚本版本
-VSK_VERSION="0.0.1"
+# 导出根目录 (如果环境变量没传，则自动计算)
+export BASE_DIR="${BASE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
-# 脚本根目录
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 读取版本号 (从根目录 version 文件读取，方便自动更新同步)
+VSK_VERSION=$(cat "$BASE_DIR/version" | xargs)
 
-
-# 日志目录
+# 日志与临时目录准备
 VSK_LOG_DIR="$BASE_DIR/logs"
 mkdir -p "$VSK_LOG_DIR"
 
-# 加载 OS 识别模块（必须最先）
-source "${BASE_DIR}/lib/os.sh"
-
-# 加载 OS 识别
-#source "${BASE_DIR}/lib/os.sh"
-
-# 非 Linux 直接提示并退出
-# if [[ "$OS_SUPPORTED" != "true" ]]; then
-#   echo "❌ 当前系统仅用于开发调试，不支持正式运行"
-#   echo "👉 请将本项目部署至 Linux VPS 后执行"
-#   exit 1
-# fi
-
 # ------------------------------
-# 引入库
+# 2. 引入依赖库 (顺序敏感)
 # ------------------------------
 
-# 引入 - UI 输出与界面渲染工具 - 函数库
-source "$BASE_DIR/lib/ui.sh"
+# 基础识别与 UI 库
+source "${BASE_DIR}/lib/os.sh"    # OS 识别模块（必须最先）
+source "${BASE_DIR}/lib/ui.sh"    # UI 输出与界面渲染工具 - 函数库
+source "${BASE_DIR}/lib/utils.sh" # 通用工具 - 函数库
 
-# 引入 - 通用工具 - 函数库
-source "$BASE_DIR/lib/utils.sh"
+# 功能函数库
+source "${BASE_DIR}/lib/network.sh"
+source "${BASE_DIR}/lib/system.sh"
 
-# 引入 - 路由模块
-source "$BASE_DIR/core/router.sh"
+# 业务模块与路由
+source "${BASE_DIR}/core/router.sh"           # 路由模块
+source "${BASE_DIR}/modules/system/status.sh" # 系统信息展示
 
-# 引入 系统信息展示
-source "${BASE_DIR}/modules/system/status.sh"
+# # ------------------------------
+# # 3. 命令行参数预处理
+# # ------------------------------
+# # 处理通过 bin/v 传入的参数，例如：v --update 或 v --version
+# case "${1:-}" in
+#     --update|-u)
+#         if [[ -f "${BASE_DIR}/update.sh" ]]; then
+#             bash "${BASE_DIR}/update.sh"
+#             exit 0
+#         fi
+#         ;;
+#     --version|-v)
+#         echo "VpsScriptKit Version: $VSK_VERSION"
+#         exit 0
+#     ;;
+# esac
 
 # ------------------------------
-# 主循环
+# 4. 退出清理 (被动中止) (防止颜色溢出)
+# ------------------------------
+_cleanup() {
+    echo -e "\n${BOLD_GREEN}👋 感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
+    exit 0
+}
+trap _cleanup SIGINT SIGTERM
+
+# ------------------------------
+# 5. 主菜单循环
 # ------------------------------
 
-while true; do
-  # 清屏
-  ui clear
+main_loop() {
+  while true; do
+    # 清屏
+    ui clear
 
-  # 打印顶部标题
-  ui print home_header "            🧰  一款全功能的 Linux 管理脚本！    v$VSK_VERSION"
+    # 头部渲染
+    ui print home_header "            🧰  一款全功能的 Linux 管理脚本！    v$VSK_VERSION"
+    ui print tip "命令行输入 v 可快速启动脚本"
 
-  # 打印提示行
-  ui print tip "命令行输入 v 可快速启动脚本"
+    # 主菜单内容 (定义在 lib/ui.sh 中)
+    ui_main_menu
 
-  # 打印主菜单
-  ui_main_menu
+    # 交互处理
+    ui prompt "请输入你的选择"
+    # 读取用户输入
+    local choice
+    choice="$(ui read_choice)"
 
-  # 提示用户输入
-  ui prompt "请输入你的选择"
+    # 路由分发 (定义在 core/router.sh 中)
+    router_dispatch "$choice"
+  done
+}
 
-  # 读取用户输入
-  choice="$(ui read_choice)"
-
-  # 调用路由分发
-  router_dispatch "$choice"
-done
+main_loop
