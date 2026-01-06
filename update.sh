@@ -43,7 +43,7 @@ get_versions() {
     [ -f "$VERSION_FILE" ] && local_ver=$(cat "$VERSION_FILE" | xargs)
 
     # 获取远程最新版本号 (GitHub API)
-    echo -e "${BOLD_BLUE}🔎 正在检查远程版本...${RESET}"
+    echo -e "${BOLD_CYAN}🔎 正在检查远程版本...${RESET}"
     # 使用 curl 获取最新 Tag
     remote_ver=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
 
@@ -52,6 +52,7 @@ get_versions() {
         exit 1
     fi
     
+    # 导出变量供 do_update 使用
     export LOCAL_VER="$local_ver"
     export REMOTE_VER="$remote_ver"
 }
@@ -65,26 +66,20 @@ do_update() {
     # 版本比对逻辑 (兼容 v1.0.0 和 1.0.0 的格式)
     if [ "$LOCAL_VER" == "$REMOTE_VER" ] || [ "v$LOCAL_VER" == "$REMOTE_VER" ]; then
         echo -e "${BOLD_GREEN}✅ 当前已是最新版本 ($LOCAL_VER)。${RESET}"
-        sleep 1
-        return 0
+        # 退出码 0：告知父脚本无需重启
+        exit 0
     fi
 
     echo -e "${BOLD_YELLOW}🚀 发现新版本 $REMOTE_VER (当前: v$LOCAL_VER)${RESET}"
     echo -e "${BOLD_BLUE}正在执行更新...${RESET}"
     sleep 1
     
-    # 核心逻辑：直接调用远程的一键安装脚本
+    # 核心逻辑：直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         echo -e "\n${BOLD_GREEN}✅ 更新完成！${RESET}"
         echo -e "${BOLD_CYAN}🔄 正在原地重启脚本...${RESET}"
-        sleep 1
-        
-        # 原地重启：替换当前进程
-        if command -v v >/dev/null 2>&1; then
-            exec v
-        else
-            exec bash "$INSTALL_DIR/core/main.sh"
-        fi
+        # 返回退出码 10，告诉 maintain.sh：更新已成功，请主程序执行 exec v 重启
+        exit 10
     else
         echo -e "${BOLD_RED}❌ 更新失败。${RESET}"
         exit 1

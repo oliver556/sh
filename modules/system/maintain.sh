@@ -56,12 +56,21 @@ maintain_entry() {
             1)
                 ui clear
                 ui print info_header "正在检查更新逻辑..."
-                # 调用核心引擎执行具体的下载和重启逻辑
                 if [[ -f "$BASE_DIR/update.sh" ]]; then
+                    # 运行更新引擎并获取退出码
                     bash "$BASE_DIR/update.sh"
+                    local exit_code=$?
+                    
+                    # 如果退出码是 10，更新到新版本，执行顶层重启
+                    if [ $exit_code -eq 10 ]; then
+                        ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
+                        sleep 1
+                        exec v
+                    fi
                 else
                     ui error "未找到核心更新引擎 update.sh"
                 fi
+                # 已经是最新，正常等待用户回车返回菜单
                 ui wait_return
                 ;;
             2)
