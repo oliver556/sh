@@ -14,6 +14,13 @@
 # ============================================================
 
 # ------------------------------
+# 基础配置
+# ------------------------------
+INSTALL_DIR="/opt/VpsScriptKit"
+BIN_LINK="/usr/local/bin/vsk"
+BIN_SHORT_LINK="/usr/local/bin/v"
+
+# ------------------------------
 # 内部工具：实时刷新本地版本显示
 # ------------------------------
 _refresh_local_version() {
@@ -29,8 +36,10 @@ _refresh_local_version() {
 # ------------------------------
 maintain_entry() {
     while true; do
-        # 如果安装目录都没了，说明脚本已经被卸载，主循环强制跳出
-         if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ]; then
+        # --- 核心修复 1：物理路径强制锁定 ---
+        # 只要快捷命令 'v' 在所有常见路径都消失了，说明已被卸载
+        # 此时内存中的循环必须强制终止，防止回弹
+        if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ] && [ ! -f "/usr/local/bin/vsk" ]; then
             clear
             exit 0
         fi
@@ -114,16 +123,16 @@ maintain_entry() {
                     # 运行卸载脚本
                     bash "$BASE_DIR/uninstall.sh"
                     
-                    # 卸载脚本返回后，无论结果如何，只要检测到文件消失，立即强制结束
-                    # 甚至不需要 return，直接 exit 确保进程树关闭
-                    if [ ! -f "/usr/local/bin/v" ] && [ ! -f "/usr/bin/v" ]; then
+                    # --- 核心修复 2：卸载执行完毕后强制自检 ---
+                    # 只要快捷命令消失，说明子脚本已完成任务，父进程立即自杀
+                    if [[ ! -f "$BIN_SHORT_LINK" ]]; then
                         hash -r 2>/dev/null || true
                         clear
-                        echo -e "\033[32m✅ 卸载成功，江湖有缘再见！\033[0m"
+                        echo -e "${LIGHT_CYAN}✅ 脚本已卸载，江湖有缘再见！${LIGHT_WHITE}"
                         exit 0
                     fi
                 else
-                    ui error "未找到卸载脚本 uninstall.sh"
+                    ui error "未找到卸载脚本"
                     ui wait_return
                 fi
                 ;;

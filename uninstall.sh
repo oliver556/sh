@@ -19,9 +19,9 @@ trap 'echo -e "\n${BOLD_RED}错误: 卸载过程中出现异常${RESET}" >&2' ER
 # ------------------------------
 INSTALL_DIR="/opt/VpsScriptKit"
 BIN_LINK="/usr/local/bin/vsk"
-BIN_PATHS=("/usr/local/bin/vsk" "/usr/local/bin/v" "/usr/bin/vsk" "/usr/bin/v")
 BIN_SHORT_LINK="/usr/local/bin/v"
-
+BIN_PATHS=("/usr/local/bin/vsk" "/usr/local/bin/v" "/usr/bin/vsk" "/usr/bin/v")
+    
 # 颜色定义
 BOLD_RED=$(tput bold)$(tput setaf 1) || BOLD_RED=""
 BOLD_GREEN=$(tput bold)$(tput setaf 2) || BOLD_GREEN=""
