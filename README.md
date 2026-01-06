@@ -14,7 +14,4 @@ bash <(curl -fsSL vsk.viplee.cc)
 
 > 若提示没有 `curl` 或 `wget`，先安装即可。
 
-- Ubuntu/Debian: `apt-get install -y curl wget`
-- Alpine: `apk add curl wget`
-- Fedora: `dnf install -y curl wget`
-- CentOS/Rocky/Almalinux/Oracle-linux/Amazon-linux: `yum install -y curl wget`
+- `Ubuntu` / `Debian`: `apt-get install -y curl wget`
