@@ -66,11 +66,22 @@ maintain_entry() {
                 ;;
             2)
                 ui clear
-                ui echo "${BOLD_YELLOW}正在通过远程脚本执行强制覆盖安装...${RESET}"
-                # 强刷模式：直接调用一键安装命令
-                curl -sL vsk.viplee.cc | bash
-                # 安装成功后通过包装器重启
-                exec v
+                ui echo "${BOLD_YELLOW}正在强制重新安装并修复环境...${RESET}"
+                ui blank
+                
+                # 1. 使用 bash -s -- 传递参数给远程下载的脚本
+                # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
+                if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
+                    ui blank
+                    ui echo "${BOLD_GREEN}✅ 强制重新安装完成！${RESET}"
+                    ui echo "${BOLD_CYAN}🔄 脚本将在 2 秒后原地重启...${RESET}"
+                    sleep 2
+                    # 重新载入主程序
+                    exec v
+                else
+                    ui error "强制安装过程中出现异常"
+                    ui wait_return
+                fi
                 ;;
             3)
                 # ui clear

@@ -27,6 +27,15 @@ BIN_LINK="/usr/local/bin/vsk"     #
 BIN_SHORT_LINK="/usr/local/bin/v" # 
 
 # ------------------------------
+# 参数处理：检查是否带有 --skip-agreement
+# ------------------------------
+for arg in "$@"; do
+    if [[ "$arg" == "--skip-agreement" ]]; then
+        SKIP_AGREEMENT="true"
+    fi
+done
+
+# ------------------------------
 # 颜色定义 (使用 tput 确保兼容性) 
 # ------------------------------
 BOLD_WHITE=$(tput bold)$(tput setaf 7)
@@ -112,7 +121,15 @@ clear_version() {
 # @示例: confirm_agreement
 # ------------------------------
 confirm_agreement() {
+
+    # 如果检测到跳过参数，则直接返回
+    if [[ "$SKIP_AGREEMENT" == "true" ]]; then
+        echo -e "${BOLD_GREEN}检测到静默安装参数，已自动同意用户协议。${RESET}"
+        return 0
+    fi
+
     clear
+    
     echo -e "${BOLD_BLUE}欢迎使用 VpsScriptKit 脚本工具箱${BOLD_WHITE}"
     echo -e "${BOLD_YELLOW}在继续安装之前，请先阅读并同意用户协议。${BOLD_WHITE}"
     echo "─────────────────────────────────────────────────────"
