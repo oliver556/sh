@@ -92,7 +92,7 @@ maintain_entry() {
                     ui wait_return
                 fi
                 ;;
-            3)
+            # 3)
                 # ui clear
                 # ui print info_header "📜 最近更新日志"
                 # ui line
@@ -101,9 +101,9 @@ maintain_entry() {
                 # grep '"body":' | cut -d '"' -f 4 | sed 's/\\r\\n/\n/g' || echo "无法连接到 GitHub 获取日志。"
                 # ui line
                 # ui wait_return
-                :
-                ;;
-            9)
+                # :
+                # ;;
+            3)
                 # 调用根目录下的卸载脚本
                 if [[ -f "$BASE_DIR/uninstall.sh" ]]; then
                     bash "$BASE_DIR/uninstall.sh"
