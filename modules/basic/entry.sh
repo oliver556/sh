@@ -5,7 +5,7 @@ module_entry() {
   ui_clear
   ui print page_header_full "🚧 ${MODULE_NAME} 模块占位"
   echo "此模块尚未开发，按任意键返回主菜单"
-  ui_pause
+  ui pause
   return
 }
 

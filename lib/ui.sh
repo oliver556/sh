@@ -192,6 +192,11 @@ ui() {
       # 将读取到的内容输出，供调用方接收
     ;;
 
+
+    # ------------------------------
+    # 等待 / 暂停函数
+    # ------------------------------
+
     # 展示页用（status / info）
     "wait_return")
       ui blank
@@ -203,6 +208,15 @@ ui() {
       # -r: 允许反斜杠
       read -s -r
     ;;
+
+    "pause")
+      # 提示用户按任意键继续
+      ui echo ""
+      ui echo "按任意键继续..."
+      # 读取一个字符，但不回显
+      read -rsn1
+    ;;
+
 
     # ------------------------------
     # 页面清屏
@@ -248,7 +262,7 @@ ui() {
       local spaces=$(printf '%*s' "$pad" '')
 
       # 输出菜单
-      ui echo "${LIGHT_CYAN}${index}.${spaces}${RESET}${LIGHT_WHITE}${text} ▶${RESET}"
+      ui echo "${LIGHT_CYAN}${index}.${spaces}${RESET}${LIGHT_WHITE}${text}${RESET}"
     ;;
 
     "item_list")
@@ -293,7 +307,7 @@ ui_main_menu() {
   ui line
 
   # 系统工具菜单项
-  ui item 1 "系统工具"
+  ui item 1 "系统工具 ▶"
 
   # 基础工具菜单项
   ui item 2 "${BOLD_GREY}基础工具${RESET}"
@@ -307,7 +321,7 @@ ui_main_menu() {
   ui line
 
   # 测试脚本合集菜单项
-  ui item 8 "${BOLD_GREY}测试脚本合集${RESET}"
+  ui item 8 "测试脚本合集 ▶"
 
   # 节点搭建脚本菜单项
   ui item 9 "${BOLD_GREY}节点搭建脚本${RESET}"
@@ -394,7 +408,7 @@ ui_menu_item() {
   printf "%*s" "$padding" ""
 
   # 3. 渲染菜单内容
-  # 格式: 编号. 文本 ▶
+  # 格式: 编号. 文本
   echo -ne "${LIGHT_CYAN}${index}.${RESET} ${LIGHT_WHITE}${text} ${LIGHT_CYAN}${RESET}"
 }
 
@@ -404,4 +418,31 @@ ui_menu_item() {
 ui_menu_done() {
   echo ""
   G_LAST_MENU_ROW=-1
+}
+
+# ------------------------------
+# 返回上级菜单
+# ------------------------------
+
+# ------------------------------
+# 菜单层级跳转提示 (返回主菜单/上级菜单)
+# ------------------------------
+# 参数1: 0 表示返回主菜单，其他或为空表示返回上级菜单
+ui_go_level() {
+  local options="${1:-1}" # 默认为 1
+
+  ui border_bottom
+
+  if [[ "$options" == "0" ]]; then
+    ui_menu_item 99 0 0 "返回主菜单"
+  else
+    ui_menu_item 99 0 0 "返回上级菜单"
+  fi
+
+  ui_menu_done
+
+  ui border_bottom
+
+  # 提示用户输入选项
+  ui prompt "请选择一个操作"
 }

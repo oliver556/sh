@@ -1,0 +1,60 @@
+# .github/workflows/create-release.yml
+
+# 工作流名称
+name: Create and Publish Release
+
+# 触发条件
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# 定义工作流中的任务
+jobs:
+  create-release:
+    # 任务名称
+    name: Create Release Package
+    # 运行环境
+    runs-on: ubuntu-latest
+    # 授予写入权限
+    permissions:
+      contents: write
+
+    # 任务步骤
+    steps:
+      # 第 1 步: 检出仓库代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 第 2 步: 准备变量 (方便自定义)
+      - name: Set up release variables
+        run: |
+          # 定义文件名
+          ASSET_NAME="VpsScriptKit-${{ github.ref_name }}.tar.gz"
+          echo "ASSET_NAME=$ASSET_NAME" >> $GITHUB_ENV
+          echo "SHA_NAME=${ASSET_NAME}.sha256" >> $GITHUB_ENV
+
+      # 第 3 步: 
+      - name: Create release archive
+        # 使用 --prefix 确保压缩包内含有一层目录，适配 install.sh 的 --strip-components=1
+        run: |
+          git archive -o ${{ env.ASSET_NAME }} --format=tar.gz --prefix=VpsScriptKit/ HEAD
+
+       # 第 4 步: 生成 install.sh 所需的校验文件
+      - name: Generate SHA256 checksum
+        run: |
+          sha256sum ${{ env.ASSET_NAME }} > ${{ env.SHA_NAME }}
+
+      # 第 5 步: 创建带版本号的 Release
+      - name: Create Versioned Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          # Release 的标题直接使用版本号
+          name: Release ${{ github.ref_name }}
+          # 🚀 这是 Release 的描述内容
+          body: "VpsScriptKit 项目，简称 vsk 项目。"
+          files: |
+            ${{ env.ASSET_NAME }}
+            ${{ env.SHA_NAME }}
+          prerelease: ${{ contains(github.ref, '-') }}

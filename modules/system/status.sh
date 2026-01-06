@@ -8,20 +8,10 @@
 # 引入全局库
 # ------------------------------
 # BASE_DIR 需在 core/main.sh 中定义
-. "$BASE_DIR/lib/ui.sh"        # UI 输出库
-. "$BASE_DIR/lib/system.sh"    # 系统信息函数库
-. "$BASE_DIR/lib/os.sh"        # 系统信息函数库
-. "$BASE_DIR/lib/network.sh"   # 网络信息函数库
-
-# ------------------------------
-# 工具函数：格式化输出
-# ------------------------------
-status_print_line() {
-    # 参数1：标签
-    # 参数2：值
-    # %-12s 表示左对齐，占12个字符宽度
-    printf "%-12s %s\n" "$1:" "$2"
-}
+source "$BASE_DIR/lib/ui.sh"        # UI 输出库
+source "$BASE_DIR/lib/system.sh"    # 系统信息函数库
+source "$BASE_DIR/lib/os.sh"        # 系统信息函数库
+source "$BASE_DIR/lib/network.sh"   # 网络信息函数库
 
 # ------------------------------
 # 展示系统概览信息 (系统身份与状态)
@@ -63,20 +53,6 @@ status_show_memory_info() {
 
     ui line_2
 }
-
-# ------------------------------
-# 展示磁盘信息
-# ------------------------------
-# status_show_disk_info() {
-#     # ui print info_header "💾  磁盘状态"
-
-#     # 输出表格形式的磁盘占用
-#     # sys_get_disk_usage | while read -r line; do
-#     #     echo "$line"
-#     # done
-
-#     :
-# }
 
 # ------------------------------
 # 展示网络信息 (网络标识)
@@ -186,14 +162,11 @@ status_show_all() {
     status_show_system_info
     status_show_cpu_info
     status_show_memory_info
-    # status_show_disk_info
     status_show_network_info
     status_show_transmission_info
     status_show_algo_info
     status_show_tz_time_info
     status_show_run_time_info
-
-    # ui item_list "运行时间" 15 "$(sys_get_uptime)"
 
     ui wait_return
 }
