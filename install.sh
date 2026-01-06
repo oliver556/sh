@@ -229,7 +229,9 @@ get_latest_release_url() {
     local LATEST_RELEASE_JSON
     LATEST_RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest") || error_exit "无法连接 GitHub API"
 
-    echo "$LATEST_RELEASE_JSON" | grep -q '"message"' && error_exit "GitHub API 返回错误，可能触发限速"
+    if echo "$LATEST_RELEASE_JSON" | grep -q '"message"'; then
+        error_exit "GitHub API 返回错误，可能触发限速或仓库不存在"
+    fi
 
     # 从返回的 JSON 中解析出 .tar.gz 文件的下载链接
     local TARBALL_URL
