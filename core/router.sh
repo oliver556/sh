@@ -63,10 +63,8 @@ router_main() {
 
     8)
       # 用户输入 8 → 测试脚本合集模块占位
-      source "${BASE_DIR}/modules/test/entry.sh"
-      # 加载占位模块文件
-      test_entry
-      # 调用占位模块入口函数
+      source "${BASE_DIR}/modules/test/menu.sh"
+      test_menu
       ;;
 
     9)
