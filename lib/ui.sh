@@ -88,17 +88,14 @@ ui() {
       case "$action2" in
         # 首页 / 门户页
         "home_header")
-          # 参数 1：标题文字
+          # 参数 1: 标题文字
           local title="$1"
 
           ui border_top
-          # 输出顶部边框
 
-          ui echo "${LIGHT_CYAN}#${BOLD}$(printf '%60s' "$title")${RESET}     ${LIGHT_CYAN}#${RESET}"
-          # 居中显示标题（简单方式，保证对齐感）
+          ui echo "${LIGHT_CYAN}#${BOLD}$(printf "$title")${RESET}"
 
           ui border_top
-          # 再输出一次边框，形成包裹感
         ;;
 
         # 功能页 / 子菜单页
@@ -160,7 +157,7 @@ ui() {
         "tip")
           # 此时 $1 是原来的 $3 (提示文字内容)
           local tip="$1"
-          ui echo "${LIGHT_YELLOW}#$(printf '%60s' "💡  Tip: $tip")${RESET}              ${LIGHT_YELLOW}#${RESET}"
+          ui echo "${LIGHT_YELLOW}#$(printf "$tip")${RESET}"
         ;;
 
 

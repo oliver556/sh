@@ -102,17 +102,6 @@ maintain_entry() {
                     ui wait_return
                 fi
                 ;;
-            # 3)
-                # ui clear
-                # ui print info_header "📜 最近更新日志"
-                # ui line
-                # # 实时抓取并格式化展示 GitHub Release 的 Body 内容
-                # curl -sL "https://api.github.com/repos/oliver556/sh/releases/latest" | \
-                # grep '"body":' | cut -d '"' -f 4 | sed 's/\\r\\n/\n/g' || echo "无法连接到 GitHub 获取日志。"
-                # ui line
-                # ui wait_return
-                # :
-                # ;;
             3)
                 do_uninstall
                 ;;

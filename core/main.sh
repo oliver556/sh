@@ -35,12 +35,13 @@ source "${BASE_DIR}/lib/ui.sh"    # UI 输出与界面渲染工具 - 函数库
 source "${BASE_DIR}/lib/utils.sh" # 通用工具 - 函数库
 
 # 功能函数库
-source "${BASE_DIR}/lib/network.sh"
-source "${BASE_DIR}/lib/system.sh"
+source "${BASE_DIR}/lib/check.sh"     # 通用检测工具 - 函数库
+source "${BASE_DIR}/lib/network.sh"   # 网络信息工具 - 函数库
+source "${BASE_DIR}/lib/system.sh"    # 系统信息工具 - 函数库
+source "${BASE_DIR}/lib/validate.sh"  # 能力检测工具 - 函数库
 
 # 业务模块与路由
 source "${BASE_DIR}/core/router.sh"           # 路由模块
-source "${BASE_DIR}/modules/system/status.sh" # 系统信息展示
 
 # # ------------------------------
 # # 3. 命令行参数预处理
@@ -68,6 +69,7 @@ _cleanup() {
     echo -e "${BOLD_GREEN}👋 感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
     ui line
     sleep 1
+    ui clear
     exit 0
 }
 trap _cleanup SIGINT SIGTERM
@@ -81,8 +83,8 @@ main_loop() {
     ui clear
 
     # 头部渲染
-    ui print home_header "            🧰  一款全功能的 Linux 管理脚本！    v$VSK_VERSION"
-    ui print tip "命令行输入 v 可快速启动脚本"
+    ui print home_header " 🧰  一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
+    ui print tip " 💡 Tip: 命令行输入 v 可快速启动脚本"
 
     # 主菜单内容 (定义在 lib/ui.sh 中)
     ui_main_menu
