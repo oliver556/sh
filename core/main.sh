@@ -35,10 +35,11 @@ source "${BASE_DIR}/lib/ui.sh"    # UI 输出与界面渲染工具 - 函数库
 source "${BASE_DIR}/lib/utils.sh" # 通用工具 - 函数库
 
 # 功能函数库
-source "${BASE_DIR}/lib/check.sh"     # 通用检测工具 - 函数库
-source "${BASE_DIR}/lib/network.sh"   # 网络信息工具 - 函数库
-source "${BASE_DIR}/lib/system.sh"    # 系统信息工具 - 函数库
-source "${BASE_DIR}/lib/validate.sh"  # 能力检测工具 - 函数库
+source "${BASE_DIR}/lib/check.sh"          # 通用检测工具 - 函数库
+source "${BASE_DIR}/lib/network.sh"        # 网络信息工具 - 函数库
+source "${BASE_DIR}/lib/system.sh"         # 系统信息工具 - 函数库
+source "${BASE_DIR}/lib/validate.sh"       # 能力检测工具 - 函数库
+source "${BASE_DIR}/lib/confirm_utils.sh"  # 交互确认工具 - 函数库
 
 # 业务模块与路由
 source "${BASE_DIR}/core/router.sh"           # 路由模块
@@ -64,13 +65,7 @@ source "${BASE_DIR}/core/router.sh"           # 路由模块
 # 4. 退出清理 (被动中止) (防止颜色溢出)
 # ------------------------------
 _cleanup() {
-    ui clear
-    ui line
-    echo -e "${BOLD_GREEN}👋 感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
-    ui line
-    sleep 1
-    ui clear
-    exit 0
+  ui_exit
 }
 trap _cleanup SIGINT SIGTERM
 
@@ -89,11 +84,11 @@ main_loop() {
     # 主菜单内容 (定义在 lib/ui.sh 中)
     ui_main_menu
 
-    # 交互处理
-    ui prompt "请输入你的选择"
+    ui info "你好"
+    ui_info "你好1"
+
     # 读取用户输入
-    local choice
-    choice="$(ui read_choice)"
+    choice=$(ui_read_choice)
 
     # 路由分发 (定义在 core/router.sh 中)
     router_dispatch "$choice"

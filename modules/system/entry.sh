@@ -9,7 +9,7 @@
 # 3. 分发到系统工具具体功能
 # 4. 支持返回主菜单
 #
-# 设计原则: 
+# 设计原则:
 # - 模块自闭环（进入 → 操作 → 返回）
 # - 不直接处理主菜单
 # - 不退出整个程序
@@ -46,18 +46,15 @@ system_entry() {
     # ui_menu_item 1 "查看系统信息"
 
     ui line
-
     ui_menu_item 1 0 1 "系统信息查询"
     ui_menu_item 1 6 2 "${BOLD_GREY}系统更新${RESET}"
     ui_menu_item 1 14 3 "${BOLD_GREY}系统清理 ▶${RESET}"
-
+    ui_menu_done
     # ui_menu_item 2 "查看磁盘使用情况"
     # ui_menu_item 3 "查看内存使用情况"
     # ui_menu_item 4 "查看 CPU 负载"
 
-    ui_menu_done
     ui line
-
     ui_menu_item 2 0 4 "${BOLD_GREY}修改登录密码${RESET}"
     ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${RESET}"
     ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${RESET}"
@@ -65,14 +62,16 @@ system_entry() {
     ui_menu_item 3 0 7 "${BOLD_GREY}修改SSH端口${RESET}"
     ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
     ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
+    ui_menu_done
 
+    ui line
+    ui_menu_item 9 0 99 ""${BOLD_GREY}一键重装系统 ▶${RESET}""
     ui_menu_done
 
     ui_go_level 0
-    
-    # 读取用户输入并存入变量
-    local choice
-    choice="$(ui read_choice)"
+
+    # 读取用户输入
+    choice=$(ui_read_choice)
 
     # 根据用户输入执行不同操作
     case "$choice" in
@@ -97,6 +96,11 @@ system_entry() {
         system_cpu_load
       ;;
 
+      99)
+        # 重装系统
+
+      ;;
+
       0)
         # 选项 0: 返回主菜单
         return
@@ -105,14 +109,14 @@ system_entry() {
 
       *)
         # 处理非法输入
-        ui error "无效选项，请重新输入"
+        ui_error "无效选项，请重新输入"
         # 短暂暂停，避免立刻刷新
         sleep 1
       ;;
     esac
 
     # 在每次操作完成后暂停，等待用户确认
-    # ui pause
+    # ui_wait
   done
 }
 

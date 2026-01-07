@@ -41,9 +41,8 @@ test_entry() {
     # 底部返回
     ui_go_level 0
 
-    # 读取用户输入并存入变量
-    local choice
-    choice="$(ui read_choice)"
+    # 读取用户输入
+    choice=$(ui_read_choice)
 
     # 根据用户输入执行不同操作
     case "$choice" in
@@ -53,7 +52,7 @@ test_entry() {
         ui echo "🚀 正在运行 IP 质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -I
-        ui wait_return
+        ui_wait_enter
       ;;
 
       2)
@@ -61,7 +60,7 @@ test_entry() {
         ui echo "🚀 正在运行 NetQuality 网络质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -N
-        ui wait_return
+        ui_wait_enter
       ;;
 
       31)
@@ -69,7 +68,7 @@ test_entry() {
         ui echo "🚀 正在运行 bench 性能测试..."
         ui blank
         curl -Lso- bench.sh | bash
-        ui wait_return
+        ui_wait_enter
       ;;
 
       32)
@@ -77,7 +76,7 @@ test_entry() {
         ui echo "🚀 正在运行 spiritysdx 融合怪测评..."
         curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
         ui blank
-        ui wait_return
+        ui_wait_enter
       ;;
 
       91)
@@ -87,7 +86,7 @@ test_entry() {
         bash <(curl -L https://run.NodeQuality.com)
         ui blank
 
-        ui wait_return
+        ui_wait_enter
       ;;
 
       0)
@@ -98,13 +97,13 @@ test_entry() {
 
       *)
         # 处理非法输入
-        ui error "无效选项，请重新输入"
+        ui_error "无效选项，请重新输入"
         # 短暂暂停，避免立刻刷新
         sleep 1
       ;;
     esac
 
   done
-  
+
 }
 

@@ -88,17 +88,18 @@ router_main() {
 
     0)
       # 用户输入 0 → 退出程序
-      ui clear
+      # ui clear
       
-      ui line
-      echo -e "${BOLD_GREEN}感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
-      ui line
+      # ui line
+      # echo -e "${BOLD_GREEN}感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
+      # ui line
+      ui_exit
 
-      sleep 1
+      # sleep 1
 
-      ui clear
+      # ui clear
       
-      exit 0
+      # exit 0
       ;;
 
     *)

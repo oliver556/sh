@@ -16,7 +16,7 @@ status_show_system_info() {
     ui item_list "主机名" 15 "$_sys_get_hostname"
     ui item_list "系统版本" 15 "$_os_get_pretty_name"
     ui item_list "Linux版本" 15 "$_sys_get_kernel"
-    
+
     ui line_2
 }
 
@@ -65,7 +65,7 @@ status_show_network_info() {
 # 展示系统运行时间 传输统计
 # ------------------------------
 status_show_transmission_info() {
-    # 
+    #
     ui item_list "总接收" 15 "$_net_get_total_rx"
     ui item_list "总发送" 15 "$_net_get_total_tx"
 
@@ -87,7 +87,7 @@ status_show_algo_info() {
 status_show_tz_time_info() {
     ui item_list "地理位置" 15 "$_net_get_geo"
     ui item_list "系统时间" 15 "$_sys_get_tz_time"
-    
+
     ui line_2
 }
 
@@ -145,7 +145,7 @@ status_show_all() {
     ui echo "${BLUE}正在查询中，请稍后...${LIGHT_WHITE}"
 
     _get_sys_info
-    
+
     # ui echo "${GREEN}查询完成${LIGHT_WHITE}"
 
     ui clear
@@ -159,5 +159,5 @@ status_show_all() {
     status_show_tz_time_info
     status_show_run_time_info
 
-    ui wait_return
+    ui_wait_enter
 }
