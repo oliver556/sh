@@ -31,7 +31,7 @@ router_main() {
 
     1)
       # 用户输入 1 → 系统工具模块
-      source "${BASE_DIR}/modules/system/entry.sh"
+      source "${BASE_DIR}/modules/system/menu.sh"
       # 加载系统工具模块入口文件
       system_entry
       # 调用系统工具模块入口函数
@@ -79,11 +79,8 @@ router_main() {
 
     99)
       # 用户输入 99 → 脚本工具模块占位
-      # source "${BASE_DIR}/modules/tools/entry.sh"
-      source "${BASE_DIR}/modules/system/maintain.sh"
-      # 加载占位模块文件
-      maintain_entry
-      # 调用占位模块入口函数
+      source "${BASE_DIR}/modules/system/vsk_script/menu.sh"
+      vsk_script_menu
       ;;
 
     0)

@@ -84,9 +84,6 @@ main_loop() {
     # 主菜单内容 (定义在 lib/ui.sh 中)
     ui_main_menu
 
-    ui info "你好"
-    ui_info "你好1"
-
     # 读取用户输入
     choice=$(ui_read_choice)
 

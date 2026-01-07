@@ -78,7 +78,7 @@ do_update() {
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         echo -e "\n${BOLD_GREEN}✅ 更新完成！${RESET}"
         echo -e "${BOLD_CYAN}🔄 正在原地重启脚本...${RESET}"
-        # 返回退出码 10，告诉 maintain.sh：更新已成功，请主程序执行 exec v 重启
+        # 返回退出码 10，告诉 vsk_script/menu.sh：更新已成功，请主程序执行 exec v 重启
         exit 10
     else
         echo -e "${BOLD_RED}❌ 更新失败。${RESET}"

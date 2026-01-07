@@ -2,7 +2,7 @@
 
 # ============================================================
 # VpsScriptKit - 系统工具模块入口
-# @名称:         system/entry.sh
+# @名称:         system/menu.sh
 # @职责:
 # 1. 显示「系统工具」子菜单
 # 2. 接收用户输入
@@ -26,7 +26,7 @@
 # ------------------------------
 
 # 引入 系统信息展示
-source "${BASE_DIR}/modules/system/status.sh"
+source "${BASE_DIR}/modules/system/system/system_status.sh"
 
 # ------------------------------
 # 系统工具模块主入口
