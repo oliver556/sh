@@ -16,7 +16,7 @@
 # ------------------------------
 
 # 引入 UI 库，用于输出提示信息
-source "${BASE_DIR}/lib/ui.sh"
+# source "${BASE_DIR}/lib/ui.sh"
 
 # ------------------------------
 # 主菜单路由函数
@@ -82,19 +82,7 @@ router_main() {
       ;;
 
     0)
-      # 用户输入 0 → 退出程序
-      # ui clear
-      
-      # ui line
-      # echo -e "${BOLD_GREEN}感谢使用 VpsScriptKit，再见！${LIGHT_WHITE}"
-      # ui line
       ui_exit
-
-      # sleep 1
-
-      # ui clear
-      
-      # exit 0
       ;;
 
     *)

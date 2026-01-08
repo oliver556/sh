@@ -22,10 +22,10 @@ test_menu() {
     ui print page_header_full "🧪  测试脚本工具"
 
     ui line
-    ui_menu_item 1 0 1 "IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${RESET}"
+    ui_menu_item 1 0 1 " IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${RESET}"
     ui_menu_done
 
-    ui_menu_item 2 0 2 "网络质量测试"
+    ui_menu_item 2 0 2 " 网络质量测试"
     # ui_menu_item 3 0 3 "回程路由"
     ui_menu_done
 

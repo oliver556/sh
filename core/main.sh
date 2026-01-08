@@ -31,6 +31,7 @@ mkdir -p "$VSK_LOG_DIR"
 
 # 基础识别与 UI 库
 source "${BASE_DIR}/lib/os.sh"    # OS 识别模块（必须最先）
+source "${BASE_DIR}/lib/env.sh"   # 全局环境变量与常量配置
 source "${BASE_DIR}/lib/ui.sh"    # UI 输出与界面渲染工具 - 函数库
 source "${BASE_DIR}/lib/utils.sh" # 通用工具 - 函数库
 

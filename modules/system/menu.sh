@@ -46,26 +46,23 @@ system_entry() {
     # ui_menu_item 1 "查看系统信息"
 
     ui line
-    ui_menu_item 1 0 1 "系统信息查询"
+    ui_menu_item 1 0 1 " 系统信息查询"
     ui_menu_item 1 6 2 "${BOLD_GREY}系统更新${RESET}"
     ui_menu_item 1 14 3 "${BOLD_GREY}系统清理 ▶${RESET}"
     ui_menu_done
-    # ui_menu_item 2 "查看磁盘使用情况"
-    # ui_menu_item 3 "查看内存使用情况"
-    # ui_menu_item 4 "查看 CPU 负载"
 
     ui line
-    ui_menu_item 2 0 4 "${BOLD_GREY}修改登录密码${RESET}"
+    ui_menu_item 2 0 4 "${BOLD_GREY} 修改登录密码${RESET}"
     ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${RESET}"
     ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${RESET}"
 
-    ui_menu_item 3 0 7 "${BOLD_GREY}修改SSH端口${RESET}"
+    ui_menu_item 3 0 7 "${BOLD_GREY} 修改SSH端口${RESET}"
     ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
     ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
     ui_menu_done
 
     ui line
-    ui_menu_item 9 0 99 ""${BOLD_GREY}一键重装系统 ▶${RESET}""
+    ui_menu_item 9 0 99 "一键重装系统 ▶"
     ui_menu_done
 
     ui_go_level 0
@@ -81,24 +78,10 @@ system_entry() {
         status_show_all
       ;;
 
-      2)
-        # 选项 2: 查看磁盘使用情况
-        system_disk_usage
-      ;;
-
-      3)
-        # 选项 3: 查看内存使用情况
-        system_memory_usage
-      ;;
-
-      4)
-        # 选项 4: 查看 CPU 负载
-        system_cpu_load
-      ;;
-
       99)
         # 重装系统
-
+        source "${BASE_DIR}/modules/system/reinstall/menu.sh"
+        reinstall_menu
       ;;
 
       0)
@@ -118,58 +101,4 @@ system_entry() {
     # 在每次操作完成后暂停，等待用户确认
     # ui_wait
   done
-}
-
-# ------------------------------
-# 系统工具功能函数
-# ------------------------------
-
-system_show_info() {
-  # 清空终端
-  ui clear
-
-  # 打印功能标题
-  ui print home_header "📋 系统信息"
-
-  # 输出操作系统信息
-  uname -a
-}
-
-system_disk_usage() {
-  # 清空终端
-  ui clear
-
-  # 打印功能标题
-  ui print home_header "💽 磁盘使用情况"
-
-  # 显示磁盘使用情况（人类可读格式）
-  df -h
-}
-
-system_memory_usage() {
-  # 清空终端
-  ui clear
-
-  # 打印功能标题
-  ui print home_header "🧠 内存使用情况"
-
-  # 判断系统类型（macOS / Linux）
-  if is_macos; then
-    # macOS 使用 vm_stat 查看内存
-    vm_stat
-  else
-    # Linux 使用 free 查看内存
-    free -h
-  fi
-}
-
-system_cpu_load() {
-  # 清空终端
-  ui clear
-
-  # 打印功能标题
-  ui print home_header "⚙️ CPU 负载"
-
-  # 显示 CPU 负载信息
-  sys_get_uptime
 }
