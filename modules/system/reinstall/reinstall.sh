@@ -21,9 +21,10 @@ reinstall_finish_reboot() {
     
     ui blank
     ui line
-    ui echo "${LIGHT_GREEN}✅ 重装指令发送成功！${RESET}"
-    ui echo "${LIGHT_CYAN}系统将在 ${delay} 秒后自动重启并开始 DD 重装...${RESET}"
-    ui echo "${BOLD_YELLOW}请等待约 ${INSTALL_ESTIMATE_TIME:-15} 分钟，期间请勿手动干预服务器。${RESET}"
+    ui echo "${LIGHT_GREEN}✅ 重装预处理已完成！${RESET}"
+    ui echo "${LIGHT_CYAN}系统将在 ${delay} 秒后自动重启并开始 DD...${RESET}"
+    ui echo "${BOLD_YELLOW}提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。${RESET}"
+
     ui line
 
     # 使用数值循环执行倒计时
@@ -52,8 +53,17 @@ reinstall_finish_reboot() {
 # ------------------------------
 reinstall_Leitbogioro() {
     local system_param="$1"
-    wget --no-check-certificate -qO InstallNET.sh "${GH_PROXY}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh" && chmod a+x InstallNET.sh
-    bash InstallNET.sh -"${system_param}"
+    local url="${GH_PROXY}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh"
+    
+    ui_info "正在下载 [Leitbogioro] DD 脚本..."
+    wget --no-check-certificate -qO InstallNET.sh "$url" || curl -sLO "$url"
+    chmod a+x InstallNET.sh
+    
+    ui_info "正在启动安装脚本，请稍后..."
+    bash InstallNET.sh ${system_param}
+    
+    # 返回 InstallNET.sh 的执行状态码
+    return $?
 }
 
 # ------------------------------
@@ -66,8 +76,17 @@ reinstall_Leitbogioro() {
 # ------------------------------
 reinstall_Bin456789() {
     local system_param="$1"
-    curl -O "${GH_PROXY}"raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
-    bash reinstall.sh "${system_param}"
+    local url="${GH_PROXY}raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh"
+    
+    ui_info "正在下载 [Bin456789] DD 脚本..."
+    # 采用作者文档推荐的多路下载兼容方式，且由于使用 bash 运行，无需 chmod
+    curl -sLO "$url" || wget -qO reinstall.sh "$url"
+
+    ui_info "正在启动安装脚本，请稍后..."
+    bash reinstall.sh ${system_param}
+
+    # 返回 reinstall.sh 的执行状态码
+    return $?
 }
 
 # ------------------------------
@@ -86,7 +105,7 @@ run_mollylau_install() {
     ui echo "${BOLD_LIGHT_WHITE}🔄 正在检查系统是否安装有必要环境..."
 
     # 确保 wget 环境就绪
-    ensure_wget || exit 1
+    ensure_wget || return 1
 
     sleep 1
 
@@ -121,7 +140,6 @@ run_bin456789_install() {
     sleep 1
 
     reinstall_Bin456789 "${system_param}"
-    sleep 1
     reinstall_finish_reboot
 }
 
@@ -142,26 +160,27 @@ reinstall_info_config() {
     local name="$1"
     local user pass port func param
 
-    # --- 核心优化：配置查找表 ---
+    # --- 配置查找表 ---
     case "$name" in
         "Debian 13"|"CentOS 10"|"CentOS 9")
             user="root"; pass="123@@@"; port="22"; func="run_bin456789_install"
-            [[ "$name" == "Debian 13" ]] && param="debian 13"
-            [[ "$name" == "CentOS 10" ]] && param="centos 10"
-            [[ "$name" == "CentOS 9" ]] && param="centos 9"
+            local os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            local ver_num=$(echo "$name" | awk '{print $2}')
+            param="${os_low} ${ver_num}"
             ;;
         "Debian 12"|"Debian 11"|"Debian 10"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"
-            param=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+            local os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            local ver_num=$(echo "$name" | awk '{print $2}')
+            param="-${os_low} ${ver_num}"
             ;;
-        "Windows 11"|"Windows 10"|"Windows 7")
+        "Windows"*)
             user="Administrator"; pass="Teddysun.com"; port="3389"; func="run_mollylau_install"
-            param="-windows ${name#Windows } -lang \"cn\""
-            ;;
-        "Windows Server 2025"|"Windows Server 2022"|"Windows Server 2019")
-            user="Administrator"; pass="Teddysun.com"; port="3389"; func="run_mollylau_install"
-            local ver_num=$(echo "$name" | awk '{print $NF}')
-            param="-windows ${ver_num} -lang \"cn\""
+            if [[ "$name" == *"Server"* ]]; then
+                param="-windows $(echo "$name" | awk '{print $NF}') -lang cn"
+            else
+                param="-windows ${name#Windows } -lang cn"
+            fi
             ;;
         "Alpine Linux")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"; param="-alpine"
@@ -202,7 +221,7 @@ reinstall_info_config() {
     # 动态调用传入的安装函数名，并将系统名称作为参数传递给它
     "${func}" "${name}" "${param}"
 
-    return
+    return $?
 }
 
 # ------------------------------
