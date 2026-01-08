@@ -45,3 +45,6 @@ REPO="oliver556/sh"
 
 # 重装成功后的自动重启倒计时 (秒)
 REBOOT_DELAY=3
+
+# 系统重装大概耗时（分）
+INSTALL_ESTIMATE_TIME=15
