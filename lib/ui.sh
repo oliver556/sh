@@ -316,11 +316,13 @@ G_LAST_MENU_ROW=-1
 # 参数2: padding - 距离左侧或前一个项的间距
 # 参数3: index   - 菜单编号
 # 参数4: text    - 菜单文本
+# 参数5: spcae_count - 编号后的间距
 ui_menu_item() {
   local row_id="$1"
   local padding="$2"
   local index="$3"
   local text="$4"
+  local space_count="${5:-1}"
 
   # 1. 自动换行逻辑：如果 row_id 变化，则输出换行符
   if [[ "$row_id" != "$G_LAST_MENU_ROW" ]]; then
@@ -336,7 +338,7 @@ ui_menu_item() {
 
   # 3. 渲染菜单内容
   # 格式: 编号. 文本
-  echo -ne "${LIGHT_CYAN}${index}.${RESET} ${LIGHT_WHITE}${text} ${LIGHT_CYAN}${RESET}"
+  ui echo -n "${LIGHT_CYAN}${index}.${RESET}$(ui_spaces $space_count)${LIGHT_WHITE}${text}${RESET}"
 }
 
 # ------------------------------
@@ -356,15 +358,15 @@ ui_menu_done() {
 # ------------------------------
 # 参数1: 0 表示返回主菜单，其他或为空表示返回上级菜单
 ui_go_level() {
-  local options="${1:-1}" # 默认为 1
+  # local options="${1:-1}" # 默认为 1
 
   ui border_bottom
-
-  if [[ "$options" == "0" ]]; then
-    ui_menu_item 99 0 0 "返回主菜单"
-  else
-    ui_menu_item 99 0 0 "返回上级菜单"
-  fi
+  # echo $options
+  # if [[ "$options" == "0" ]]; then
+    # ui_menu_item 99 0 0 "返回主菜单" 3
+  # else
+  ui_menu_item 99 0 0 "返回上级菜单" 2
+  # fi
 
   ui_menu_done
 

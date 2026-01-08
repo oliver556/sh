@@ -25,7 +25,7 @@ reinstall_menu() {
     while true; do
         ui clear
 
-        ui print page_header_full "⚙️ 一键重装系统"
+        ui print page_header_full "⚙️$(ui_spaces)一键重装系统"
         ui echo "${BOLD_RED}注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"
         ui echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
         ui line
@@ -70,7 +70,7 @@ reinstall_menu() {
         ui_menu_done
 
         # 返回主菜单提示
-        ui_go_level 0
+        ui_go_level
 
         # 读取用户输入
         choice=$(ui_read_choice)

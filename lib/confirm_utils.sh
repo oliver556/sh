@@ -13,6 +13,18 @@
 ### ============================================================
 
 # ---------------------------------------------------------------------------------
+# 函数: ui_spaces
+# 描述: 生成指定数量的空格字符串
+# 参数: $1 - 需要的空格数量 (默认: 2)
+# 示例: echo "A$(ui_spaces 2)B" -> A  B
+# ---------------------------------------------------------------------------------
+ui_spaces() {
+    local count="${1:-2}"
+    ((count < 0)) && count=0
+    printf "%*s" "$count" ""
+}
+
+# ---------------------------------------------------------------------------------
 # 函数: ui_confirm
 # 描述: 按 (Y/y) 键确认，按其它任意键返回/取消
 # 参数: $1 - 提示信息 (默认: 确认执行此操作吗？)
@@ -86,10 +98,10 @@ ui_input() {
     
     # 提示符通过 read -p 输出到 stderr，确保 $() 只能捕获到 echo 的值
     if [ -n "$default_val" ]; then
-        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
+        read -rp "$(echo -e "${LIGHT_CYAN}👉$(ui_spaces)${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
         echo "${input_val:-$default_val}"
     else
-        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt}: ${LIGHT_WHITE}")" input_val
+        read -rp "$(echo -e "${LIGHT_CYAN}👉$(ui_spaces)${prompt}: ${LIGHT_WHITE}")" input_val
         echo "$input_val"
     fi
 }
@@ -130,8 +142,8 @@ ui_error() {
 ui_exit() {
     ui clear
     ui line
-    echo -e "${BOLD_GREEN}👋 感谢使用 VpsScriptKit！${LIGHT_WHITE}"
-    echo -e "${BOLD_CYAN}👋 江湖有缘再见。${LIGHT_WHITE}"
+    echo -e "${BOLD_GREEN}👋$(ui_spaces)感谢使用 VpsScriptKit！${LIGHT_WHITE}"
+    echo -e "${BOLD_CYAN}👋$(ui_spaces)江湖有缘再见。${LIGHT_WHITE}"
     ui line
     sleep 1
     ui clear

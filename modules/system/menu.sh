@@ -38,12 +38,8 @@ system_entry() {
 
     ui clear
 
-    # 打印模块标题
     # ui print home_header "🛠️ 系统工具"
     ui print page_header_full "⚙️  系统工具"
-
-    # 打印系统工具子菜单选项
-    # ui_menu_item 1 "查看系统信息"
 
     ui line
     ui_menu_item 1 0 1 " 系统信息查询"
@@ -65,7 +61,7 @@ system_entry() {
     ui_menu_item 9 0 99 "一键重装系统 ▶"
     ui_menu_done
 
-    ui_go_level 0
+    ui_go_level
 
     # 读取用户输入
     choice=$(ui_read_choice)
@@ -97,8 +93,5 @@ system_entry() {
         sleep 1
       ;;
     esac
-
-    # 在每次操作完成后暂停，等待用户确认
-    # ui_wait
   done
 }

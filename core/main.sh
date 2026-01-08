@@ -79,8 +79,8 @@ main_loop() {
     ui clear
 
     # 头部渲染
-    ui print home_header " 🧰  一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
-    ui print tip " 💡 Tip: 命令行输入 v 可快速启动脚本"
+    ui print home_header "$(ui_spaces)🧰$(ui_spaces)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
+    ui print tip "$(ui_spaces)💡$(ui_spaces)Tip: 命令行输入 ${BOLD_GREEN}v${LIGHT_YELLOW} 可快速启动脚本"
 
     # 主菜单内容 (定义在 lib/ui.sh 中)
     ui_main_menu

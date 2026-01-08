@@ -46,7 +46,7 @@ do_uninstall() {
 
     clear
     echo -e "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo -e "${BOLD_RED}        ⚠️  正在卸载 VpsScriptKit${RESET}"
+    echo -e "${BOLD_RED}        ⚠️$(ui_spaces 4)正在卸载 VpsScriptKit${RESET}"
     echo -e "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     echo
     echo -e "${BOLD_WHITE}该操作将完全移除脚本及所有命令。${RESET}"
@@ -76,9 +76,9 @@ do_uninstall() {
     # hash -r 2>/dev/null || true
 
     echo
-    echo -e "${BOLD_GREEN}✅ VpsScriptKit 已彻底卸载完成${RESET}"
+    echo -e "${BOLD_GREEN}✅$(ui_spaces)VpsScriptKit 已彻底卸载完成${RESET}"
     echo
-    echo -e "${BOLD_CYAN}📦 所有组件已清理，感谢使用。${RESET}"
+    echo -e "${BOLD_CYAN}📦$(ui_spaces)所有组件已清理，感谢使用。${RESET}"
     echo
 
     sleep 2

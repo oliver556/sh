@@ -57,7 +57,7 @@ vsk_script_menu() {
         ui_menu_done
 
         # 返回主菜单提示
-        ui_go_level 0
+        ui_go_level
 
         # 读取用户输入
         choice=$(ui_read_choice)

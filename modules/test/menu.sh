@@ -39,7 +39,7 @@ test_menu() {
     ui_menu_done
 
     # 底部返回
-    ui_go_level 0
+    ui_go_level
 
     # 读取用户输入
     choice=$(ui_read_choice)
@@ -49,7 +49,7 @@ test_menu() {
       1)
         # 选项 1: IP 质量测试
         ui clear
-        ui echo "🚀 正在运行 IP 质量检测..."
+        ui echo "🚀$(ui_spaces)正在运行 IP 质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -I
         ui_wait_enter
@@ -57,7 +57,7 @@ test_menu() {
 
       2)
         ui clear
-        ui echo "🚀 正在运行 NetQuality 网络质量检测..."
+        ui echo "🚀$(ui_spaces)正在运行 NetQuality 网络质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -N
         ui_wait_enter
@@ -65,7 +65,7 @@ test_menu() {
 
       31)
         ui clear
-        ui echo "🚀 正在运行 bench 性能测试..."
+        ui echo "🚀$(ui_spaces)正在运行 bench 性能测试..."
         ui blank
         curl -Lso- bench.sh | bash
         ui_wait_enter
@@ -73,7 +73,7 @@ test_menu() {
 
       32)
         ul clear
-        ui echo "🚀 正在运行 spiritysdx 融合怪测评..."
+        ui echo "🚀$(ui_spaces)正在运行 spiritysdx 融合怪测评..."
         curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
         ui blank
         ui_wait_enter
