@@ -43,22 +43,22 @@ reinstall_finish_reboot() {
 }
 
 # ------------------------------
-# 名称: MollyLau 脚本
-# @描述: 本函数用于安装 MollyLau 脚本
+# 名称: Leitbogioro 脚本
+# @描述: 本函数用于安装 Leitbogioro 脚本
 # @参数: $1: string - 脚本执行后缀补充 (e.g., "debian 12")
 #
 # @GitHub 地址：https://github.com/leitbogioro/Tools
-# @示例: reinstall_MollyLau "debian 12"
+# @示例: reinstall_Leitbogioro "debian 12"
 # ------------------------------
-reinstall_MollyLau() {
+reinstall_Leitbogioro() {
     local SYSTEM_PARAM="$1"
     wget --no-check-certificate -qO InstallNET.sh "${GH_PROXY}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh" && chmod a+x InstallNET.sh
     bash InstallNET.sh -"${SYSTEM_PARAM}"
 }
 
 # ------------------------------
-# 名称: MollyLau 脚本安装逻辑 ①
-# @描述: 本函数用于安装 MollyLau 脚本。
+# @名称: Leitbogioro 脚本安装逻辑 ①
+# @描述: 本函数用于安装 Leitbogioro 脚本。
 #
 # @参数 $1: 系统版本全名 (e.g., "Debian 12")
 # @参数 $2: 脚本执行后缀补充 (e.g., "debian 12")
@@ -66,46 +66,67 @@ reinstall_MollyLau() {
 # @示例: run_mollylau_install "Debian 12" "debian 12"
 # ------------------------------
 run_mollylau_install() {
-    ui echo "走到安装逻辑了"
-
     local SYSTEM_VERSION_NAME="$1"
     local SYSTEM_PARAM="$2"
 
-    ui echo "正在检查系统是否安装有必要环境..."
+    ui echo "${BOLD_LIGHT_WHITE}🔄 正在检查系统是否安装有必要环境..."
 
     # 确保 wget 环境就绪
     ensure_wget || exit 1
 
     sleep 1
 
-    ui echo "正在为您准备 [MollyLau] DD 脚本..."
-    ui echo "目标系统: ${SYSTEM_VERSION_NAME}" 
+    ui echo "正在准备: ${BOLD_LIGHT_CYAN}[Leitbogioro] DD 脚本...${BOLD_LIGHT_WHITE}"
+    ui echo "目标系统: ${BOLD_LIGHT_CYAN}${SYSTEM_VERSION_NAME}${BOLD_LIGHT_WHITE}" 
 
     ui line
 
     sleep 2
 
-    # 实际执行时取消下方注释
-    # reinstall_MollyLau "${SYSTEM_PARAM}"
-    # sleep 2
-    # reinstall_finish_reboot
-
-    # 如果用于测试阶段想看回车返回，则返回 0
-    return 0
+    reinstall_Leitbogioro "${SYSTEM_PARAM}"
+    reinstall_finish_reboot
 }
 
 # ------------------------------
-# 名称: bin456789 脚本
-# @描述: 本函数用于安装 bin456789 脚本
+# 名称: Bin456789 脚本
+# @描述: 本函数用于安装 Bin456789 脚本
 # @参数: $1: string - 脚本执行后缀补充 (e.g., "debian 12")
 #
 # @GitHub 地址：https://github.com/bin456789/reinstall
 # @示例: reinstall_bin456789 "debian 12"
 # ------------------------------
-reinstall_bin456789() {
+reinstall_Bin456789() {
     local SYSTEM_PARAM="$1"
     curl -O "${GH_PROXY}"raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
     bash reinstall.sh "${SYSTEM_PARAM}"
+}
+
+# ------------------------------
+# @名称: Bin456789 脚本安装逻辑 ②
+# @描述: 本函数用于安装 Bin456789 脚本。
+#
+# @参数 $1: 系统版本全名 (e.g., "Debian 12")
+# @参数 $2: 脚本执行后缀补充 (e.g., "debian 12")
+#
+# @示例: run_bin456789_install "Debian 12" "debian 12"
+# ------------------------------
+run_bin456789_install() {
+    local SYSTEM_VERSION_NAME="$1"
+    local SYSTEM_PARAM="$2"
+
+    ui echo "正在准备: ${BOLD_LIGHT_CYAN}[Bin456789] DD 脚本...${BOLD_LIGHT_WHITE}"
+    ui echo "目标系统: ${BOLD_LIGHT_CYAN}${SYSTEM_VERSION_NAME}${BOLD_LIGHT_WHITE}" 
+
+    ui line
+
+    sleep 2
+
+    # 执行脚本
+    reinstall_Bin456789 "${SYSTEM_PARAM}"
+    sleep 2
+    reinstall_finish_reboot
+
+    return 1
 }
 
 # ------------------------------
@@ -129,22 +150,18 @@ reinstall_info_config() {
     local INSTALL_FUNCTION_NAME="$5"
     local SYSTEM_PARAM="$6"
 
-    ui echo "${LIGHT_CYAN}请最后确认您的安装选项:${LIGHT_WHITE}"
+    ui echo "${LIGHT_CYAN}请最后确认您的安装选项:${BOLD_LIGHT_WHITE}"
     ui line
-    ui echo "${LIGHT_CYAN}- 系统版本:${LIGHT_WHITE} ${BOLD_RED}${SYSTEM_VERSION_NAME}${LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始用户:${LIGHT_WHITE} ${YELLOW}${USER}${LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始密码:${LIGHT_WHITE} ${YELLOW}${PASS}${LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始端口:${LIGHT_WHITE} ${YELLOW}${PORT}${LIGHT_WHITE}"
+    ui echo "${LIGHT_CYAN}- 系统版本:${BOLD_LIGHT_WHITE} ${BOLD_RED}${SYSTEM_VERSION_NAME}${BOLD_LIGHT_WHITE}"
+    ui echo "${LIGHT_CYAN}- 初始用户:${BOLD_LIGHT_WHITE} ${YELLOW}${USER}${BOLD_LIGHT_WHITE}"
+    ui echo "${LIGHT_CYAN}- 初始密码:${BOLD_LIGHT_WHITE} ${YELLOW}${PASS}${BOLD_LIGHT_WHITE}"
+    ui echo "${LIGHT_CYAN}- 初始端口:${BOLD_LIGHT_WHITE} ${YELLOW}${PORT}${BOLD_LIGHT_WHITE}"
     ui line
 
     ui blank
 
-    ui echo "${BOLD_RED}警告: 这将清除目标服务器上的所有数据！${LIGHT_WHITE}"
-    ui echo "${BOLD_RED}请务必记录好上述密码，以免重装后失联。${LIGHT_WHITE}"
-
-    # if ! ui_confirm; then
-        # return 1
-    # fi
+    ui echo "${BOLD_RED}警告: 这将清除目标服务器上的所有数据！${BOLD_LIGHT_WHITE}"
+    ui echo "${BOLD_RED}请务必记录好上述密码，以免重装后失联。${BOLD_LIGHT_WHITE}"
 
     if ! ui_confirm "确认开始重装系统？"; then
         return 1
@@ -152,10 +169,10 @@ reinstall_info_config() {
 
     ui blank
 
-    ui_info "确认完毕，准备开始 DD！"
+    ui_info "${BOLD_LIGHT_GREEN}确认完毕，准备开始 DD！${BOLD_LIGHT_WHITE}"
 
     ui line
-    ui echo "${LIGHT_CYAN}马上开始重装系统${LIGHT_WHITE}"
+    ui echo "${BOLD_LIGHT_CYAN}马上开始重装系统${BOLD_LIGHT_WHITE}"
     ui line
 
     sleep 2
@@ -170,7 +187,6 @@ reinstall_info_config() {
 # 重装系统逻辑
 # ------------------------------
 reinstall_logic_main() {
-    # while true; do
     ui clear
 
     local choice="$1"
@@ -190,13 +206,83 @@ reinstall_logic_main() {
     local PORT_3="22"
     local FUNC_3="run_bin456789_install"
 
+    local USER_NAME_4="Administrator"
+    local PASS_4="123@@@"
+    local PORT_4="3389"
+    local FUNC_4="run_bin456789_install"
+
     case "$choice" in
+        "Debian 13")
+            reinstall_info_config "Debian 13" "$USER_NAME_3" "$PASS_3" "$PORT_3" "$FUNC_3" "debian 13"
+            return $?
+        ;;
         "Debian 12")
-            # 展示要安装的系统信息内容给用户确认
-            # reinstall_info_config "Debian 12" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "debian 12"
             reinstall_info_config "Debian 12" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "debian 12"
             return $?
-            # ui_wait
+        ;;
+        "Debian 11")
+            reinstall_info_config "Debian 11" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "debian 11"
+            return $?
+        ;;
+        "Debian 10")
+            reinstall_info_config "Debian 10" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "debian 10"
+            return $?
+        ;;
+        # ==========================================================================================
+        "Ubuntu 24.04")
+            reinstall_info_config "Ubuntu 24.04" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "ubuntu 24.04"
+            return $?
+        ;;
+        "Ubuntu 22.04")
+            reinstall_info_config "Ubuntu 22.04" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "ubuntu 22.04"
+            return $?
+        ;;
+        "Ubuntu 20.04")
+            reinstall_info_config "Ubuntu 20.04" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "ubuntu 20.04"
+            return $?
+        ;;
+        "Ubuntu 18.04")
+            reinstall_info_config "Ubuntu 18.04" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "ubuntu 18.04"
+            return $?
+        ;;
+        # ==========================================================================================
+        "CentOS 10")
+            reinstall_info_config "CentOS 10" "$USER_NAME_3" "$PASS_3" "$PORT_3" "$FUNC_3" "centos 10"
+            return $?
+        ;;
+        "CentOS 9")
+            reinstall_info_config "CentOS 9" "$USER_NAME_3" "$PASS_3" "$PORT_3" "$FUNC_3" "centos 9"
+            return $?
+        ;;
+        # ==========================================================================================
+        "Alpine Linux")
+            reinstall_info_config  "Alpine Linux" "$USER_NAME_1" "$PASS_1" "$PORT_1" "$FUNC_1" "-alpine"
+            return $?
+        ;;
+        # ==========================================================================================
+        "Windows 11")
+            reinstall_info_config "Windows 11" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" '-windows 11 -lang "cn"'
+            return $?
+        ;;
+        "Windows 10")
+            reinstall_info_config "Windows 10" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" '-windows 10 -lang "cn"'
+            return $?
+        ;;
+        "Windows 7")
+            reinstall_info_config "Windows 7" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" '-windows 7 -lang "cn"'
+            return $?
+        ;;
+        "Windows Server 2025")
+            reinstall_info_config "Windows Server 2025" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" 'windows 2025 -lang "cn"'
+            return $?
+        ;;
+        "Windows Server 2022")
+            reinstall_info_config "Windows Server 2022" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" 'windows 2022 -lang "cn"'
+            return $?
+        ;;
+        "Windows Server 2019")
+            reinstall_info_config "Windows Server 2019" "$USER_NAME_2" "$PASS_2" "$PORT_2" "$FUNC_2" 'windows 2019 -lang "cn"'
+            return $?
         ;;
         0)
             # 返回上级（由 router 自动处理）
@@ -207,5 +293,4 @@ reinstall_logic_main() {
             sleep 1
         ;;
     esac
-    # done
 }

@@ -53,8 +53,8 @@ ui_confirm() {
 ui_wait_enter() {
     ui blank
     ui blank
-    ui echo "${LIGHT_GREEN}执行完成${RESET}"
-    ui echo "${LIGHT_WHITE}按回车键返回...${RESET}"
+    ui echo "${BOLD_LIGHT_GREEN}执行完成${LIGHT_WHITE}"
+    ui echo "${BOLD_LIGHT_WHITE}按回车键返回...${LIGHT_WHITE}"
     # 不带 -n，强制等待回车
     read -s -r
 }
@@ -66,7 +66,7 @@ ui_wait_enter() {
 ui_wait() {
     ui blank
     # 使用简洁的提示语，兼容 pause 的感觉
-    ui echo "${LIGHT_CYAN}按任意键继续...${RESET}"
+    ui echo "${LIGHT_CYAN}按任意键继续...${LIGHT_WHITE}"
 
     # -n 1: 读取 1 个字符立即返回
     # -s: 静默模式，不回显输入
@@ -86,10 +86,10 @@ ui_input() {
     
     # 提示符通过 read -p 输出到 stderr，确保 $() 只能捕获到 echo 的值
     if [ -n "$default_val" ]; then
-        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${RESET}")" input_val
+        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
         echo "${input_val:-$default_val}"
     else
-        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt}: ${RESET}")" input_val
+        read -rp "$(echo -e "${LIGHT_CYAN}👉 ${prompt}: ${LIGHT_WHITE}")" input_val
         echo "$input_val"
     fi
 }
@@ -108,19 +108,19 @@ ui_read_choice() {
 # ---------------------------------------------------------------------------------
 # 普通信息提示
 ui_info()  {
-    ui echo "${BOLD_BLUE}ℹ${RESET} $1";
+    ui echo "${BOLD_BLUE}ℹ${LIGHT_WHITE} $1";
 }
 # 成功信息提示
 ui_success() {
-    ui echo "${BOLD_GREEN}✔${RESET} $1";
+    ui echo "${BOLD_GREEN}✔${LIGHT_WHITE} $1";
 }
 # 警告信息提示
 ui_warn()  {
-     ui echo "${BOLD_YELLOW}⚠${RESET} $1";
+     ui echo "${BOLD_YELLOW}⚠${LIGHT_WHITE} $1";
 }
 # 错误信息提示
 ui_error() {
-    ui echo "${BOLD_RED}✘${RESET} $1"; 
+    ui echo "${BOLD_RED}✘${LIGHT_WHITE} $1"; 
 }
 
 # ---------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ ui_exit() {
     ui clear
     ui line
     echo -e "${BOLD_GREEN}👋 感谢使用 VpsScriptKit！${LIGHT_WHITE}"
-    echo -e "${BOLD_CYAN}👋 江湖有缘再见。${RESET}"
+    echo -e "${BOLD_CYAN}👋 江湖有缘再见。${LIGHT_WHITE}"
     ui line
     sleep 1
     ui clear
