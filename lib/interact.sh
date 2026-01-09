@@ -92,7 +92,7 @@ ui_wait() {
 # ---------------------------------------------------------------------------------
 ui_input() {
     local prompt="$1"
-    local default_val="$2"
+    local default_val="${2:-}"
     local input_val
     
     # 提示符通过 read -p 输出到 stderr，确保 $() 只能捕获到 echo 的值
