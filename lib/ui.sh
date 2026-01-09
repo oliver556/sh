@@ -255,13 +255,9 @@ ui_main_menu() {
 
   ui line
 
-  ui item 99 "脚本工具 ▶"
+  ui item 99 "脚本自管理 ▶"
 
   # 脚本工具菜单项
-
-  ui line
-
-  ui item 00 "更新脚本"
 
   ui border_bottom
 

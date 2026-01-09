@@ -76,10 +76,6 @@ router_main() {
       source "${BASE_DIR}/modules/system/vsk_script/menu.sh"
       vsk_script_menu
       ;;
-
-    00)
-      source "${BASE_DIR}/update.sh"
-      ;;
     0)
       ui_exit
       ;;
