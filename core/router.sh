@@ -33,7 +33,7 @@ router_main() {
       # 用户输入 1 → 系统工具模块
       source "${BASE_DIR}/modules/system/menu.sh"
       # 加载系统工具模块入口文件
-      system_entry
+      system_menu
       # 调用系统工具模块入口函数
       ;;
 
@@ -54,21 +54,19 @@ router_main() {
       ;;
 
     4)
-      # 用户输入 4 → Docker 管理模块占位
-      source "${BASE_DIR}/modules/docker/entry.sh"
-      # 加载占位模块文件
-      docker_entry
-      # 调用占位模块入口函数
+      # Docker 管理模块
+      source "${BASE_DIR}/modules/docker/menu.sh"
+      docker_menu
       ;;
 
     8)
-      # 用户输入 8 → 测试脚本合集模块占位
+      # 测试脚本合集
       source "${BASE_DIR}/modules/test/menu.sh"
       test_menu
       ;;
 
     9)
-      # 用户输入 9 → 节点搭建脚本模块占位
+      # 节点搭建脚本
       source "${BASE_DIR}/modules/node/entry.sh"
       # 加载占位模块文件
       node_entry

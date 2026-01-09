@@ -64,7 +64,6 @@ ui_confirm() {
 # ---------------------------------------------------------------------------------
 ui_wait_enter() {
     ui blank
-    ui blank
     ui echo "${BOLD_LIGHT_GREEN}执行完成${LIGHT_WHITE}"
     ui echo "${BOLD_LIGHT_WHITE}按回车键返回...${LIGHT_WHITE}"
     # 不带 -n，强制等待回车
@@ -118,21 +117,33 @@ ui_read_choice() {
 # ---------------------------------------------------------------------------------
 # 状态反馈函数
 # ---------------------------------------------------------------------------------
-# 普通信息提示
+# 纯文本输出（最低级）
+ui_text() {
+    ui echo "$1"
+}
+# 用户提示 / 说明（加粗白）
+ui_tip() {
+    ui echo "${BOLD_WHITE}➤$(ui_spaces 1)$1${RESET}"
+}
+# 信息提示（中性状态）
 ui_info()  {
-    ui echo "${BOLD_BLUE}ℹ${LIGHT_WHITE} $1";
+    ui echo "${BLUE}ℹ$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 成功信息提示
+# 成功提示
 ui_success() {
-    ui echo "${BOLD_GREEN}✔${LIGHT_WHITE} $1";
+    ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 警告信息提示
+# 警告提示（非致命）
 ui_warn()  {
-     ui echo "${BOLD_YELLOW}⚠${LIGHT_WHITE} $1";
+    ui echo "${BOLD_YELLOW}⚠$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 错误信息提示
+# 错误提示（致命）
 ui_error() {
-    ui echo "${BOLD_RED}✘${LIGHT_WHITE} $1"; 
+    ui echo "${BOLD_RED}✘$(ui_spaces 1)$1${LIGHT_WHITE}";
+}
+# 菜单选项错误（非致命）
+ui_warn_menu()  {
+    ui echo "${BOLD_YELLOW}❌$(ui_spaces)$1${LIGHT_WHITE}"
 }
 
 # ---------------------------------------------------------------------------------

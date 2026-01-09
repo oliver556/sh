@@ -110,7 +110,7 @@ vsk_script_menu() {
                 return
                 ;;
             *)
-                ui_error "无效选项，请重新输入"
+                ui_warn_menu "无效选项，请重新输入..."
                 sleep 1
                 ;;
         esac

@@ -158,7 +158,7 @@ ui() {
 
 
         *)
-          ui echo "${RED}未知打印指令: $action2${RESET}"
+          ui_warn_menu "无效选项，请重新输入..."
         ;;
       esac
     ;;
@@ -220,7 +220,7 @@ ui() {
     ;;
 
     *)
-      ui echo "${RED}未知 UI 指令: $action${RESET}"
+      ui_warn_menu "无效选项，请重新输入..."
     ;;
   esac
 }
@@ -243,7 +243,7 @@ ui_main_menu() {
   ui item 3 "${BOLD_GREY}进阶工具${RESET}"
 
   # Docker 管理菜单项
-  ui item 4 "${BOLD_GREY}Docker 管理${RESET}"
+  ui item 4 "Docker 管理 ▶"
 
   ui line
 

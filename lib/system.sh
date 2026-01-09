@@ -246,3 +246,14 @@ sys_get_tcp_congestion() {
     # 读取 /proc/sys/net/ipv4/tcp_congestion_control
     cat /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null || echo "N/A"
 }
+
+# ------------------------------
+# 判断是否支持主流 Linux 包管理器 (apt / yum / dnf)
+# apt → Debian / Ubuntu
+# yum → CentOS / RHEL 7
+# yum → CentOS / RHEL 7
+# ------------------------------
+get_supported_package_manager() {
+    command -v apt &>/dev/null || command -v yum &>/dev/null || command -v dnf &>/dev/null
+}
+

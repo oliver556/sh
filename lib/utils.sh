@@ -43,6 +43,7 @@ is_root() {
 # 输入校验
 # ------------------------------
 
+# todo 后续删掉
 is_number() {
   # 参数 $1：输入值
   # 返回 0 表示是纯数字，1 表示不是
@@ -157,5 +158,19 @@ log_append() {
   # 如果日志目录存在，则写入日志文件
   if [[ -d "$VSK_LOG_DIR" ]]; then
     echo "$(current_time) $msg" >> "$VSK_LOG_DIR/vpsscriptkit.log"
+  fi
+}
+
+# ------------------------------
+# 辅助函数: 获取 Docker 环境状态字符串
+# ------------------------------
+get_docker_status_text() {
+  # 调用 lib/check.sh 中的逻辑函数
+  if docker_is_installed; then
+    # 返回绿色加粗的“已安装”
+    echo -e "${BOLD_GREEN}已安装${RESET}"
+  else
+    # 返回红色加粗的“未安装”
+    echo -e "${BOLD_RED}未安装${RESET}"
   fi
 }

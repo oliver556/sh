@@ -32,27 +32,26 @@ source "${BASE_DIR}/modules/system/system/system_status.sh"
 # 系统工具模块主入口
 # ------------------------------
 
-system_entry() {
+system_menu() {
   # 使用无限循环保证模块不会意外退出
   while true; do
 
     ui clear
-
-    # ui print home_header "🛠️ 系统工具"
-    ui print page_header_full "⚙️  系统工具"
+    
+    ui print page_header_full "⚙️$(ui_spaces)系统工具"
 
     ui line
-    ui_menu_item 1 0 1 " 系统信息查询"
+    ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询"
     ui_menu_item 1 6 2 "${BOLD_GREY}系统更新${RESET}"
     ui_menu_item 1 14 3 "${BOLD_GREY}系统清理 ▶${RESET}"
     ui_menu_done
 
     ui line
-    ui_menu_item 2 0 4 "${BOLD_GREY} 修改登录密码${RESET}"
+    ui_menu_item 2 0 4 "${BOLD_GREY}$(ui_spaces 1)修改登录密码${RESET}"
     ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${RESET}"
     ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${RESET}"
 
-    ui_menu_item 3 0 7 "${BOLD_GREY} 修改SSH端口${RESET}"
+    ui_menu_item 3 0 7 "${BOLD_GREY}$(ui_spaces 1)修改SSH端口${RESET}"
     ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
     ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
     ui_menu_done
@@ -88,7 +87,7 @@ system_entry() {
 
       *)
         # 处理非法输入
-        ui_error "无效选项，请重新输入"
+        ui_warn_menu "无效选项，请重新输入..."
         # 短暂暂停，避免立刻刷新
         sleep 1
       ;;

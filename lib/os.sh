@@ -18,6 +18,53 @@
 # Linux 系统发行版识别
 # -------------------------------
 
+### === 检测当前 Linux 发行版类型 (仅名称) === ###
+#
+# @描述
+#   本函数用于检测当前 Linux 发行版类型。
+#
+# @返回值
+#   - "debian" (适用于 Ubuntu, Debian)
+#   - "rhel"   (适用于 CentOS, RHEL, Fedora)
+#   - "unsupported" (适用于其他不支持的系统)
+#
+# @示例
+#   get_os_type
+###
+get_os_type() {
+    # 检查 /etc/os-release 文件是否存在
+    if [ -f /etc/os-release ]; then
+        # 加载文件中的变量 (如 ID, ID_LIKE)
+        . /etc/os-release
+
+        case "$ID" in
+            ubuntu|debian)
+                echo "debian"
+                ;;
+            centos|rhel|fedora)
+                echo "rhel"
+                ;;
+            *)
+                # 如果主 ID 不匹配，可以检查 ID_LIKE 字段
+                case "$ID_LIKE" in
+                    debian)
+                        echo "debian"
+                        ;;
+                    rhel|fedora)
+                        echo "rhel"
+                        ;;
+                    *)
+                        echo "unsupported"
+                        ;;
+                esac
+                ;;
+        esac
+    else
+        # 如果 /etc/os-release 文件不存在，则无法确定系统
+        echo "unknown"
+    fi
+}
+
 # 获取系统发行版名字（带版本）
 os_get_pretty_name() {
     if [[ -f /etc/os-release ]]; then
