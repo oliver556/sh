@@ -31,7 +31,6 @@ menu_uninstall_docker() {
   fi
 
   if ! ui_confirm " 注意: 确定卸载 Docker 环境吗？[包含: Docker 所有数据 (镜像, 容器, 卷)]"; then
-    sleep 1
     return 1
   fi
   uninstall_docker_logic
@@ -73,7 +72,7 @@ docker_menu() {
     ui line
     ui_menu_item 3 0 7 "$(ui_spaces 1)${BOLD_GREY}更换源${RESET}"
     ui_menu_done
-    ui_menu_item 2 0 4 "$(ui_spaces 1)${BOLD_GREY}编辑 daemon.json${RESET}"
+    ui_menu_item 2 0 8 "$(ui_spaces 1)${BOLD_GREY}编辑 daemon.json${RESET}"
     ui_menu_done
 
     ui line

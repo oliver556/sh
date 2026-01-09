@@ -14,7 +14,6 @@
 # ============================================================
 
 test_menu() {
-  # 使用无限循环保证模块不会意外退出
   while true; do
 
     ui clear
@@ -38,16 +37,12 @@ test_menu() {
     ui_menu_item 9 0 91 "Node Quality 综合脚本 (Yabs + IP质量 + 网络质量 + 融合怪的部分功能)"
     ui_menu_done
 
-    # 底部返回
     ui_go_level
 
-    # 读取用户输入
     choice=$(ui_read_choice)
 
-    # 根据用户输入执行不同操作
     case "$choice" in
       1)
-        # 选项 1: IP 质量测试
         ui clear
         ui echo "🚀$(ui_spaces)正在运行 IP 质量检测..."
         ui blank
@@ -82,7 +77,6 @@ test_menu() {
       91)
         ui clear
         # sudo apt-get install virt-what
-        # bash <(curl -sL https://run.NodeQuality.com)
         bash <(curl -L https://run.NodeQuality.com)
         ui blank
 
@@ -90,15 +84,11 @@ test_menu() {
       ;;
 
       0)
-        # 选项 0: 返回主菜单
         return
-        # 使用 return 而不是 exit，返回到上级调用者（router）
       ;;
 
       *)
-        # 处理非法输入
         ui_warn_menu "无效选项，请重新输入..."
-        # 短暂暂停，避免立刻刷新
         sleep 1
       ;;
     esac

@@ -251,13 +251,17 @@ ui_main_menu() {
   ui item 8 "测试脚本合集 ▶"
 
   # 节点搭建脚本菜单项
-  ui item 9 "${BOLD_GREY}节点搭建脚本${RESET}"
+  ui item 9 "节点搭建脚本 ▶"
 
   ui line
 
   ui item 99 "脚本工具 ▶"
 
   # 脚本工具菜单项
+
+  ui line
+
+  ui item 00 "更新脚本"
 
   ui border_bottom
 

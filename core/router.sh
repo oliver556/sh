@@ -67,10 +67,8 @@ router_main() {
 
     9)
       # 节点搭建脚本
-      source "${BASE_DIR}/modules/node/entry.sh"
-      # 加载占位模块文件
-      node_entry
-      # 调用占位模块入口函数
+      source "${BASE_DIR}/modules/node/menu.sh"
+      node_menu
       ;;
 
     99)
@@ -79,6 +77,9 @@ router_main() {
       vsk_script_menu
       ;;
 
+    00)
+      source "${BASE_DIR}/update.sh"
+      ;;
     0)
       ui_exit
       ;;

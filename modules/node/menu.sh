@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# ============================================================
+# VpsScriptKit - 节点搭建脚本模块入口
+# @路径: /modules/node/menu.sh
+# @职责: 整个各种节点搭建脚本
+# @作者:         Jamison
+# @版本:         0.1.0
+# @创建日期:     2026-01-09
+# @修改日期:     2025-01-09
+#
+# @许可证:       MIT
+# ============================================================
+
+source "${BASE_DIR}/modules/node/3xui/3xui.sh"
+source "${BASE_DIR}/modules/node/xui/xui.sh"
+
+node_menu() {
+  while true; do
+
+    ui clear
+
+    ui print page_header_full "🏗️  节点搭建脚本合集"
+
+    ui line
+    ui_menu_item 1 0 1 "3X-UI 面板${BOLD_RED}★${LIGHT_WHITE}"
+    ui_menu_item 1 14 2 "X-UI 面板"
+    ui_menu_done
+
+    ui_go_level
+
+    choice=$(ui_read_choice)
+
+    case "$choice" in
+      1)
+        install_3x_ui
+      ;;
+      2)
+        install_x_ui
+      ;;
+      0)
+        return
+      ;;
+
+      *)
+        ui_warn_menu "无效选项，请重新输入..."
+        sleep 1
+      ;;
+    esac
+
+  done
+}
