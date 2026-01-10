@@ -15,7 +15,7 @@
 REAL_PATH=$(readlink -f "$0")
 
 # 获取当前脚本的绝对真实路径路径
-export BASE_DIR="$(pwd)"
+export BASE_DIR="$(cd "$(dirname "$REAL_PATH")" && pwd)"
 
 # 执行主入口，并传递所有参数 ($@)
 # 使用 exec 可以让 main.sh 接管当前进程，更加高效
