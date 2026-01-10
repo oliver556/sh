@@ -38,11 +38,16 @@ _restart_script() {
     # 确保入口文件有执行权限
     chmod +x "${BASE_DIR}/v" "${BASE_DIR}/main.sh" 2>/dev/null
 
-    # 优先执行 v，如果找不到则执行 main.sh
+    # 显式使用 bash 来 exec，防止因 Shebang 或权限问题导致的闪退
     if [[ -f "${BASE_DIR}/v" ]]; then
-        exec "${BASE_DIR}/v"
+        exec bash "${BASE_DIR}/v"
+    elif [[ -f "${BASE_DIR}/main.sh" ]]; then
+        exec bash "${BASE_DIR}/main.sh"
     else
-        exec "${BASE_DIR}/main.sh"
+        # 如果找不到文件，打印错误而不是直接退出进程
+        ui_error "重启失败：找不到启动文件 v 或 main.sh"
+        ui_error "请尝试手动运行: bash ${BASE_DIR}/v"
+        exit 1
     fi
 }
 
