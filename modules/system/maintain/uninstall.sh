@@ -70,16 +70,15 @@ do_uninstall() {
     # fi
     
     if ! check_root; then
-        # 原本有 return 1，但是该函数(check_root)只需要return 即可。需要验证
+        # TODO 需要验证
+        # 原本有 return 1，但是该函数(check_root)只需要return 即可。
         return 1
     fi
 
     ui clear
-    # ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     ui line_3
     ui echo "${BOLD_RED}        ⚠️$(ui_spaces 4)正在卸载 VpsScriptKit${RESET}"
     ui line_3
-    # ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     ui blank
     ui echo "${BOLD_WHITE}该操作将完全移除脚本及所有命令。${RESET}"
     ui blank

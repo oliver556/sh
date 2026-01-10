@@ -11,7 +11,9 @@
 # @创建日期: 2026-01-06
 # ==============================================================================
 
-INSTALL_DIR="/opt/VpsScriptKit"
+source "$BASE_DIR/modules/system/maintain/update.sh" # 更新脚本
+source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
+# source "$BASE_DIR/modules/system/maintain/uninstall.sh" # 卸载脚本
 
 # ------------------------------------------------------------------------------
 # 函数名: _refresh_local_version
@@ -31,25 +33,6 @@ _refresh_local_version() {
 }
 
 # ------------------------------------------------------------------------------
-# 函数名: do_uninstall
-# 功能:  单开 shell 进程以达到卸载后完全退出脚本
-# 
-# 参数: 无
-# 
-# 返回值: 无
-# 
-# 示例:
-#   do_uninstall
-# ------------------------------------------------------------------------------
-do_uninstall() {
-    ui clear
-    # TODO 这里有个问题需要修改
-    # 如果是正常卸载的话，脚本可以回退结束shell
-    # 如果取消卸载，结果也结束了shell
-    exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
-}
-
-# ------------------------------------------------------------------------------
 # 函数名: do_update
 # 功能:  更新脚本
 # 
@@ -61,9 +44,11 @@ do_uninstall() {
 # 示例:
 #   do_update
 # ------------------------------------------------------------------------------
-do_update() {
+_do_update() {
     ui clear
     ui print info_header "正在检查更新逻辑..."
+    ui blank
+
     if [[ -f "$BASE_DIR/modules/system/maintain/update.sh" ]]; then
         # 运行更新引擎并获取退出码
         bash "$BASE_DIR/modules/system/maintain/update.sh"
@@ -78,8 +63,60 @@ do_update() {
     else
         ui_error "未找到核心更新引擎 update.sh"
     fi
-    
+    # 已经是最新，正常等待用户回车返回菜单
     ui_wait_enter
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: do_reinstall
+# 功能:  强制重新安装脚本
+# 
+# 参数: 无
+# 
+# 返回值:
+#   10 - 更新成功，通知 父shell ，我要自己执行重启
+# 
+# 示例:
+#   do_reinstall
+# ------------------------------------------------------------------------------
+# TODO 抽取到新脚本
+# do_reinstall() {
+#     ui clear
+#     ui print info_header "正在强制重新安装并修复环境..."
+#     ui blank
+
+#     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
+#     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
+#     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
+#         ui blank
+#         ui_success "强制重新安装完成！${RESET}"
+#         ui echo "${BOLD_CYAN}🔄$(ui_spaces)脚本将在 2 秒后原地重启...${RESET}"
+#         sleep 2
+#         # 重新载入主程序
+#         exec v
+#     else
+#         ui_error "强制安装过程中出现异常"
+#         ui_wait_enter
+#     fi
+# }
+
+# ------------------------------------------------------------------------------
+# 函数名: do_uninstall
+# 功能:  单开 shell 进程以达到卸载后完全退出脚本
+# 
+# 参数: 无
+# 
+# 返回值: 无
+# 
+# 示例:
+#   do_uninstall
+# ------------------------------------------------------------------------------
+_do_uninstall() {
+    ui clear
+    # TODO 这里有个问题需要修改
+    # 如果是正常卸载的话，脚本可以回退结束shell
+    # 如果取消卸载，结果也结束了shell
+    exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
 }
 
 # ------------------------------------------------------------------------------
@@ -121,66 +158,13 @@ maintain_menu() {
 
         case "$choice" in
             1)
-                # TODO 抽取成函数，菜单中理应只执行函数，而不应该包含逻辑
-                ui clear
-                ui print info_header "正在检查更新逻辑..."
-                if [[ -f "$BASE_DIR/modules/system/maintain/update.sh" ]]; then
-                    # 运行更新引擎并获取退出码
-                    bash "$BASE_DIR/modules/system/maintain/update.sh"
-                    local exit_code=$?
-
-                    # 如果退出码是 10，更新到新版本，执行顶层重启
-                    if [ $exit_code -eq 10 ]; then
-                        ui echo "${BOLD_CYAN}🔄$(ui_spaces)检测到版本变动，正在原地重启脚本...${RESET}"
-                        sleep 1
-                        exec v
-                    fi
-                else
-                    ui_error "未找到核心更新引擎 update.sh"
-                fi
-                # 已经是最新，正常等待用户回车返回菜单
-                ui_wait_enter
-
-                ui clear
-                ui print info_header "正在检查更新逻辑..."
-                if [[ -f "$BASE_DIR/update.sh" ]]; then
-                    # 运行更新引擎并获取退出码
-                    bash "$BASE_DIR/update.sh"
-                    local exit_code=$?
-
-                    # 如果退出码是 10，更新到新版本，执行顶层重启
-                    if [ $exit_code -eq 10 ]; then
-                        ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
-                        sleep 1
-                        exec v
-                    fi
-                else
-                    ui_error "未找到核心更新引擎 update.sh"
-                fi
-                # 已经是最新，正常等待用户回车返回菜单
-                ui_wait_enter
+                _do_update
                 ;;
             2)
-                ui clear
-                ui echo "${BOLD_YELLOW}正在强制重新安装并修复环境...${RESET}"
-                ui blank
-
-                # 1. 使用 bash -s -- 传递参数给远程下载的脚本
-                # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
-                if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-                    ui blank
-                    ui echo "${BOLD_GREEN}✅$(ui_spaces)强制重新安装完成！${RESET}"
-                    ui echo "${BOLD_CYAN}🔄$(ui_spaces)脚本将在 2 秒后原地重启...${RESET}"
-                    sleep 2
-                    # 重新载入主程序
-                    exec v
-                else
-                    ui_error "强制安装过程中出现异常"
-                    ui_wait_enter
-                fi
+                do_reinstall
                 ;;
             3)
-                do_uninstall
+                _do_uninstall
                 ;;
             0)
                 return
