@@ -11,6 +11,8 @@
 # @创建日期: 2026-01-06
 # ==============================================================================
 
+INSTALL_DIR="/opt/VpsScriptKit"
+
 # ------------------------------------------------------------------------------
 # 函数名: _refresh_local_version
 # 功能:   内部工具：实时刷新本地版本显示
@@ -130,6 +132,25 @@ maintain_menu() {
                     # 如果退出码是 10，更新到新版本，执行顶层重启
                     if [ $exit_code -eq 10 ]; then
                         ui echo "${BOLD_CYAN}🔄$(ui_spaces)检测到版本变动，正在原地重启脚本...${RESET}"
+                        sleep 1
+                        exec v
+                    fi
+                else
+                    ui_error "未找到核心更新引擎 update.sh"
+                fi
+                # 已经是最新，正常等待用户回车返回菜单
+                ui_wait_enter
+
+                ui clear
+                ui print info_header "正在检查更新逻辑..."
+                if [[ -f "$BASE_DIR/update.sh" ]]; then
+                    # 运行更新引擎并获取退出码
+                    bash "$BASE_DIR/update.sh"
+                    local exit_code=$?
+
+                    # 如果退出码是 10，更新到新版本，执行顶层重启
+                    if [ $exit_code -eq 10 ]; then
+                        ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
                         sleep 1
                         exec v
                     fi

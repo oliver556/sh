@@ -85,10 +85,10 @@ do_uninstall() {
     ui blank
 
     # TODO 改成调用函数
-    if ! ui_confirm "确认开始卸载脚本？"; then
-        return 1
-    fi
-    # printf "${BOLD_CYAN}确认继续卸载？(y/N): ${RESET}"
+    # if ! ui_confirm "确认开始卸载脚本？"; then
+    #     return 1
+    # fi
+    printf "${BOLD_CYAN}确认继续卸载？(y/N): ${RESET}"
 
     read -r confirm < /dev/tty || confirm="n"
     confirm="${confirm,,}"

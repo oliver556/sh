@@ -28,9 +28,11 @@ set -o nounset   # 使用未定义变量时直接报错，避免拼写错误导�
 # 导出根目录 (如果环境变量没传，则自动计算)
 export BASE_DIR="${BASE_DIR:-$(pwd)}"
 
-# 读取版本号 (从根目录 version 文件读取，方便自动更新同步)
-VSK_VERSION=$(cat "${BASE_DIR}/version" | xargs)
+# # 读取版本号 (从根目录 version 文件读取，方便自动更新同步)
+# VSK_VERSION=$(cat "${BASE_DIR}/version" | xargs)
 
+# 读取版本号 (从根目录 version 文件读取，方便自动更新同步) (如果文件不存在则默认 Unknown)
+export VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
 # 暂时不做日志功能
 # export VSK_LOG_DIR="${BASE_DIR}/logs"
 # export VSK_DATA_DIR="${BASE_DIR}/data"
@@ -64,8 +66,6 @@ for lib in "${LIBS[@]}"; do
     fi
 done
 
-# 读取版本号 (从根目录 version 文件读取，方便自动更新同步) (如果文件不存在则默认 Unknown)
-VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
 
 # ******************************************************************************
 # 信号捕捉与清理
