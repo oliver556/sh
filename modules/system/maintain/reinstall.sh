@@ -45,4 +45,4 @@ do_reinstall() {
     fi
 }
 
-# do_reinstall "$@"
+do_reinstall "$@"

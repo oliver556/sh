@@ -11,8 +11,6 @@
 # @创建日期: 2026-01-06
 # ==============================================================================
 
-source "$BASE_DIR/modules/system/maintain/update.sh" # 更新脚本
-source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
 # source "$BASE_DIR/modules/system/maintain/uninstall.sh" # 卸载脚本
 
 # ------------------------------------------------------------------------------
@@ -80,25 +78,26 @@ _do_update() {
 #   do_reinstall
 # ------------------------------------------------------------------------------
 # TODO 抽取到新脚本
-# do_reinstall() {
-#     ui clear
-#     ui print info_header "正在强制重新安装并修复环境..."
-#     ui blank
+_do_reinstall() {
+    source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
+    # ui clear
+    # ui print info_header "正在强制重新安装并修复环境..."
+    # ui blank
 
-#     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
-#     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
-#     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-#         ui blank
-#         ui_success "强制重新安装完成！${RESET}"
-#         ui echo "${BOLD_CYAN}🔄$(ui_spaces)脚本将在 2 秒后原地重启...${RESET}"
-#         sleep 2
-#         # 重新载入主程序
-#         exec v
-#     else
-#         ui_error "强制安装过程中出现异常"
-#         ui_wait_enter
-#     fi
-# }
+    # # 1. 使用 bash -s -- 传递参数给远程下载的脚本
+    # # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
+    # if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
+    #     ui blank
+    #     ui_success "强制重新安装完成！${RESET}"
+    #     ui echo "${BOLD_CYAN}🔄$(ui_spaces)脚本将在 2 秒后原地重启...${RESET}"
+    #     sleep 2
+    #     # 重新载入主程序
+    #     exec v
+    # else
+    #     ui_error "强制安装过程中出现异常"
+    #     ui_wait_enter
+    # fi
+}
 
 # ------------------------------------------------------------------------------
 # 函数名: do_uninstall
@@ -161,7 +160,7 @@ maintain_menu() {
                 _do_update
                 ;;
             2)
-                do_reinstall
+                _do_reinstall
                 ;;
             3)
                 _do_uninstall
