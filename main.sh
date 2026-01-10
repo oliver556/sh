@@ -120,33 +120,34 @@ main() {
         choice=$(ui_read_choice)
 
         case "$choice" in
-            99)
-                maintain_menu
-                ret=$?
+            1|2|3|4|8|9|99)
+                if declare -f router_main > /dev/null; then
+                    # --- 核心逻辑修改开始 ---
+                    
+                    local ret=0
+                    
+                    # 1. 调用路由分发，并捕获返回值
+                    # 使用 || ret=$? 是为了防止 set -e (如果开启) 导致脚本直接退出
+                    router_main "$choice" || ret=$?
 
-                case "$ret" in
-                    0)
-                        # 正常返回主菜单
-                        continue
-                        ;;
-                    10)
-                        ui echo "🔄 检测到更新，正在重启..."
-                        exec "$BASE_DIR/v"
-                        ;;
-                    20)
-                        # 卸载完成，退出程序
-                        ui_exit
-                        ;;
-                    *)
-                        # 其它异常码，安全退出
-                        exit "$ret"
-                        ;;
-                esac
-                ;;
-            1|2|3|4|8|9)
-                echo -e "$choice"
-                # 调用 lib/router.sh 中的分发函数
-                router_main "$choice"
+                    # 2. 检查返回值是否为 10 (重启信号)
+                    if [[ $ret -eq 10 ]]; then
+                        ui blank
+                        ui echo "${BOLD_CYAN}🔄 系统正在重载主程序...${RESET}"
+                        sleep 1
+                        
+                        # 确保有执行权限
+                        chmod +x "${BASE_DIR}/main.sh" 2>/dev/null
+                        
+                        # 3. 执行自我重启
+                        # 使用 exec 替换当前进程，"$0" 代表当前脚本路径，"$@" 代表启动参数
+                        exec bash "$0" "$@"
+                    fi
+                    # --- 核心逻辑修改结束 ---
+                else
+                    ui_error "路由函数 router_main 未找到"
+                    sleep 2
+                fi
                 ;;
             0)
                 ui_exit

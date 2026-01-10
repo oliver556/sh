@@ -58,7 +58,7 @@ _restart_script() {
 # 参数: 无
 # 
 # 返回值:
-#   10 - 更新成功，通知 父shell ，我要自己执行重启
+#   10 - 更新成功，通知主程序重启
 # 
 # 示例:
 #   do_update
@@ -70,24 +70,23 @@ _do_update() {
 
     local update_script="$BASE_DIR/modules/system/maintain/update.sh"
 
-    # 0  = 无更新
-    # 10 = 更新完成，需要重启
-    # 20 = 已交权给第三方，当前程序应结束
-
     if [[ -f "$update_script" ]]; then
-        # 运行更新引擎并获取退出码
+        # 执行更新脚本
         bash "$update_script"
         local exit_code=$?
-
-        # 如果退出码是 10，更新到新版本，执行顶层重启
+        
+        # 捕捉更新脚本的返回码 10
         if [ $exit_code -eq 10 ]; then
-            # ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
-            # sleep 1
-            # _restart_script
+            ui blank
+            ui echo "${BOLD_GREEN}✅ 更新完成！${RESET}"
+            ui echo "${BOLD_CYAN}🔄 已发出重启信号，准备重载主程序...${RESET}"
+            sleep 1
+            # 返回 10 给上级
             return 10
         fi
     else
-        ui_error "未找到核心更新引擎 update.sh"
+        ui error "未找到核心更新引擎 update.sh"
+        ui_wait_enter
     fi
     # 已经是最新，正常等待用户回车返回菜单
     ui_wait_enter
@@ -100,18 +99,34 @@ _do_update() {
 # 参数: 无
 # 
 # 返回值:
-#   10 - 更新成功，通知 父shell ，我要自己执行重启
+#   10 - 更新成功，通知主程序重启
 # 
 # 示例:
 #   do_reinstall
 # ------------------------------------------------------------------------------
-# TODO 抽取到新脚本
 _do_force_reinstall() {
+    # source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
+
+    ui clear
+    ui print info_header "正在强制重新安装并修复环境..."
+    ui blank
+    
+    if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
+        ui blank
+        ui echo "${BOLD_GREEN}✅ 强制重新安装完成！${RESET}"
+        ui echo "${BOLD_CYAN}🔄 已发出重启信号，准备重载主程序...${RESET}"
+        sleep 2
+        # 关键修改：返回 10 给上级
+        return 10
+    else
+        ui error "强制安装过程中出现异常"
+        ui wait_return
+    fi
+
     # ui clear
     # ui print info_header "正在强制重新安装并修复环境..."
     # ui blank
 
-    source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
     # ui clear
     # ui print info_header "正在强制重新安装并修复环境..."
     # ui blank
@@ -143,49 +158,21 @@ _do_force_reinstall() {
 #   do_uninstall
 # ------------------------------------------------------------------------------
 _do_uninstall() {
-    # ui clear
-    # local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
-    
-    # if [[ -f "$uninstall_script" ]]; then
-    #     exec bash "$uninstall_script"
-    # else
-    #     ui error "未找到卸载脚本"
-    #     ui wait_return
-    # fi
     # TODO 这里有个问题需要修改
     # 如果是正常卸载的话，脚本可以回退结束shell
     # 如果取消卸载，结果也结束了shell
     # exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
     ui clear
     local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
-
-    if [[ ! -f "$uninstall_script" ]]; then
-        ui_error "未找到卸载脚本"
-        ui_wait_enter
-        return 1
+    
+    if [[ -f "$uninstall_script" ]]; then
+        # 卸载是终结操作，这里使用 exec 移交控制权是可以的，
+        # 因为卸载脚本执行完就是 exit，不需要回主菜单。
+        exec bash "$uninstall_script"
+    else
+        ui error "未找到卸载脚本"
+        ui wait_return
     fi
-
-    # 使用子 shell 执行卸载脚本
-    bash "$uninstall_script"
-    local ret=$?
-
-    case "$ret" in
-        0)
-            ui_success "卸载完成"
-            # 通知上层：我已完成卸载，程序应结束
-            return 0
-            ;;
-        1)
-            ui_warn "已取消卸载"
-            ui_wait_enter
-            return 1
-            ;;
-        *)
-            ui_error "卸载失败（错误码: $ret）"
-            ui_wait_enter
-            return "$ret"
-            ;;
-    esac
 }
 
 # ------------------------------------------------------------------------------
@@ -228,18 +215,14 @@ maintain_menu() {
         case "$choice" in
             1)
                 _do_update
-                ret=$?
-                [[ "$ret" == "10" ]] && return 10
+                [[ $? -eq 10 ]] && return 10
                 ;;
             2)
                 _do_force_reinstall
-                ret=$?
-                [[ "$ret" == "10" ]] && return 10
+                [[ $? -eq 10 ]] && return 10
                 ;;
             3)
                 _do_uninstall
-                ret=$?
-                [[ "$ret" == "20" ]] && return 20
                 ;;
             0)
                 return
