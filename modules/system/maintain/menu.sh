@@ -70,6 +70,9 @@ _do_update() {
 
     local update_script="$BASE_DIR/modules/system/maintain/update.sh"
 
+    # 0  = 无更新
+    # 10 = 更新完成，需要重启
+    # 20 = 已交权给第三方，当前程序应结束
 
     if [[ -f "$update_script" ]]; then
         # 运行更新引擎并获取退出码
@@ -78,9 +81,10 @@ _do_update() {
 
         # 如果退出码是 10，更新到新版本，执行顶层重启
         if [ $exit_code -eq 10 ]; then
-            ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
-            sleep 1
-            _restart_script
+            # ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
+            # sleep 1
+            # _restart_script
+            return 10
         fi
     else
         ui_error "未找到核心更新引擎 update.sh"
@@ -139,19 +143,49 @@ _do_force_reinstall() {
 #   do_uninstall
 # ------------------------------------------------------------------------------
 _do_uninstall() {
-    ui clear
-    local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
+    # ui clear
+    # local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
     
-    if [[ -f "$uninstall_script" ]]; then
-        exec bash "$uninstall_script"
-    else
-        ui error "未找到卸载脚本"
-        ui wait_return
-    fi
+    # if [[ -f "$uninstall_script" ]]; then
+    #     exec bash "$uninstall_script"
+    # else
+    #     ui error "未找到卸载脚本"
+    #     ui wait_return
+    # fi
     # TODO 这里有个问题需要修改
     # 如果是正常卸载的话，脚本可以回退结束shell
     # 如果取消卸载，结果也结束了shell
     # exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
+    ui clear
+    local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
+
+    if [[ ! -f "$uninstall_script" ]]; then
+        ui_error "未找到卸载脚本"
+        ui_wait_enter
+        return 1
+    fi
+
+    # 使用子 shell 执行卸载脚本
+    bash "$uninstall_script"
+    local ret=$?
+
+    case "$ret" in
+        0)
+            ui_success "卸载完成"
+            # 通知上层：我已完成卸载，程序应结束
+            return 0
+            ;;
+        1)
+            ui_warn "已取消卸载"
+            ui_wait_enter
+            return 1
+            ;;
+        *)
+            ui_error "卸载失败（错误码: $ret）"
+            ui_wait_enter
+            return "$ret"
+            ;;
+    esac
 }
 
 # ------------------------------------------------------------------------------
@@ -194,12 +228,18 @@ maintain_menu() {
         case "$choice" in
             1)
                 _do_update
+                ret=$?
+                [[ "$ret" == "10" ]] && return 10
                 ;;
             2)
                 _do_force_reinstall
+                ret=$?
+                [[ "$ret" == "10" ]] && return 10
                 ;;
             3)
                 _do_uninstall
+                ret=$?
+                [[ "$ret" == "20" ]] && return 20
                 ;;
             0)
                 return

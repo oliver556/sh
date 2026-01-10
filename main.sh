@@ -66,6 +66,7 @@ for lib in "${LIBS[@]}"; do
     fi
 done
 
+source "${BASE_DIR}/modules/system/maintain/menu.sh"
 
 # ******************************************************************************
 # 信号捕捉与清理
@@ -119,7 +120,30 @@ main() {
         choice=$(ui_read_choice)
 
         case "$choice" in
-            1|2|3|4|8|9|99)
+            99)
+                maintain_menu
+                ret=$?
+
+                case "$ret" in
+                    0)
+                        # 正常返回主菜单
+                        continue
+                        ;;
+                    10)
+                        ui echo "🔄 检测到更新，正在重启..."
+                        exec "$BASE_DIR/v"
+                        ;;
+                    20)
+                        # 卸载完成，退出程序
+                        ui_exit
+                        ;;
+                    *)
+                        # 其它异常码，安全退出
+                        exit "$ret"
+                        ;;
+                esac
+                ;;
+            1|2|3|4|8|9)
                 echo -e "$choice"
                 # 调用 lib/router.sh 中的分发函数
                 router_main "$choice"

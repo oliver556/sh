@@ -115,11 +115,9 @@ do_uninstall() {
     ui_success "VpsScriptKit 已彻底卸载完成"
     ui blank
     ui_success "所有组件已清理，感谢使用。"
-    echo
-
     sleep 2
-
     clear
+    return 0
 }
 
 # ------------------------------
@@ -127,4 +125,4 @@ do_uninstall() {
 # ------------------------------
 do_uninstall "$@"
 
-exit 0
+# exit 0
