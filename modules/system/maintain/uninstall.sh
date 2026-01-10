@@ -75,14 +75,16 @@ do_uninstall() {
     fi
 
     ui clear
-    ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    # ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    ui line_3
     ui echo "${BOLD_RED}        ⚠️$(ui_spaces 4)正在卸载 VpsScriptKit${RESET}"
-    ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    ui line_3
+    # ui echo "${BOLD_RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     ui blank
     ui echo "${BOLD_WHITE}该操作将完全移除脚本及所有命令。${RESET}"
     ui blank
 
-    # todo 改部分要改成
+    # TODO 改成调用函数
     if ! ui_confirm "确认开始卸载脚本？"; then
         return 1
     fi

@@ -41,7 +41,7 @@ _refresh_local_version() {
 # ------------------------------------------------------------------------------
 do_uninstall() {
     ui clear
-    # todo 这里有个问题需要修改
+    # TODO 这里有个问题需要修改
     # 如果是正常卸载的话，脚本可以回退结束shell
     # 如果取消卸载，结果也结束了shell
     exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
@@ -119,7 +119,7 @@ maintain_menu() {
 
         case "$choice" in
             1)
-                # todo 抽取成函数，菜单中理应只执行函数，而不应该包含逻辑
+                # TODO 抽取成函数，菜单中理应只执行函数，而不应该包含逻辑
                 ui clear
                 ui print info_header "正在检查更新逻辑..."
                 if [[ -f "$BASE_DIR/modules/system/maintain/update.sh" ]]; then
