@@ -31,6 +31,22 @@ _refresh_local_version() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: _restart_script
+# 功能:   安全地重启脚本
+# ------------------------------------------------------------------------------
+_restart_script() {
+    # 确保入口文件有执行权限
+    chmod +x "${BASE_DIR}/v" "${BASE_DIR}/main.sh" 2>/dev/null
+
+    # 优先执行 v，如果找不到则执行 main.sh
+    if [[ -f "${BASE_DIR}/v" ]]; then
+        exec "${BASE_DIR}/v"
+    else
+        exec "${BASE_DIR}/main.sh"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: do_update
 # 功能:  更新脚本
 # 
@@ -47,16 +63,19 @@ _do_update() {
     ui print info_header "正在检查更新逻辑..."
     ui blank
 
-    if [[ -f "$BASE_DIR/modules/system/maintain/update.sh" ]]; then
+    local update_script="$BASE_DIR/modules/system/maintain/update.sh"
+
+
+    if [[ -f "$update_script" ]]; then
         # 运行更新引擎并获取退出码
-        bash "$BASE_DIR/modules/system/maintain/update.sh"
+        bash "$update_script"
         local exit_code=$?
 
         # 如果退出码是 10，更新到新版本，执行顶层重启
         if [ $exit_code -eq 10 ]; then
             ui echo "${BOLD_CYAN}🔄 检测到版本变动，正在原地重启脚本...${RESET}"
             sleep 1
-            exec v
+            _restart_script
         fi
     else
         ui_error "未找到核心更新引擎 update.sh"
@@ -78,7 +97,11 @@ _do_update() {
 #   do_reinstall
 # ------------------------------------------------------------------------------
 # TODO 抽取到新脚本
-_do_reinstall() {
+_do_force_reinstall() {
+    # ui clear
+    # ui print info_header "正在强制重新安装并修复环境..."
+    # ui blank
+
     source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
     # ui clear
     # ui print info_header "正在强制重新安装并修复环境..."
@@ -112,10 +135,18 @@ _do_reinstall() {
 # ------------------------------------------------------------------------------
 _do_uninstall() {
     ui clear
+    local uninstall_script="$BASE_DIR/modules/system/maintain/uninstall.sh"
+    
+    if [[ -f "$uninstall_script" ]]; then
+        exec bash "$uninstall_script"
+    else
+        ui error "未找到卸载脚本"
+        ui wait_return
+    fi
     # TODO 这里有个问题需要修改
     # 如果是正常卸载的话，脚本可以回退结束shell
     # 如果取消卸载，结果也结束了shell
-    exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
+    # exec bash "$BASE_DIR/modules/system/maintain/uninstall.sh"
 }
 
 # ------------------------------------------------------------------------------
@@ -160,7 +191,7 @@ maintain_menu() {
                 _do_update
                 ;;
             2)
-                _do_reinstall
+                _do_force_reinstall
                 ;;
             3)
                 _do_uninstall
