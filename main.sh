@@ -25,52 +25,9 @@ set -o nounset   # 使用未定义变量时直接报错，避免拼写错误导�
 # 基础路径与环境定义
 # ******************************************************************************
 
-# 导出根目录 (如果环境变量没传，则自动计算)
-export BASE_DIR="${BASE_DIR:-$(pwd)}"
-
-# # 读取版本号 (从根目录 version 文件读取，方便自动更新同步)
-# VSK_VERSION=$(cat "${BASE_DIR}/version" | xargs)
-
-# 读取版本号 (从根目录 version 文件读取，方便自动更新同步) (如果文件不存在则默认 Unknown)
-export VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
-# 暂时不做日志功能
-# export VSK_LOG_DIR="${BASE_DIR}/logs"
-# export VSK_DATA_DIR="${BASE_DIR}/data"
-
-# 确保必要目录存在
-# mkdir -p "$VSK_LOG_DIR" "$VSK_DATA_DIR"
-# mkdir -p "$VSK_DATA_DIR"
-
-# ******************************************************************************
-# 加载核心函数库 (依赖顺序：os ­­­-> env -> ui -> utils -> check -> others)
-# ******************************************************************************
-
-# 定义核心库列表（加载顺序至关重要，env 定义常量，utils 提供基础工具，ui 提供界面）
-LIBS=(
-    "os.sh"         # OS 识别模块（必须最先）
-    "env.sh"        # 全局环境变量与常量配置
-    "ui.sh"         # UI 渲染工具 - 函数库
-    "utils.sh"      # 全局通用工具 - 函数库
-    "check.sh"      # 通用检测工具 - 函数库
-    "network.sh"    # 网络信息工具 - 函数库
-    "system.sh"     # 系统信息工具 - 函数库
-    "validate.sh"   # 能力检测工具 - 函数库
-    "interact.sh"   # 交互确认工具 - 函数库（原 confirm_utils.sh）
-    "router.sh"     # 路由模块工具 - 函数库（原 core/router.sh）
-)
-
-# 循环加载并检查，避免 source 不存在的文件导致报错退出
-for lib in "${LIBS[@]}"; do
-    if [[ -f "${BASE_DIR}/lib/$lib" ]]; then
-        source "${BASE_DIR}/lib/$lib"
-    fi
-done
-
+# 导入环境变量
+source "$(dirname "${BASH_SOURCE[0]}")/lib/env.sh"
 source "${BASE_DIR}/modules/system/maintain/menu.sh"
-
-# ******************************************************************************
-# 信号捕捉与清理
-# ******************************************************************************
 
 # ------------------------------------------------------------------------------
 # 函数名: _cleanup

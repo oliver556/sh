@@ -16,14 +16,25 @@ set -Eeuo pipefail
 trap 'error_exit "脚本在第 $LINENO 行执行失败"' ERR
 
 # ******************************************************************************
-# 基础配置
+# 基础常量定义
 # ******************************************************************************
-INSTALL_DIR="/opt/VpsScriptKit"   # 安装目录
-REPO="oliver556/sh"               # 仓库地址
-AGREEMENT_ACCEPTED="false"        # 用户许可协议同意
-BIN_LINK="/usr/local/bin/vsk"     # 存放路径
-BIN_SHORT_LINK="/usr/local/bin/v" # 存放路径
-SKIP_AGREEMENT="false"            # 初始化，防止 set -u 报错
+# 安装目录
+INSTALL_DIR="/opt/VpsScriptKit"
+
+# 远程仓库地址
+REPO="oliver556/sh"
+
+# 链接路径
+BIN_LINK="/usr/local/bin/vsk"
+
+# 存放路径
+BIN_SHORT_LINK="/usr/local/bin/v"
+
+# 用户许可协议同意
+AGREEMENT_ACCEPTED="false"
+
+# 初始化，防止 set -u 报错
+SKIP_AGREEMENT="false"
 
 # ******************************************************************************
 # 参数处理: 检查是否带有 --skip-agreement
@@ -165,7 +176,6 @@ confirm_agreement() {
     # 将输入转换为小写以便比较
     choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
 
-    # 如果用户同意，将全局变量设置为 "true"
     if [[ "$choice" == "y" ]]; then
         # 如果用户同意，将全局变量设置为 "true"
         AGREEMENT_ACCEPTED="true"
