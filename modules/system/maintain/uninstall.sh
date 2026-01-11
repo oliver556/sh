@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
-# =================================================================================
-# @名称:        uninstall.sh
-# @功能描述:     VpsScriptKit 卸载脚本
-# @作者:        Jamison
-# @版本:        1.3.0
-# @修改日期:     2026-01-07
-# @许可证:       MIT
-# =================================================================================
+
+# ==============================================================================
+# VpsScriptKit - 卸载脚本
+# 
+# @文件路径: modules/system/maintain/uninstall.sh
+# @功能描述: 卸载脚本逻辑
+# 
+# @作者:    Jamison
+# @版本:    0.1.0
+# @创建日期: 2026-01-07
+# ==============================================================================
+
 # 严谨模式：遇到错误即退出
 set -Eeuo pipefail
 trap 'echo -e "\n${BOLD_RED}❌ 卸载过程中出现异常${RESET}" >&2' ERR
@@ -16,16 +20,6 @@ trap 'echo -e "\n${BOLD_RED}❌ 卸载过程中出现异常${RESET}" >&2' ERR
 # 环境初始化
 # ******************************************************************************
 source "${BASE_DIR}/lib/env.sh"
-
-# ******************************************************************************
-# 基础配置
-# ******************************************************************************
-# BIN_PATHS=(
-#     "/usr/local/bin/v"
-#     "/usr/local/bin/vsk"
-#     "/usr/bin/v"
-#     "/usr/bin/vsk"
-# )
 
 # ------------------------------------------------------------------------------
 # 函数名: do_uninstall
@@ -41,65 +35,50 @@ source "${BASE_DIR}/lib/env.sh"
 #   do_uninstall
 # ------------------------------------------------------------------------------
 do_uninstall() {
-    # if [[ "$(id -u)" -ne 0 ]]; then
-    #     echo -e "${BOLD_RED}错误：请使用 root 权限执行卸载${RESET}"
-    #     return 1
-    # fi
-    
+    # 权限检查
     if ! check_root; then
-        # TODO 需要验证
-        # 原本有 return 1，但是该函数(check_root)只需要return 即可。
         return 1
     fi
 
     ui clear
     ui line_3
-    ui echo "${BOLD_RED}        ⚠️$(ui_spaces 4)正在卸载 VpsScriptKit${RESET}"
+    ui_warn "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
     ui line_3
-    ui blank
-    ui echo "${BOLD_WHITE}该操作将完全移除脚本及所有命令。${RESET}"
-    ui blank
 
-    # TODO 改成调用函数
-    # if ! ui_confirm "确认开始卸载脚本？"; then
-    #     return 1
-    # fi
-    printf "${BOLD_CYAN}确认继续卸载？(y/N): ${RESET}"
-
-    read -r confirm < /dev/tty || confirm="n"
-    confirm="${confirm,,}"
-
-    if [[ "$confirm" != "y" ]]; then
-        echo
-        ui_info "已取消卸载。"
-        echo
-        return 0
+    # 交互确认
+    if ! ui_confirm "确认继续卸载？"; then
+        return 1
     fi
 
     ui blank
-
     ui_tip "正在清理系统..."
+    ui blank
 
+    # 清理快捷命令
     for path in "${BIN_PATHS[@]}"; do
-        [[ -e "$path" || -L "$path" ]] && rm -f "$path"
+        if [[ -e "$path" || -L "$path" ]]; then
+            rm -f "$path" 2>/dev/null || true
+        fi
     done
 
-    [[ -d "$INSTALL_DIR" ]] && rm -rf "$INSTALL_DIR"
-
-    # hash -r 2>/dev/null || true
+    # 移除主安装目录
+    if [[ -d "$BASE_DIR" ]]; then
+        rm -rf "$BASE_DIR" 2>/dev/null || true
+    fi
 
     ui blank
-    ui_success "VpsScriptKit 已彻底卸载完成"
+    ui_success "VpsScriptKit 所有组件已彻底卸载完成，感谢使用。"
     ui blank
-    ui_success "所有组件已清理，感谢使用。"
+    ui_success "卸载成功，江湖有缘再见！"
     sleep 2
     clear
+        
+    # 0: 成功执行卸载
     return 0
 }
 
-# ------------------------------
-# 脚本入口
-# ------------------------------
-do_uninstall "$@"
 
-# exit 0
+# 启动并捕获返回值，作为脚本退出码传递给 menu.sh
+do_uninstall
+
+exit $?
