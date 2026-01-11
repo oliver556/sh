@@ -83,8 +83,7 @@ do_update() {
     # 版本比对
     if [[ "$LOCAL_VER" == "$REMOTE_VER" ]] || [[ "v$LOCAL_VER" == "$REMOTE_VER" ]]; then
         ui echo "${BOLD_GREEN}✅ 当前已是最新版本 ($LOCAL_VER)。${RESET}"
-        # TODO 这里应该有问题，安利来说，应该需要等待的。但是被别处捕获到了，进了一个等待
-        # ui_wait_enter
+        ui_wait_enter
         exit 0
     fi
 
