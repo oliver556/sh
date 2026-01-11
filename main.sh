@@ -100,7 +100,7 @@ main() {
                     fi
                 else
                     ui_error "路由函数 router_main 未找到"
-                    sleep 2
+                    sleep 1
                 fi
                 ;;
             0)

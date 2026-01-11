@@ -14,30 +14,15 @@
 # ******************************************************************************
 # Shell 环境安全设置（工程级）
 # ******************************************************************************
+
+# 严谨模式：遇到错误即退出
 set -Eeuo pipefail
-trap 'echo -e "${BOLD_RED}错误: 更新在第 $LINENO 行失败${RESET}" >&2' ERR
+trap 'echo -e "${BOLD_RED}错误: 重装在第 $LINENO 行失败${RESET}" >&2' ERR
 
 # ******************************************************************************
-# 环境初始化 (智能加载)
+# 环境初始化
 # ******************************************************************************
-# 确保 BASE_DIR 存在 (兼容独立运行模式)
-if [[ -z "${BASE_DIR:-}" ]]; then
-    SOURCE="${BASH_SOURCE[0]}"
-    while [ -h "$SOURCE" ]; do
-        DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-        SOURCE="$(readlink "$SOURCE")"
-        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-    done
-    export BASE_DIR="$( cd -P "$( dirname "$SOURCE" )"/../../.. >/dev/null 2>&1 && pwd )"
-fi
-
-# 智能加载库文件
-if ! declare -f ui > /dev/null; then
-    source "${BASE_DIR}/lib/env.sh"
-    source "${BASE_DIR}/lib/utils.sh"
-    source "${BASE_DIR}/lib/ui.sh"
-    source "${BASE_DIR}/lib/interact.sh"
-fi
+source "${BASE_DIR}/lib/env.sh"
 
 # ------------------------------------------------------------------------------
 # 函数名: do_reinstall
@@ -51,7 +36,6 @@ fi
 # 示例:
 #   do_reinstall
 # ------------------------------------------------------------------------------
-
 do_reinstall() {
     ui clear
     ui print info_header "正在强制重新安装并修复环境..."
@@ -62,8 +46,8 @@ do_reinstall() {
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         ui blank
         ui echo "${BOLD_GREEN}✅ 强制重新安装完成！${RESET}"
-        sleep 2
-        # 返回 10 告诉父进程 (main.sh) 需要重启
+        sleep 1
+        # 10: 告诉父进程 (main.sh) 需要重启
         exit 10
     else
         ui_error "强制安装过程中出现异常"

@@ -54,9 +54,9 @@ maintain_menu() {
         ui line
 
         # --- 操作选单 ---
-        ui_menu_item 1 0 1 "检查更新并自动升级"
-        ui_menu_item 2 0 2 "强制重新安装 (修复环境)"
-        ui_menu_item 3 0 3 "卸载 VpsScriptKit"
+        ui_menu_item 1 0 1 "检查并更新"
+        ui_menu_item 2 0 2 "强制重安装"
+        ui_menu_item 3 0 3 "卸载本脚本"
         ui_menu_done
 
         # 返回主菜单提示

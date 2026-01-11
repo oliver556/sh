@@ -136,7 +136,7 @@ clear_version() {
         sleep 1
         echo
         echo -e "${BOLD_CYAN}✅ 脚本已清理，即将覆盖安装！${BOLD_WHITE}"
-        sleep 2
+        sleep 1
         clear
     fi
 }

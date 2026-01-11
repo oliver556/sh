@@ -216,7 +216,7 @@ reinstall_info_config() {
     ui echo "${BOLD_LIGHT_CYAN}马上开始重装系统${BOLD_LIGHT_WHITE}"
     ui line
 
-    sleep 2
+    sleep 1
 
     # 动态调用传入的安装函数名，并将系统名称作为参数传递给它
     "${func}" "${name}" "${param}"

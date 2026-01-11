@@ -34,7 +34,7 @@ router_main() {
                 system_menu
             else
                 ui_error "模块文件丢失: modules/system/menu.sh"
-                sleep 2
+                sleep 1
             fi
             ;;
         2)
@@ -59,7 +59,7 @@ router_main() {
                 docker_menu
             else
                 ui_error "模块文件丢失: modules/docker/menu.sh"
-                sleep 2
+                sleep 1
             fi
             ;;
         8)
@@ -69,7 +69,7 @@ router_main() {
                 test_menu
             else
                 ui_error "模块文件丢失: modules/test/menu.sh"
-                sleep 2
+                sleep 1
             fi
             ;;
         9)
@@ -79,7 +79,7 @@ router_main() {
                 node_menu
             else
                 ui_error "模块文件丢失: modules/node/menu.sh"
-                sleep 2
+                sleep 1
             fi
             ;;
 		99)
@@ -89,7 +89,7 @@ router_main() {
                 maintain_menu
             else
                 ui_error "模块文件丢失: modules/system/maintain/menu.sh"
-                sleep 2
+                sleep 1
             fi
 			;;	
 		0)
