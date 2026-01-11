@@ -30,121 +30,36 @@ _refresh_local_version() {
     [[ -f "$BASE_DIR/version" ]] && V_LOCAL=$(cat "$BASE_DIR/version" | xargs)
 }
 
-# ------------------------------------------------------------------------------
-# 函数名: _restart_script
-# 功能:   安全地重启脚本
-# ------------------------------------------------------------------------------
-_restart_script() {
-    # 确保入口文件有执行权限
-    chmod +x "${BASE_DIR}/v" "${BASE_DIR}/main.sh" 2>/dev/null
-
-    # 显式使用 bash 来 exec，防止因 Shebang 或权限问题导致的闪退
-    if [[ -f "${BASE_DIR}/v" ]]; then
-        exec bash "${BASE_DIR}/v"
-    elif [[ -f "${BASE_DIR}/main.sh" ]]; then
-        exec bash "${BASE_DIR}/main.sh"
-    else
-        # 如果找不到文件，打印错误而不是直接退出进程
-        ui_error "重启失败：找不到启动文件 v 或 main.sh"
-        ui_error "请尝试手动运行: bash ${BASE_DIR}/v"
-        exit 1
-    fi
-}
-
-# ------------------------------------------------------------------------------
-# 函数名: do_update
-# 功能:  更新脚本
-# 
-# 参数: 无
-# 
-# 返回值:
-#   10 - 更新成功，通知主程序重启
-# 
-# 示例:
-#   do_update
-# ------------------------------------------------------------------------------
-_do_update() {
-    ui clear
-    ui print info_header "正在检查更新逻辑..."
-    ui blank
-
-    local update_script="$BASE_DIR/modules/system/maintain/update.sh"
-
-    if [[ -f "$update_script" ]]; then
-        # 执行更新脚本
-        bash "$update_script"
-        local exit_code=$?
-        
-        # 捕捉更新脚本的返回码 10
-        if [ $exit_code -eq 10 ]; then
-            ui blank
-            ui echo "${BOLD_GREEN}✅ 更新完成！${RESET}"
-            ui echo "${BOLD_CYAN}🔄 已发出重启信号，准备重载主程序...${RESET}"
-            sleep 1
-            # 返回 10 给上级
-            return 10
-        fi
-    else
-        ui error "未找到核心更新引擎 update.sh"
-        ui_wait_enter
-    fi
-    # 已经是最新，正常等待用户回车返回菜单
-    ui_wait_enter
-}
-
-# ------------------------------------------------------------------------------
-# 函数名: do_reinstall
-# 功能:  强制重新安装脚本
-# 
-# 参数: 无
-# 
-# 返回值:
-#   10 - 更新成功，通知主程序重启
-# 
-# 示例:
-#   do_reinstall
-# ------------------------------------------------------------------------------
-_do_force_reinstall() {
-    # source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
-
-    ui clear
-    ui print info_header "正在强制重新安装并修复环境..."
-    ui blank
+# # ------------------------------------------------------------------------------
+# # 函数名: do_reinstall
+# # 功能:  强制重新安装脚本
+# # 
+# # 参数: 无
+# # 
+# # 返回值:
+# #   10 - 更新成功，通知主程序重启
+# # 
+# # 示例:
+# #   do_reinstall
+# # ------------------------------------------------------------------------------
+# _do_reinstall() {
+#     # source "$BASE_DIR/modules/system/maintain/reinstall.sh" # 重装脚本
+#     ui clear
+#     ui print info_header "正在强制重新安装并修复环境..."
+#     ui blank
     
-    if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-        ui blank
-        ui echo "${BOLD_GREEN}✅ 强制重新安装完成！${RESET}"
-        ui echo "${BOLD_CYAN}🔄 已发出重启信号，准备重载主程序...${RESET}"
-        sleep 2
-        # 关键修改：返回 10 给上级
-        return 10
-    else
-        ui error "强制安装过程中出现异常"
-        ui wait_return
-    fi
-
-    # ui clear
-    # ui print info_header "正在强制重新安装并修复环境..."
-    # ui blank
-
-    # ui clear
-    # ui print info_header "正在强制重新安装并修复环境..."
-    # ui blank
-
-    # # 1. 使用 bash -s -- 传递参数给远程下载的脚本
-    # # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
-    # if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-    #     ui blank
-    #     ui_success "强制重新安装完成！${RESET}"
-    #     ui echo "${BOLD_CYAN}🔄$(ui_spaces)脚本将在 2 秒后原地重启...${RESET}"
-    #     sleep 2
-    #     # 重新载入主程序
-    #     exec v
-    # else
-    #     ui_error "强制安装过程中出现异常"
-    #     ui_wait_enter
-    # fi
-}
+#     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
+#     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
+#     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
+#         ui blank
+#         ui echo "${BOLD_GREEN}✅ 强制重新安装完成！${RESET}"
+#         sleep 1
+#         return 10
+#     else
+#         ui error "强制安装过程中出现异常"
+#         ui wait_return
+#     fi
+# }
 
 # ------------------------------------------------------------------------------
 # 函数名: do_uninstall
@@ -214,11 +129,13 @@ maintain_menu() {
 
         case "$choice" in
             1)
-                _do_update
+                local update_script="$BASE_DIR/modules/system/maintain/update.sh"
+                bash "$update_script"
                 [[ $? -eq 10 ]] && return 10
                 ;;
             2)
-                _do_force_reinstall
+                local reinstall_script="$BASE_DIR/modules/system/maintain/reinstall.sh"
+                bash "$reinstall_script"
                 [[ $? -eq 10 ]] && return 10
                 ;;
             3)

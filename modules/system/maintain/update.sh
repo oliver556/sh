@@ -38,6 +38,15 @@ BOLD_BLUE=$(tput bold)$(tput setaf 4)
 BOLD_CYAN=$(tput bold)$(tput setaf 6)
 RESET=$(tput sgr0)
 
+# 智能加载库文件：如果 ui 函数未定义（bash 调用模式），则加载库；
+# 如果已定义（source 调用模式），则跳过加载，避免覆盖。
+if ! declare -f ui > /dev/null; then
+    source "${BASE_DIR}/lib/env.sh"
+    source "${BASE_DIR}/lib/utils.sh"
+    source "${BASE_DIR}/lib/ui.sh"
+    source "${BASE_DIR}/lib/interact.sh"
+fi
+
 # ------------------------------------------------------------------------------
 # 函数名: get_versions
 # 功能:   获取版本
@@ -51,23 +60,27 @@ RESET=$(tput sgr0)
 #   get_versions
 # ------------------------------------------------------------------------------
 get_versions() {
-    # 读取本地版本
-    local_ver="0.0.0"
-    [ -f "$VERSION_FILE" ] && local_ver=$(cat "$VERSION_FILE" | xargs)
+    # 获取本地版本
+    if [[ -f "${BASE_DIR}/version" ]]; then
+        LOCAL_VER=$(cat "${BASE_DIR}/version" | xargs)
+    else
+        LOCAL_VER="Unknown"
+    fi
 
-    # 获取远程最新版本号 (GitHub API)
-    echo -e "${BOLD_CYAN}🔎 正在检查远程版本...${RESET}"
-    # 使用 curl 获取最新 Tag
-    remote_ver=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
+    ui echo "${BOLD_CYAN}🔎 正在检查远程版本...${RESET}"
+    
+    # 获取远程最新版本 (GitHub API)
+    # 使用 curl 获取，设置超时时间防止卡死
+    REMOTE_VER=$(curl -fsSL --connect-timeout 5 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
 
-    if [ -z "$remote_ver" ]; then
-        echo -e "${BOLD_RED}错误: 无法获取远程版本信息，请检查网络。${RESET}"
-        exit 1
+    if [[ -z "$REMOTE_VER" ]]; then
+        ui_error "无法获取远程版本信息，请检查网络连接。"
+        return 1
     fi
     
     # 导出变量供 do_update 使用
-    export LOCAL_VER="$local_ver"
-    export REMOTE_VER="$remote_ver"
+    export LOCAL_VER="$LOCAL_VER"
+    export REMOTE_VER="$REMOTE_VER"
 }
 
 # ------------------------------------------------------------------------------
@@ -76,36 +89,52 @@ get_versions() {
 # 参数: 无
 #
 # 返回值:
-#   执行对应的函数功能
+#   10 - 更新成功，通知主程序重启
 # 
 # 示例:
 #   do_update
 # ------------------------------------------------------------------------------
 do_update() {
-    get_versions
+    ui clear
+    ui print info_header "正在检查更新逻辑..."
+    ui blank
 
-    # 版本比对逻辑 (兼容 v1.0.0 和 1.0.0 的格式)
-    if [ "$LOCAL_VER" == "$REMOTE_VER" ] || [ "v$LOCAL_VER" == "$REMOTE_VER" ]; then
-        echo -e "${BOLD_GREEN}✅ 当前已是最新版本 ($LOCAL_VER)。${RESET}"
-        # 退出码 0：告知父脚本无需重启
+    # 获取并比对版本
+    if ! get_versions; then
+        ui_wait_enter
+        exit 1
+    fi
+
+    # 版本比对
+    if [[ "$LOCAL_VER" == "$REMOTE_VER" ]] || [[ "v$LOCAL_VER" == "$REMOTE_VER" ]]; then
+        ui echo "${BOLD_GREEN}✅ 当前已是最新版本 ($LOCAL_VER)。${RESET}"
+        ui_wait_enter
         exit 0
     fi
 
-    echo -e "${BOLD_YELLOW}🚀 发现新版本 $REMOTE_VER (当前: v$LOCAL_VER)${RESET}"
-    echo -e "${BOLD_BLUE}正在执行更新...${RESET}"
-    sleep 1
+    # # 发现新版本，询问是否更新
+    # ui echo "${BOLD_YELLOW}🚀 发现新版本！${RESET}"
+    # if ! ui_confirm "是否立即执行更新？"; then
+    #     ui_info "更新已取消。"
+    #     exit 0
+    # fi
+
+    # 执行更新 (下载 install.sh 并运行)
+    ui blank
+    ui_info "正在拉取最新代码..."
     
-    # 核心逻辑：直接调用远程的一键安装脚本，并传递跳过协议参数
+    # 直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-        echo -e "\n${BOLD_GREEN}✅ 更新完成！${RESET}"
-        echo -e "${BOLD_CYAN}🔄 正在原地重启脚本...${RESET}"
-        # 返回退出码 10，告诉 vsk_script/menu.sh：更新已成功，请主程序执行 exec v 重启
+        ui blank
+        ui echo "${BOLD_GREEN}✅ 更新完成！${RESET}"
+        sleep 1
         exit 10
     else
-        echo -e "${BOLD_RED}❌ 更新失败。${RESET}"
+        ui_error "更新失败，请检查网络或稍后重试。"
+        ui_wait_enter
         exit 1
     fi
 }
 
 # 启动引擎
-do_update
+do_update "$@"

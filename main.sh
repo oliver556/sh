@@ -15,7 +15,7 @@
 # Shell 环境安全设置（工程级）
 # ******************************************************************************
 # 开启错误调试捕捉：一旦出错，打印行号和错误命令
-# trap 'echo -e "\033[31m[Error] 脚本异常退出！出错行号: $LINENO，错误命令: $BASH_COMMAND\033[0m"' ERR
+trap 'echo -e "\033[31m[Error] 脚本异常退出！出错行号: $LINENO，错误命令: $BASH_COMMAND\033[0m"' ERR
 
 set -o errexit   # 一旦有命令返回非 0，立即退出脚本，避免错误被忽略
 set -o pipefail  # 管道中任意一段失败，整体失败，防止错误被吞掉
@@ -122,15 +122,13 @@ main() {
         case "$choice" in
             1|2|3|4|8|9|99)
                 if declare -f router_main > /dev/null; then
-                    # --- 核心逻辑修改开始 ---
-                    
                     local ret=0
                     
-                    # 1. 调用路由分发，并捕获返回值
+                    # 调用路由分发，并捕获返回值
                     # 使用 || ret=$? 是为了防止 set -e (如果开启) 导致脚本直接退出
                     router_main "$choice" || ret=$?
 
-                    # 2. 检查返回值是否为 10 (重启信号)
+                    # 检查返回值是否为 10 (重启信号)
                     if [[ $ret -eq 10 ]]; then
                         ui blank
                         ui echo "${BOLD_CYAN}🔄 系统正在重载主程序...${RESET}"
@@ -139,11 +137,10 @@ main() {
                         # 确保有执行权限
                         chmod +x "${BASE_DIR}/main.sh" 2>/dev/null
                         
-                        # 3. 执行自我重启
+                        # 执行原地重启
                         # 使用 exec 替换当前进程，"$0" 代表当前脚本路径，"$@" 代表启动参数
                         exec bash "$0" "$@"
                     fi
-                    # --- 核心逻辑修改结束 ---
                 else
                     ui_error "路由函数 router_main 未找到"
                     sleep 2

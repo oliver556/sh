@@ -63,7 +63,6 @@ trap 'echo -e "\n${BOLD_RED}❌ 卸载过程中出现异常${RESET}" >&2' ERR
 #   do_uninstall
 # ------------------------------------------------------------------------------
 do_uninstall() {
-
     # if [[ "$(id -u)" -ne 0 ]]; then
     #     echo -e "${BOLD_RED}错误：请使用 root 权限执行卸载${RESET}"
     #     return 1
