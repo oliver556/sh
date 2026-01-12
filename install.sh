@@ -135,7 +135,7 @@ clear_version() {
         
         sleep 1
         echo
-        echo -e "${BOLD_CYAN}✅ 脚本已清理，即将覆盖安装！${BOLD_WHITE}"
+        echo -e "${BOLD_CYAN}✅$(ui_spaces)脚本已清理，即将覆盖安装！${BOLD_WHITE}"
         sleep 1
         clear
     fi
@@ -223,7 +223,7 @@ verify_sha256() {
         error_exit "SHA256 校验失败，可能遭到劫持！"
     fi
 
-    echo -e "${BOLD_GREEN}✅ SHA256 校验通过${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}✅$(ui_spaces)SHA256 校验通过${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ setup_system() {
         # 核心: 无论 v 还是 vsk，全部指向 bin/v 包装器
         ln -sf "$INSTALL_DIR/v" "$BIN_LINK"
         ln -sf "$INSTALL_DIR/v" "$BIN_SHORT_LINK"
-        echo -e "${BOLD_GREEN}✅ 启动器链接已创建${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✅$(ui_spaces)启动器链接已创建${BOLD_WHITE}"
     else
         # 兜底逻辑: 如果包装器没找到，尝试链接到 main.sh
         if [ -f "$INSTALL_DIR/main.sh" ]; then
@@ -394,6 +394,24 @@ setup_system() {
             error_exit "未找到可执行的主程序入口"
         fi
     fi
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: ui_spaces
+# 功能:   生成指定数量的空格字符串
+# 
+# 参数:
+#   $1 (number): 需要的空格数量 (可选)
+# 
+# 返回值: 需要的空格数量
+# 
+# 示例:
+#   "A$(ui_spaces 2)B"
+# ------------------------------------------------------------------------------
+ui_spaces() {
+    local count="${1:-2}"
+    ((count < 0)) && count=0
+    printf "%*s" "$count" ""
 }
 
 # ------------------------------------------------------------------------------
@@ -414,9 +432,9 @@ install_success() {
         cat "$INSTALL_DIR/banner"
     fi
 
-    echo -e "${BOLD_GREEN}✅ 安装完成！${BOLD_WHITE} "
+    echo -e "${BOLD_GREEN}✅$(ui_spaces)安装完成！${BOLD_WHITE} "
     echo
-    echo -e "${BOLD_GREEN}🚀 现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}🚀$(ui_spaces)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
@@ -434,7 +452,7 @@ main() {
     clear
 
     echo -e "${BOLD_CYAN}==============================================${RESET}"
-    echo -e "${BOLD_WHITE}     🚀 欢迎安装 VpsScriptKit 脚本工具箱      ${RESET}"
+    echo -e "${BOLD_WHITE}     🚀$(ui_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${RESET}"
     echo -e "${BOLD_CYAN}==============================================${RESET}"
 
     # 1. 前置检查

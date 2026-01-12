@@ -44,7 +44,7 @@ get_versions() {
         LOCAL_VER="Unknown"
     fi
 
-    ui echo "${BOLD_CYAN}🔎 正在检查远程版本...${RESET}"
+    ui echo "${BOLD_CYAN}🔎$(ui_spaces)正在检查远程版本...${RESET}"
     
     # 获取远程最新版本 (GitHub API)，使用 curl 获取，设置超时时间防止卡死
     REMOTE_VER=$(curl -fsSL --connect-timeout 5 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
@@ -71,7 +71,7 @@ get_versions() {
 # ------------------------------------------------------------------------------
 do_update() {
     ui clear
-    ui print info_header "正在检查最新版本..."
+    ui print info_header "检查版本"
     ui blank
 
     # 获取并比对版本
@@ -82,7 +82,7 @@ do_update() {
 
     # 版本比对
     if [[ "$LOCAL_VER" == "$REMOTE_VER" ]] || [[ "v$LOCAL_VER" == "$REMOTE_VER" ]]; then
-        ui echo "${BOLD_GREEN}✅ 当前已是最新版本 ($LOCAL_VER)。${RESET}"
+        ui echo "${BOLD_GREEN}✅$(ui_spaces)当前已是最新版本 ($LOCAL_VER)。${RESET}"
         ui_wait_enter
         exit 0
     fi
@@ -93,7 +93,7 @@ do_update() {
     # 直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         ui blank
-        ui echo "${BOLD_GREEN}✅ 更新完成！${RESET}"
+        ui echo "${BOLD_GREEN}✅$(ui_spaces)更新完成！${RESET}"
         sleep 1
         exit 10
     else
