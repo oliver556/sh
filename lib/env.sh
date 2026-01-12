@@ -60,14 +60,15 @@ LIBS=(
     "utils.sh"           # 全局通用工具 (最基础)
     "interact.sh"        # 交互逻辑 (依赖 UI)
     "check.sh"           # 环境检测 (依赖 UI 和 utils)
-    "network.sh"         # 网络工具
+    "network.sh"         # 网络信息 & 统计
+    "geo.sh"             # ISP / 地理位置
     "system.sh"          # 系统信息
     "router.sh"          # 路由分发 (依赖以上所有)
     # 辅助/守护库
-    "guards/check.sh"
-    "guards/ensure.sh"
-    "guards/guards.sh"   # 检测系统是否支持
-    "guards/require.sh"
+    "guards/check.sh"    # 检查 + 提示（不修复）
+    "guards/ensure.sh"   # 尝试安装保障（可失败）
+    "guards/require.sh"  # 强制满足（会修复）
+    "guards/network.sh"  # 网络状态检测
 )
 
 # 循环加载并检查，避免 source 不存在的文件导致报错退出

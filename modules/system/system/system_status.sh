@@ -56,7 +56,7 @@ status_show_network_info() {
     # ui item_list "IPv6 内网" 15 "$_net_get_private_ipv6"
     ui item_list "DNS服务器" 15 "$_net_get_dns"
     # ui item_list "默认网关" 15 "$_net_get_gateway"
-    # ui item_list "网络连通性" 15 "$_net_test_connectivity"
+    # ui item_list "网络连通性" 15 "$_check_net_connectivity"
 
     ui line_2
 }
@@ -128,7 +128,7 @@ _get_sys_info() {
     # _net_get_dns=$(net_get_dns | tr '\n' ', ' | sed 's/, $//')
     _net_get_dns=$(net_get_dns | xargs | sed 's/ /, /g')
     # _net_get_gateway=$(net_get_gateway)
-    # _net_test_connectivity=$(net_test_connectivity)
+    # _check_net_connectivity=$(check_net_connectivity)
 
     _net_get_total_rx=$(net_get_total_rx)
     _net_get_total_tx=$(net_get_total_tx)
