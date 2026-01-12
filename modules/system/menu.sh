@@ -16,6 +16,7 @@
 # ******************************************************************************
 source "${BASE_DIR}/modules/system/system/status.sh"
 source "${BASE_DIR}/modules/system/system/update.sh"
+source "${BASE_DIR}/modules/system/system/clean.sh"
 
 # ------------------------------------------------------------------------------
 # 函数名: system_menu
@@ -72,23 +73,11 @@ system_menu() {
                 ;;
 
             2)
-                if ! guard_system_update; then
-                    ui_error "当前系统不支持自动更新"
-                    # 暂停 2 秒让用户看到信息
-                    sleep 2
-                    break
-                fi
-
-                # 执行系统更新
-                if system_update; then
-                    # 更新完成
-                    ui_success "系统更新完成"
-                else
-                    # 更新失败
-                    ui_error "系统更新过程中出现错误"
-                fi
-
-                # 等待用户按键继续
+                system_check_update
+                ui_wait_enter
+                ;;
+            3)
+                system_check_clean
                 ui_wait_enter
                 ;;
             99)
