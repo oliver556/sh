@@ -86,7 +86,7 @@ docker_menu() {
     ui echo "${BOLD_YELLOW}当前 Docker 环境: ${RESET}$(get_docker_status_text)"
 
     ui line
-    ui_menu_item 1 0 1 "$(ui_spaces 1)安装更新环境 ${BOLD_RED}★${LIGHT_WHITE}"
+    ui_menu_item 1 0 1 "$(ui_spaces 1)安装更新环境 ${BOLD_YELLOW}★${LIGHT_WHITE}"
     ui_menu_done
     ui_menu_item 1 0 2 "$(ui_spaces 1)${BOLD_GREY}查看全局状态${RESET}"
     ui_menu_done
