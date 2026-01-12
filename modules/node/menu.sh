@@ -15,6 +15,19 @@
 source "${BASE_DIR}/modules/node/3xui/3xui.sh"
 source "${BASE_DIR}/modules/node/xui/xui.sh"
 
+# ------------------------------------------------------------------------------
+# 函数名: node_menu
+# 功能:  节点搭建脚本模块导航
+# 
+# 参数:
+#   无
+#
+# 返回值:
+#   无
+# 
+# 示例:
+#   node_menu
+# ------------------------------------------------------------------------------
 node_menu() {
   while true; do
 
@@ -23,7 +36,7 @@ node_menu() {
     ui print page_header_full "🏗️  节点搭建脚本合集"
 
     ui line
-    ui_menu_item 1 0 1 "3X-UI 面板${BOLD_RED}★${LIGHT_WHITE}"
+    ui_menu_item 1 0 1 "$(ui_spaces 1)3X-UI 面板${BOLD_RED}★${LIGHT_WHITE}"
     ui_menu_item 1 14 2 "X-UI 面板"
     ui_menu_done
 

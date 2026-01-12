@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
 
-# ============================================================
+# ==============================================================================
 # VpsScriptKit - 重装系统逻辑
-# @名称:         /modules/system/reinstall/reinstall.sh
-# @职责:
-# @作者:         Jamison
-# @版本:         0.1.0
-# @创建日期:     2026-01-07
-# @修改日期:     2025-01-07
 #
-# @许可证:       MIT
-# ============================================================
+# @文件路径: modules/system/reinstall/reinstall.sh
+# @功能描述: 重装系统逻辑
+#
+# @作者: Jamison
+# @版本: 0.1.0
+# @创建日期: 2026-01-07
+# ==============================================================================
 
-# ------------------------------
-# 函数: reinstall_finish_reboot
-# 描述: 重装指令发送成功后的倒计时与重启逻辑
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: reinstall_finish_reboot
+# 功能:   重装指令发送成功后的倒计时与重启逻辑
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   reinstall_finish_reboot
+# ------------------------------------------------------------------------------
 reinstall_finish_reboot() {
     local delay="${REBOOT_DELAY:-3}"
     
@@ -43,14 +51,20 @@ reinstall_finish_reboot() {
     exit 0
 }
 
-# ------------------------------
-# 名称: Leitbogioro 脚本
-# @描述: 本函数用于安装 Leitbogioro 脚本
-# @参数: $1: string - 脚本执行后缀补充 (e.g., "debian 12")
-#
-# @GitHub 地址：https://github.com/leitbogioro/Tools
-# @示例: reinstall_Leitbogioro "debian 12"
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: reinstall_Leitbogioro
+# 功能:   安装 Leitbogioro 脚本 [Leitbogioro 脚本]
+# @项目地址: https://github.com/leitbogioro/Tools
+# 
+# 参数:
+#   $1 (string): 脚本执行后缀补充 (e.g., "debian 12") (必填)
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   reinstall_Leitbogioro "debian 12"
+# ------------------------------------------------------------------------------
 reinstall_Leitbogioro() {
     local system_param="$1"
     local url="${GH_PROXY}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh"
@@ -66,14 +80,20 @@ reinstall_Leitbogioro() {
     return $?
 }
 
-# ------------------------------
-# 名称: Bin456789 脚本
-# @描述: 本函数用于安装 Bin456789 脚本
-# @参数: $1: string - 脚本执行后缀补充 (e.g., "debian 12")
-#
-# @GitHub 地址：https://github.com/bin456789/reinstall
-# @示例: reinstall_bin456789 "debian 12"
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: reinstall_Bin456789
+# 功能:   安装 Bin456789 脚本 [Bin456789 脚本]
+# @项目地址: https://github.com/bin456789/reinstall
+# 
+# 参数:
+#   $1 (string): 脚本执行后缀补充 (e.g., "debian 12") (必填)
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   reinstall_Bin456789 "debian 12"
+# ------------------------------------------------------------------------------
 reinstall_Bin456789() {
     local system_param="$1"
     local url="${GH_PROXY}raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh"
@@ -89,15 +109,20 @@ reinstall_Bin456789() {
     return $?
 }
 
-# ------------------------------
-# @名称: Leitbogioro 脚本安装逻辑 ①
-# @描述: 本函数用于安装 Leitbogioro 脚本。
-#
-# @参数 $1: 系统版本全名 (e.g., "Debian 12")
-# @参数 $2: 脚本执行后缀补充 (e.g., "debian 12")
-#
-# @示例: run_mollylau_install "Debian 12" "debian 12"
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: run_mollylau_install
+# 功能:    Leitbogioro 脚本安装逻辑 ① [安装 Leitbogioro 脚本。]
+# 
+# 参数:
+#   $1 (string): 系统版本全名 (e.g., "Debian 12") (必填)
+#   $2 (string): 脚本执行后缀补充 (e.g., "debian 12") (必填)
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   run_mollylau_install "Debian 12" "debian 12"
+# ------------------------------------------------------------------------------
 run_mollylau_install() {
     local system_version_name="$1"
     local system_param="$2"
@@ -119,15 +144,20 @@ run_mollylau_install() {
     reinstall_finish_reboot
 }
 
-# ------------------------------
-# @名称: Bin456789 脚本安装逻辑 ②
-# @描述: 本函数用于安装 Bin456789 脚本。
-#
-# @参数 $1: 系统版本全名 (e.g., "Debian 12")
-# @参数 $2: 脚本执行后缀补充 (e.g., "debian 12")
-#
-# @示例: run_bin456789_install "Debian 12" "debian 12"
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: run_bin456789_install
+# 功能:    Bin456789 脚本安装逻辑 ① [安装 Bin456789 脚本。]
+# 
+# 参数:
+#   $1 (string): 系统版本全名 (e.g., "Debian 12") (必填)
+#   $2 (string): 脚本执行后缀补充 (e.g., "debian 12") (必填)
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   run_bin456789_install "Debian 12" "debian 12"
+# ------------------------------------------------------------------------------
 run_bin456789_install() {
     local system_version_name="$1"
     local system_param="$2"
@@ -143,19 +173,25 @@ run_bin456789_install() {
     reinstall_finish_reboot
 }
 
-# ------------------------------
-# 重装信息确认
-# @描述: 此函数负责与用户交互，并在确认后调用指定的安装函数。
-#
-# @参数: $1: string - 系统版本全名 (e.g., "Debian 12")
-# @参数: $2: 初始用户名
-# @参数: $3: 初始密码
-# @参数: $4: 初始端口
-# @参数: $5: 需要调用的安装函数名 (e.g., "run_mollylau_install")
-# @参数: $6: 脚本执行后缀补充 (e.g., "debian 12")
-#
-# @返回: 0 (成功/继续), 1 (取消)
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: reinstall_info_config
+# 功能:   重装信息确认，与用户交互，并在确认后调用指定的安装函数。
+# 
+# 参数:
+#   $1 (string): 系统版本全名 (e.g., "Debian 12") (必填)
+#   $2 (string): 初始用户名 (必填)
+#   $3 (string): 初始密码 (必填)
+#   $4 (string): 初始端口 (必填)
+#   $5 (string): 需要调用的安装函数名 (e.g., "run_mollylau_install") (必填)
+#   $6 (string): 脚本执行后缀补充 (e.g., "debian 12") (必填)
+# 
+# 返回值:
+#   0 - 成功 / 继续
+#   1 - 取消
+# 
+# 示例:
+#   reinstall_info_config "Debian 12" "debian 12"
+# ------------------------------------------------------------------------------
 reinstall_info_config() {
     local name="$1"
     local user pass port func param
@@ -224,9 +260,19 @@ reinstall_info_config() {
     return $?
 }
 
-# ------------------------------
-# 重装系统逻辑
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: reinstall_logic_main
+# 功能:   重装系统逻辑
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   reinstall_logic_main
+# ------------------------------------------------------------------------------
 reinstall_logic_main() {
     ui clear
     reinstall_info_config "$1"

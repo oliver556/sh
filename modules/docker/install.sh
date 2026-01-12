@@ -15,9 +15,11 @@
 # 函数名: install_docker_logic
 # 功能:   安装/更新 Docker (底层 Worker)  (默认直连官方源，中国用户自动加速)
 # 
-# 参数: 无
+# 参数:
+#   无
 # 
-# 返回值: 无
+# 返回值:
+#   无
 # 
 # 示例:
 #   install_docker_logic
@@ -37,7 +39,6 @@ install_docker_logic() {
         return 1
     fi
 }
-
 
 # ------------------------------------------------------------------------------
 # 函数名: start_and_enable_docker
@@ -89,7 +90,6 @@ start_and_enable_docker() {
 
     return 0
 }
-
 
 # ------------------------------------------------------------------------------
 # 函数名: linuxmirrors_install_docker
