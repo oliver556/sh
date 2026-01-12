@@ -19,7 +19,6 @@ ssh_change_ssh_port() {
     else
         ui_error "SSH 端口修改失败或已取消"
     fi
-
 }            
 
 
@@ -38,7 +37,7 @@ ssh_change_ssh_port() {
 #   guard_change_ssh_port
 # ------------------------------------------------------------------------------
 guard_change_ssh_port() {
-    ui_clear
+    ui clear
 
     if ! check_root; then
         return 1
@@ -77,27 +76,30 @@ change_ssh_port() {
     # 获取当前 SSH 端口
     local current_port
     current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+
     ui_info "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${RESET}"
 
     ui echo "------------------------"
-    ui echo "端口号范围: 1 到 65535 之间的数字（输入 0 取消）"
+    ui echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
 
     # 提示用户输入新端口
     local new_port
     read -e -p "请输入新的 SSH 端口号: " new_port
 
-    # 校验输入
-    if [[ "$new_port" =~ ^[0-9]+$ ]]; then
-        if [[ "$new_port" -eq 0 ]]; then
+    choice=$(ui_read_choice "请输入新的 SSH 端口号")
+
+    # 校验输入是否为数字
+    if [[ "$choice" =~ ^[0-9]+$ ]]; then
+        if [[ "$choice" -eq 0 ]]; then
             ui_info "取消修改 SSH 端口"
             return 0
-        elif [[ "$new_port" -ge 1 && "$new_port" -le 65535 ]]; then
+        elif [[ "$choice" -ge 1 && "$choice" -le 65535 ]]; then
             # 修改 sshd_config
-            sed -i "s/^Port .*/Port $new_port/" /etc/ssh/sshd_config
+            sed -i "s/^Port .*/Port $choice/" /etc/ssh/sshd_config
 
             # 重启 SSH 服务
             if systemctl restart sshd 2>/dev/null || service ssh restart 2>/dev/null; then
-                ui_success "SSH 端口已成功修改为 ${BOLD_GREEN}$new_port${RESET}"
+                ui_success "SSH 端口已成功修改为 ${BOLD_GREEN}$choice${RESET}"
                 return 0
             else
                 ui_error "SSH 服务重启失败，请手动检查 sshd"

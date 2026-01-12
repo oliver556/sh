@@ -89,7 +89,7 @@ system_menu() {
                 ;;
             7)
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
-                ssh_change_ssh_port
+                guard_change_ssh_port
                 ui_wait_enter
                 ;;
             99)
