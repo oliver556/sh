@@ -42,6 +42,9 @@ export BIN_PATHS=(
     "/usr/bin/vsk"
 )
 
+# 支持的系统类型
+export SUPPORTED_OS=("debian")
+
 # ========================================
 # TODO 暂时不做日志功能
 # # 目录配置 (依赖 BASE_DIR，由调用者提供)
@@ -82,6 +85,7 @@ done
 LIBS=(
     "check.sh"      # 
     "ensure.sh"     # 
+    "guards.sh"     # 检测系统是否支持
     "require.sh"    # 
 )
 

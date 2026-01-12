@@ -105,7 +105,7 @@ run_mollylau_install() {
     ui echo "${BOLD_LIGHT_WHITE}🔄$(ui_spaces)正在检查系统是否安装有必要环境..."
 
     # 确保 wget 环境就绪
-    ensure_wget || return 1
+    ensure_cmd wget || return 1
 
     sleep 1
 

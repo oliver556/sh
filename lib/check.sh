@@ -59,53 +59,6 @@ has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# ------------------------------------------------------------------------------
-# 函数名: ensure_wget
-# 功能:   识别系统架构，确保 wget 已安装 (不存在则并补全环境)
-# 
-# 参数: 无
-# 
-# 返回值: 无
-# 
-# @调用示例:
-#   ensure_wget
-#   wget https://example.com/file.sh
-# ------------------------------------------------------------------------------
-ensure_wget() {
-  # 是否安装 wget
-  check_cmd wget || return
-
-  # 只有在需要 ui 输出时才调用 ui 相关函数，否则直接 echo
-  if declare -f ui_info > /dev/null; then
-    ui_info "检测到 wget 未安装，正在尝试自动补全环境..."
-  else
-    ui_error "检测到 wget 未安装，正在尝试自动补全环境..."
-  fi
-
-  if is_debian; then
-    apt-get update -qq > /dev/null 2>&1
-    apt-get install -y wget > /dev/null 2>&1
-  elif is_rhel; then
-    yum install -y wget > /dev/null 2>&1
-  else
-    # 兜底方案，直接尝试安装
-    apt install -y wget || yum install -y wget || dnf install -y wget
-  fi
-
-  # 二次检查是否安装成功
-  if check_cmd wget; then
-    return 0
-  else
-    if declare -f ui_error > /dev/null; then
-        ui blank
-        ui_error "wget 安装失败，请手动检查网络或源设置。"
-    else
-        echo "Error: wget 安装失败。"
-    fi
-    return 1
-  fi
-}
-
 # ******************************************************************************
 # Docker 进阶检测与自动安装逻辑
 # ******************************************************************************
