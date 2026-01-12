@@ -53,7 +53,7 @@ check_supported_os() {
 #         return
 #     fi
 # 示例 3: 非交互 / CI / 静默模式
-#     if ! is_root; then
+#     if ! check_root; then
 #         echo "This script must be run as root" >&2
 #         exit 1
 #     fi

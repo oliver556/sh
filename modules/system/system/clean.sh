@@ -11,7 +11,7 @@
 # @创建日期: 2026-01-12
 # ==============================================================================
 
-system_check_clean(){
+guard_system_clean(){
     ui clear
 
     if system_clean; then

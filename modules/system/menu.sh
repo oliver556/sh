@@ -50,7 +50,7 @@ system_menu() {
         ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${RESET}"
         ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${RESET}"
 
-        ui_menu_item 3 0 7 "${BOLD_GREY}$(ui_spaces 1)修改SSH端口${RESET}"
+        ui_menu_item 3 0 7 "$(ui_spaces 1)修改SSH端口"
         ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
         ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
         ui_menu_done
@@ -74,21 +74,22 @@ system_menu() {
 
             2)
                 source "${BASE_DIR}/modules/system/system/update.sh"
-                system_check_update
+                guard_system_update
                 ui_wait_enter
                 ;;
             3)
                 source "${BASE_DIR}/modules/system/system/clean.sh"
-                system_check_clean
+                guard_system_clean
                 ui_wait_enter
                 ;;
             4)
                 source "${BASE_DIR}/modules/system/security/change_password.sh"
-                if guard_change_password; then
-                    change_password
-                else
-                    ui_error "当前环境不支持修改密码"
-                fi
+                guard_change_password
+                ui_wait_enter
+                ;;
+            7)
+                source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
+                ssh_change_ssh_port
                 ui_wait_enter
                 ;;
             99)

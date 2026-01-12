@@ -33,7 +33,9 @@ guard_change_password() {
         ui_error "系统未检测到 passwd 命令，无法修改密码"
         return 1
     fi
-
+    
+    change_password
+    
     return 0
 }
 
@@ -65,7 +67,7 @@ change_password() {
     if is_root; then
         # root 用户
 
-        if [[ -n "$1" ]]; then
+        if [[ -n "${1:-}" ]]; then
             # root 且指定了目标用户
             target_user="$1"
         else

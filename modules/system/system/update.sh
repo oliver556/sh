@@ -11,7 +11,7 @@
 # @创建日期: 2026-01-12
 # ==============================================================================
 
-system_check_update(){
+guard_system_update(){
     ui clear
 
     if ! guard_system_update; then
@@ -20,12 +20,9 @@ system_check_update(){
         break
     fi
 
-    # 执行系统更新
     if system_update; then
-        # 更新完成
         ui_success "系统更新已完成"
     else
-        # 更新失败
         ui_error "系统更新过程中出现错误"
     fi
 }
