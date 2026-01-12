@@ -76,7 +76,8 @@ command_exists() {
 # ------------------------------
 get_docker_status_text() {
   # 调用 lib/check.sh 中的逻辑函数
-  if docker_is_installed; then
+  # if docker_is_installed; then
+  if check_docker; then
     # 返回绿色加粗的“已安装”
     echo -e "${BOLD_GREEN}已安装${RESET}"
   else

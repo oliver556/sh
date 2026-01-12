@@ -13,3 +13,5 @@ art_word.toml export-ignore
 
 # 忽略所有日志文件
 *.log export-ignore
+
+modules/check_sh_syntax.sh

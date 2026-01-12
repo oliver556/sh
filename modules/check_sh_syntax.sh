@@ -28,7 +28,7 @@ for file in $sh_files; do
         echo "✔ 语法通过"
     fi
 
-    # 2. 空函数检查
+    # 空函数检查
     # 匹配: function foo() {} 或 foo() {}
     empty_funcs=$(grep -E '^[[:space:]]*(function[[:space:]]+)?[a-zA-Z0-9_]+[[:space:]]*\(\)[[:space:]]*\{\s*\}' "$file")
     if [ -n "$empty_funcs" ]; then
