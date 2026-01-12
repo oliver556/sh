@@ -54,9 +54,9 @@ maintain_menu() {
         ui line
 
         # --- 操作选单 ---
-        ui_menu_item 1 0 1 "检查并更新"
-        ui_menu_item 2 0 2 "强制重安装"
-        ui_menu_item 3 0 3 "卸载本脚本"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)检查并更新"
+        ui_menu_item 2 0 2 "$(ui_spaces 1)强制重安装"
+        ui_menu_item 3 0 3 "$(ui_spaces 1)卸载本脚本"
         ui_menu_done
 
         # 返回主菜单提示

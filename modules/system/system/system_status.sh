@@ -14,7 +14,7 @@ status_show_system_info() {
     ui line_2
 
     ui item_list "主机名" 15 "$_sys_get_hostname"
-    ui item_list "系统版本" 15 "$_os_get_pretty_name"
+    ui item_list "系统版本" 15 "$_get_os_pretty_name"
     ui item_list "Linux版本" 15 "$_sys_get_kernel"
 
     ui line_2
@@ -103,7 +103,7 @@ status_show_run_time_info() {
 # ------------------------------
 _get_sys_info() {
     _sys_get_hostname=$(sys_get_hostname)
-    _os_get_pretty_name=$(os_get_pretty_name)
+    _get_os_pretty_name=$(get_os_pretty_name)
     _sys_get_kernel=$(sys_get_kernel)
     _sys_get_uptime=$(sys_get_uptime)
     _sys_get_tz_time="$(sys_get_timezone) $(sys_get_datetime)"

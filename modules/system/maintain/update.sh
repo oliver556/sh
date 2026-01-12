@@ -71,7 +71,7 @@ get_versions() {
 # ------------------------------------------------------------------------------
 do_update() {
     ui clear
-    ui print info_header "正在检查更新逻辑..."
+    ui print info_header "正在检查最新版本..."
     ui blank
 
     # 获取并比对版本
