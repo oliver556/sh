@@ -211,3 +211,94 @@ get_os_type() {
             ;;
     esac
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: os_get_pkg_manager
+# 功能:   获取当前系统可用的包管理器类型（获取型）
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 成功获取包管理器
+#       输出值为以下之一：
+#       - apt      (Debian / Ubuntu)
+#       - dnf      (RHEL 8+ / Fedora)
+#       - yum      (RHEL 7 / CentOS 7)
+#       - apk      (Alpine Linux)
+#       - pacman   (Arch Linux)
+#       - zypper   (openSUSE)
+#       - opkg     (OpenWrt / 嵌入式系统)
+#   1 - 未检测到支持的包管理器
+# 
+# 示例:
+#   os_get_pkg_manager
+# ------------------------------------------------------------------------------
+os_get_pkg_manager() {
+
+    # Debian / Ubuntu 系列包管理器
+    # 使用 apt 命令作为判断依据
+    if command -v apt &>/dev/null; then
+        echo "apt"
+        return 0
+    fi
+
+    # RHEL 8+ / Fedora 默认包管理器
+    # dnf 优先级高于 yum
+    if command -v dnf &>/dev/null; then
+        echo "dnf"
+        return 0
+    fi
+
+    # RHEL 7 / CentOS 7 传统包管理器
+    if command -v yum &>/dev/null; then
+        echo "yum"
+        return 0
+    fi
+
+    # Alpine Linux 包管理器
+    if command -v apk &>/dev/null; then
+        echo "apk"
+        return 0
+    fi
+
+    # Arch Linux 包管理器
+    if command -v pacman &>/dev/null; then
+        echo "pacman"
+        return 0
+    fi
+
+    # openSUSE 包管理器
+    if command -v zypper &>/dev/null; then
+        echo "zypper"
+        return 0
+    fi
+
+    # OpenWrt / 嵌入式系统包管理器
+    if command -v opkg &>/dev/null; then
+        echo "opkg"
+        return 0
+    fi
+
+    # 未匹配到任何已知包管理器
+    return 1
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: guard_system_update
+# 功能:   检查当前系统是否支持自动更新（是否有可用包管理器）
+# 
+# 参数: 无
+# 
+# 返回值:
+#   0 - 支持系统更新
+#   1 - 不支持系统更新
+# 
+# 示例:
+#   guard_system_update
+# ------------------------------------------------------------------------------
+guard_system_update() {
+    local pkg_manager
+    pkg_manager=$(os_get_pkg_manager) || return 1   # 获取失败则返回 1
+    [[ -n "$pkg_manager" ]]                         # 有值返回 0，否则 1
+}

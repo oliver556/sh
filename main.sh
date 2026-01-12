@@ -92,7 +92,7 @@ main() {
                     # 检查返回值是否为 10 (重启信号)
                     if [[ $ret -eq 10 ]]; then
                         ui blank
-                        ui echo "${BOLD_CYAN}🔄 系统正在重载主程序...${RESET}"
+                        ui echo "${BOLD_CYAN}🔄$(ui_spaces)系统正在重载主程序...${RESET}"
                         sleep 1
                         
                         # 确保有执行权限

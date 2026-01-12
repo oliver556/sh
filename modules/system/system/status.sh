@@ -3,7 +3,7 @@
 # ==============================================================================
 # VpsScriptKit - 系统状态展示模块
 #
-# @文件路径: modules/system/system/system_status.sh
+# @文件路径: modules/system/system/status.sh
 # @功能描述: 展示相关信息
 #
 # @作者: Jamison
