@@ -283,29 +283,29 @@ ui_str_width() {
 ui_text() {
     ui echo "$1"
 }
-# 用户提示 / 说明（加粗白）
+# 用户提示 / 说明（加粗白）-> 用箭头引导
 ui_tip() {
-    ui echo "${BOLD_WHITE}➤$(ui_spaces 1)$1${RESET}"
+    ui echo "${BOLD_WHITE}➜$(ui_spaces 1)$1${RESET}"
 }
-# 信息提示（中性状态）
+# 信息提示（中性状态）-> 用实心圆点或 i
 ui_info()  {
-    ui echo "${BLUE}ℹ$(ui_spaces)$1${LIGHT_WHITE}"
+    ui echo "${BLUE}●$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 成功提示
+# 成功提示(绿) -> 经典的对号
 ui_success() {
     ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 警告提示（非致命）
+# 警告提示（非致命）(黄) -> 叹号
 ui_warn()  {
-    ui echo "${BOLD_YELLOW}⚠$(ui_spaces 1)$1${LIGHT_WHITE}"
+    ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
-# 错误提示（致命）
+# 错误提示（致命）(红) -> 经典的叉号
 ui_error() {
-    ui echo "${BOLD_RED}✘$(ui_spaces 1)$1${LIGHT_WHITE}";
+    ui echo "${BOLD_RED}✘$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
 # 菜单选项错误（非致命）
 ui_warn_menu()  {
-    ui echo "${BOLD_YELLOW}❌$(ui_spaces)$1${LIGHT_WHITE}"
+    ui echo "${BOLD_YELLOW}✖$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
 
 # ------------------------------------------------------------------------------

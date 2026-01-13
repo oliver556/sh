@@ -14,16 +14,15 @@
 guard_system_update(){
     ui clear
 
-    if ! guard_system_update; then
-        ui_error "当前系统不支持自动更新"
-        sleep 2
-        break
-    fi
-
     if system_update; then
+        ui blank
+        ui line
         ui_success "系统更新已完成"
+        ui line
     else
+        ui line
         ui_error "系统更新过程中出现错误"
+        ui line
     fi
 }
 
@@ -49,6 +48,10 @@ system_update() {
         return 1
     }
 
+    ui line
+    ui_tip "开始更新系统软件包..."
+    ui line
+    ui blank
     # --------------------------------------------------------------------------
     # 根据不同包管理器，执行对应的系统更新逻辑
     # 所有命令均使用非交互模式，避免阻塞脚本执行
@@ -59,12 +62,13 @@ system_update() {
         # Debian / Ubuntu 系列
         # ----------------------------------------------------------------------
         apt)
-            ui_info "检测到 apt 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 apt 包管理器，开始更新系统软件包..."
 
             # 1. 礼貌停止：尝试让 apt/dpkg 正常保存数据并退出
             # (killall 默认发送 SIGTERM 信号，给进程机会收尾)
             killall apt apt-get dpkg 2>/dev/null
-            echo "等待后台任务释放..."
+            ui_info "等待后台任务释放..."
+            ui blank
             sleep 3
 
             # 2. 强制清场：如果礼貌停止后进程还在（卡死了），再强制杀掉
@@ -96,7 +100,7 @@ system_update() {
         # RHEL 8+ / Fedora
         # ----------------------------------------------------------------------
         dnf)
-            ui_info "检测到 dnf 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 dnf 包管理器，开始更新系统软件包..."
 
             # 执行系统更新
             if ! dnf -y update; then
@@ -109,7 +113,7 @@ system_update() {
         # RHEL 7 / CentOS 7
         # ----------------------------------------------------------------------
         yum)
-            ui_info "检测到 yum 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 yum 包管理器，开始更新系统软件包..."
 
             # 执行系统更新
             if ! yum -y update; then
@@ -122,7 +126,7 @@ system_update() {
         # Alpine Linux
         # ----------------------------------------------------------------------
         apk)
-            ui_info "检测到 apk 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 apk 包管理器，开始更新系统软件包..."
 
             # 更新软件包索引
             if ! apk update; then
@@ -141,7 +145,7 @@ system_update() {
         # Arch Linux
         # ----------------------------------------------------------------------
         pacman)
-            ui_info "检测到 pacman 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 pacman 包管理器，开始更新系统软件包..."
 
             # 同步并升级所有软件包
             if ! pacman -Syu --noconfirm; then
@@ -154,7 +158,7 @@ system_update() {
         # openSUSE
         # ----------------------------------------------------------------------
         zypper)
-            ui_info "检测到 zypper 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 zypper 包管理器，开始更新系统软件包..."
 
             # 刷新软件源
             if ! zypper refresh; then
@@ -173,7 +177,7 @@ system_update() {
         # OpenWrt / 嵌入式系统
         # ----------------------------------------------------------------------
         opkg)
-            ui_info "检测到 opkg 包管理器，开始更新系统软件包..."
+            # ui_info "检测到 opkg 包管理器，开始更新系统软件包..."
 
             # 更新软件源
             if ! opkg update; then
