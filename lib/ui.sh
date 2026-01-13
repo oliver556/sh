@@ -289,7 +289,7 @@ ui_tip() {
 }
 # 信息提示（中性状态）
 ui_info()  {
-    ui echo "${BLUE}ℹ$(ui_spaces 1)$1${LIGHT_WHITE}"
+    ui echo "${BLUE}ℹ$(ui_spaces)$1${LIGHT_WHITE}"
 }
 # 成功提示
 ui_success() {

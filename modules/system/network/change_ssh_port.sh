@@ -146,6 +146,7 @@ change_ssh_port() {
         # 用户取消
         if [[ "$choice" -eq 0 ]]; then
             ui_info "取消修改 SSH 端口"
+            ui blank
             return 2
         fi
 
