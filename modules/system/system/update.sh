@@ -61,6 +61,23 @@ system_update() {
         apt)
             ui_info "检测到 apt 包管理器，开始更新系统软件包..."
 
+            # 1. 礼貌停止：尝试让 apt/dpkg 正常保存数据并退出
+            # (killall 默认发送 SIGTERM 信号，给进程机会收尾)
+            killall apt apt-get dpkg 2>/dev/null
+            echo "等待后台任务释放..."
+            sleep 3
+
+            # 2. 强制清场：如果礼貌停止后进程还在（卡死了），再强制杀掉
+            # (这一步是防止上面的 killall 没杀掉，导致后面删锁时发生冲突)
+            pkill -9 -f 'apt|dpkg' 2>/dev/null
+
+            # 3. 清理锁文件：这时候由于进程肯定没了，如果是异常退出的，锁文件可能还在，手动删掉
+            rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock
+
+            # 4. 修复环境：处理刚才可能中断的安装包
+            DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+
+            # 5. 执行更新：此时环境已经干净且修复完毕
             # 刷新软件包索引
             # 使用非交互环境变量，避免 tzdata 等包阻塞
             if ! DEBIAN_FRONTEND=noninteractive apt update -y; then

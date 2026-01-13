@@ -70,18 +70,24 @@ command_exists() {
   fi
 }
 
-# TODO 辅助函数
-# ------------------------------
-# 辅助函数: 获取 Docker 环境状态字符串
-# ------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: get_docker_status_text
+# 功能:   辅助函数: 获取 Docker 环境状态字符串
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 已安装
+#   1 - 未安装
+# 
+# 示例:
+#   get_docker_status_text
+# ------------------------------------------------------------------------------
 get_docker_status_text() {
-  # 调用 lib/check.sh 中的逻辑函数
-  # if docker_is_installed; then
   if check_docker; then
-    # 返回绿色加粗的“已安装”
-    echo -e "${BOLD_GREEN}已安装${RESET}"
+    ui echo "${BOLD_GREEN}已安装${RESET}"
   else
-    # 返回红色加粗的“未安装”
-    echo -e "${BOLD_RED}未安装${RESET}"
+    ui echo "${BOLD_RED}未安装${RESET}"
   fi
 }

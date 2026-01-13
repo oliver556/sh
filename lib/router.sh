@@ -39,10 +39,10 @@ router_main() {
             ;;
         2)
             # 基础工具模块
-            if [[ -f "${BASE_DIR}/modules/basic/entry.sh" ]]; then
-                source "${BASE_DIR}/modules/basic/entry.sh"
+            if [[ -f "${BASE_DIR}/modules/basic/menu.sh" ]]; then
+                source "${BASE_DIR}/modules/basic/menu.sh"
                 # 假设基础模块入口函数名为 basic_menu 或 module_entry
-                module_entry 
+                basic_menu 
             fi
             ;;
         3)
