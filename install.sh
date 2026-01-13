@@ -135,7 +135,7 @@ clear_version() {
         
         sleep 1
         echo
-        echo -e "${BOLD_CYAN}✅$(ui_spaces)脚本已清理，即将覆盖安装！${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✔$(ui_spaces 1)脚本已清理，即将覆盖安装！${BOLD_WHITE}"
         sleep 1
         clear
     fi
@@ -223,7 +223,7 @@ verify_sha256() {
         error_exit "SHA256 校验失败，可能遭到劫持！"
     fi
 
-    echo -e "${BOLD_GREEN}✅$(ui_spaces)SHA256 校验通过${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}✔$(ui_spaces 1)SHA256 校验通过${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ setup_system() {
         # 核心: 无论 v 还是 vsk，全部指向 bin/v 包装器
         ln -sf "$INSTALL_DIR/v" "$BIN_LINK"
         ln -sf "$INSTALL_DIR/v" "$BIN_SHORT_LINK"
-        echo -e "${BOLD_GREEN}✅$(ui_spaces)启动器链接已创建${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✔$(ui_spaces 1)启动器链接已创建${BOLD_WHITE}"
     else
         # 兜底逻辑: 如果包装器没找到，尝试链接到 main.sh
         if [ -f "$INSTALL_DIR/main.sh" ]; then
@@ -432,9 +432,9 @@ install_success() {
         cat "$INSTALL_DIR/banner"
     fi
 
-    echo -e "${BOLD_GREEN}✅$(ui_spaces)安装完成！${BOLD_WHITE} "
+    echo -e "${BOLD_GREEN}✔$(ui_spaces 1)安装完成！${BOLD_WHITE} "
     echo
-    echo -e "${BOLD_GREEN}🚀$(ui_spaces)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}⚡$(ui_spaces 1)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------

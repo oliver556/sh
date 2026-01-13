@@ -44,7 +44,7 @@ test_menu() {
     case "$choice" in
       1)
         ui clear
-        ui echo "🚀$(ui_spaces)正在运行 IP 质量检测..."
+        ui_speed "正在运行 IP 质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -I
         ui_wait_enter
@@ -52,7 +52,7 @@ test_menu() {
 
       2)
         ui clear
-        ui echo "🚀$(ui_spaces)正在运行 NetQuality 网络质量检测..."
+        ui_speed "正在运行 NetQuality 网络质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -N
         ui_wait_enter
@@ -60,7 +60,7 @@ test_menu() {
 
       31)
         ui clear
-        ui echo "🚀$(ui_spaces)正在运行 bench 性能测试..."
+        ui_speed "正在运行 bench 性能测试..."
         ui blank
         curl -Lso- bench.sh | bash
         ui_wait_enter
@@ -68,7 +68,7 @@ test_menu() {
 
       32)
         ul clear
-        ui echo "🚀$(ui_spaces)正在运行 spiritysdx 融合怪测评..."
+        ui_speed "正在运行 spiritysdx 融合怪测评..."
         curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
         ui blank
         ui_wait_enter

@@ -395,6 +395,20 @@ ui_reload() {
     fi
 }
 
+# 优化 / 加速 / 性能提升
+# 使用符号: ⚡
+ui_speed() {
+    local text="$1"
+    local extra="${2:-}"
+    
+    # BOLD_MAGENTA (紫) 或 BOLD_YELLOW (黄) 都很有速度感
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
+}
+
 # ==============================================================================
 # 盒式反馈 (带上下边框的强调模式)
 # ==============================================================================
