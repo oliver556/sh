@@ -69,14 +69,10 @@ do_uninstall() {
         rm -rf "$BASE_DIR" 2>/dev/null || true
     fi
 
-    ui blank
-    ui_success "VpsScriptKit 所有组件已彻底卸载完成，感谢使用。"
-    ui blank
-    ui_success "卸载成功，江湖有缘再见！"
+    ui_box_success "VpsScriptKit 所有组件已彻底卸载完成，感谢使用！江湖有缘再见！！！"
     sleep 1
-    clear
-        
-    # 0: 成功执行卸载
+    ui clear
+
     return 0
 }
 

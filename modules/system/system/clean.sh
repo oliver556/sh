@@ -15,9 +15,9 @@ guard_system_clean(){
     ui clear
 
     if system_clean; then
-        ui_success "系统清理完成"
+        ui_box_success "系统清理完成"
     else
-        ui_error "系统清理失败"
+        ui_box_error "系统清理失败"
     fi
 }
 
@@ -45,8 +45,7 @@ system_clean() {
         return 1
     }
 
-    ui_info "正在执行系统清理操作..."
-
+    ui_box_info  "开始执行系统清理..."
     # --------------------------------------------------------------------------
     # 根据包管理器类型执行对应的清理逻辑
     # --------------------------------------------------------------------------
@@ -56,10 +55,10 @@ system_clean() {
         # Debian / Ubuntu 系列
         # ----------------------------------------------------------------------
         apt)
-            ui_info "检测到 apt 包管理器，开始清理系统..."
+            # ui_info "检测到 apt 包管理器，开始清理系统..."
 
             # 修复 dpkg 中断状态（防止清理失败）
-            fix_dpkg
+            pkg_fix_dpkg
 
             # 移除无用依赖并清理配置文件
             apt autoremove --purge -y || return 1
@@ -78,7 +77,7 @@ system_clean() {
         # RHEL / CentOS / Fedora（dnf）
         # ----------------------------------------------------------------------
         dnf)
-            ui_info "检测到 dnf 包管理器，开始清理系统..."
+            # ui_info "检测到 dnf 包管理器，开始清理系统..."
 
             # 重建 rpm 数据库
             rpm --rebuilddb
@@ -100,7 +99,7 @@ system_clean() {
         # RHEL 7 / CentOS 7（yum）
         # ----------------------------------------------------------------------
         yum)
-            ui_info "检测到 yum 包管理器，开始清理系统..."
+            # ui_info "检测到 yum 包管理器，开始清理系统..."
 
             # 重建 rpm 数据库
             rpm --rebuilddb
@@ -122,7 +121,7 @@ system_clean() {
         # Alpine Linux
         # ----------------------------------------------------------------------
         apk)
-            ui_info "检测到 apk 包管理器，开始清理系统..."
+            # ui_info "检测到 apk 包管理器，开始清理系统..."
 
             # 清理 apk 包缓存
             apk cache clean || return 1
@@ -141,7 +140,7 @@ system_clean() {
         # Arch Linux
         # ----------------------------------------------------------------------
         pacman)
-            ui_info "检测到 pacman 包管理器，开始清理系统..."
+            # ui_info "检测到 pacman 包管理器，开始清理系统..."
 
             # 移除孤立依赖（如果存在）
             pacman -Rns $(pacman -Qdtq) --noconfirm 2>/dev/null || true
@@ -159,7 +158,7 @@ system_clean() {
         # openSUSE
         # ----------------------------------------------------------------------
         zypper)
-            ui_info "检测到 zypper 包管理器，开始清理系统..."
+            # ui_info "检测到 zypper 包管理器，开始清理系统..."
 
             # 清理所有缓存
             zypper clean --all || return 1
@@ -177,7 +176,7 @@ system_clean() {
         # OpenWrt / 嵌入式系统
         # ----------------------------------------------------------------------
         opkg)
-            ui_info "检测到 opkg 包管理器，开始清理系统..."
+            # ui_info "检测到 opkg 包管理器，开始清理系统..."
 
             # 清理系统日志
             rm -rf /var/log/*
@@ -190,7 +189,7 @@ system_clean() {
         # FreeBSD（pkg）
         # ----------------------------------------------------------------------
         pkg)
-            ui_info "检测到 pkg 包管理器，开始清理系统..."
+            # ui_info "检测到 pkg 包管理器，开始清理系统..."
 
             # 移除无用依赖
             pkg autoremove -y || return 1

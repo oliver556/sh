@@ -52,7 +52,7 @@ basic_menu() {
                 ui clear
                 pkg_install curl
                 ui clear
-                ui_success "curl 下载工具安装成功！"
+                ui_box_success "curl 下载工具安装成功！"
                 curl --help
                 ui_wait_enter
                 ;;
@@ -60,7 +60,7 @@ basic_menu() {
                 ui clear
                 pkg_install wget
                 ui clear
-                ui_success "curl 下载工具安装成功！"
+                ui_box_success "curl 下载工具安装成功！"
                 curl --help
                 ui_wait_enter
                 ;;

@@ -15,14 +15,9 @@ guard_system_update(){
     ui clear
 
     if system_update; then
-        ui blank
-        ui line
-        ui_success "系统更新已完成"
-        ui line
+        ui_box_success "系统更新已完成"
     else
-        ui line
-        ui_error "系统更新过程中出现错误"
-        ui line
+        ui_box_error "系统更新过程中出现错误"
     fi
 }
 
@@ -48,10 +43,7 @@ system_update() {
         return 1
     }
 
-    ui line
-    ui_tip "开始更新系统软件包..."
-    ui line
-    ui blank
+    ui_box_info  "开始更新系统软件包..."
     # --------------------------------------------------------------------------
     # 根据不同包管理器，执行对应的系统更新逻辑
     # 所有命令均使用非交互模式，避免阻塞脚本执行
@@ -64,25 +56,9 @@ system_update() {
         apt)
             # ui_info "检测到 apt 包管理器，开始更新系统软件包..."
 
-            # 1. 礼貌停止：尝试让 apt/dpkg 正常保存数据并退出
-            # (killall 默认发送 SIGTERM 信号，给进程机会收尾)
-            killall apt apt-get dpkg 2>/dev/null
-            ui_info "等待后台任务释放..."
-            ui blank
-            sleep 3
+            # 修复 dpkg 中断状态（防止清理失败）
+            pkg_fix_dpkg
 
-            # 2. 强制清场：如果礼貌停止后进程还在（卡死了），再强制杀掉
-            # (这一步是防止上面的 killall 没杀掉，导致后面删锁时发生冲突)
-            pkill -9 -f 'apt|dpkg' 2>/dev/null
-
-            # 3. 清理锁文件：这时候由于进程肯定没了，如果是异常退出的，锁文件可能还在，手动删掉
-            rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock
-
-            # 4. 修复环境：处理刚才可能中断的安装包
-            DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-
-            # 5. 执行更新：此时环境已经干净且修复完毕
-            # 刷新软件包索引
             # 使用非交互环境变量，避免 tzdata 等包阻塞
             if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
                 ui_error "apt 更新软件源失败"

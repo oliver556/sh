@@ -85,10 +85,13 @@ do_update() {
         ui echo "${BOLD_GREEN}✅$(ui_spaces)当前已是最新版本 ($LOCAL_VER)。${RESET}"
         ui_wait_enter
         exit 0
+    else
+        ui_tip "发现新版本"
     fi
 
     ui blank
     ui_info "正在拉取最新代码..."
+    sleep 1
     
     # 直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
