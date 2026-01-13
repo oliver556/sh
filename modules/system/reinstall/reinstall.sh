@@ -29,9 +29,9 @@ reinstall_finish_reboot() {
     
     ui blank
     ui line
-    ui echo "${LIGHT_GREEN}✅$(ui_spaces)重装预处理已完成！${RESET}"
-    ui echo "${LIGHT_CYAN}系统将在 ${delay} 秒后自动重启并开始 DD...${RESET}"
-    ui echo "${BOLD_YELLOW}提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。${RESET}"
+    ui_success "重装预处理已完成！"
+    ui_info "系统将在 ${delay} 秒后自动重启并开始 DD..."
+    ui_warn "提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。"
 
     ui line
 
@@ -41,7 +41,7 @@ reinstall_finish_reboot() {
         sleep 1
     done
 
-    ui echo "${BOLD_YELLOW}🔄$(ui_spaces)正在执行系统重启...${RESET}"
+    ui_reload "正在执行系统重启..."
     
     # 同步磁盘数据并重启
     sync
@@ -127,7 +127,9 @@ run_mollylau_install() {
     local system_version_name="$1"
     local system_param="$2"
 
-    ui echo "${BOLD_LIGHT_WHITE}🔄$(ui_spaces)正在检查系统是否安装有必要环境..."
+    ui_reload "正在检查系统是否安装有必要环境..."
+
+
 
     # 确保 wget 环境就绪
     ensure_cmd wget || return 1

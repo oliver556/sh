@@ -39,8 +39,8 @@ source "${BASE_DIR}/lib/env.sh"
 # ------------------------------------------------------------------------------
 do_reinstall() {
     ui clear
-    ui print info_header "正在强制重新安装并修复环境..."
-    ui blank
+    # ui print info_header "正在强制重新安装并修复环境..."
+    # ui blank
 
     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节

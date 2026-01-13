@@ -58,7 +58,7 @@ ui() {
         # ------------------------------
         
         # 样式 1 默认/通用横线 (对应 ui_tip / 普通分隔) -> 推荐用 青色或淡灰，不要太抢眼
-        "line" | "line_tip")
+        "line" | "line_tip" | "line_reload")
             ui echo "${LIGHT_CYAN}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
@@ -381,6 +381,19 @@ ui_warn_menu()  {
         ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${LIGHT_WHITE}"
     fi
 }
+# 重载/刷新/处理中 (青色)
+# 使用符号: ⟳
+ui_reload() {
+    local text="$1"
+    local extra="${2:-}"
+    
+    # 颜色建议用 CYAN (青色) 代表过程/网络/刷新
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
+}
 
 # ==============================================================================
 # 盒式反馈 (带上下边框的强调模式)
@@ -581,6 +594,55 @@ ui_box_info() {
     fi
 
     ui line_info
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+}
+
+# 重载/刷新/处理中 - 盒式
+ui_box_warn() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
+    ui line_warn
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        ui_reload "$text" "$next_arg"
+    else
+        ui_reload "$text"
+    fi
+
+    ui line_reload
 
     # 【底部空行】
     if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
