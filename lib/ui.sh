@@ -306,64 +306,286 @@ ui_text() {
 }
 # 用户提示 / 说明（加粗白）-> 用箭头引导
 ui_tip() {
-    ui echo "${BOLD_WHITE}➜$(ui_spaces 1)$1${RESET}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
+}
+# 搜索提示
+ui_search() {
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 # 信息提示（中性状态）-> 用实心圆点或 i
 ui_info()  {
-    ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${LIGHT_WHITE}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 # 成功提示(绿) -> 经典的对号
 ui_success() {
-    ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${LIGHT_WHITE}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 # 警告提示（非致命）(黄) -> 叹号
 ui_warn()  {
-    ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)$1${LIGHT_WHITE}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 # 错误提示（致命）(红) -> 经典的叉号
 ui_error() {
-    ui echo "${BOLD_RED}✘$(ui_spaces 1)$1${LIGHT_WHITE}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 # 菜单选项错误（非致命）
 ui_warn_menu()  {
-    ui echo "${BOLD_YELLOW}✖$(ui_spaces 1)$1${LIGHT_WHITE}"
+    local text="$1"
+    local extra="${2:-}"
+
+    if [[ -n "$extra" ]]; then
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+    else
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${LIGHT_WHITE}"
+    fi
 }
 
 # ==============================================================================
 # 盒式反馈 (带上下边框的强调模式)
 # ==============================================================================
-# 提示标题 - 盒式（常用于执行脚本时开头的提示）
-ui_box_info() {
-    ui line_info
-    ui_success "$1"
-    ui line_info
-}
 # 成功 - 盒式
 ui_box_success() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
     ui line_success
-    ui_success "$1"
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        ui_success "$text" "$next_arg"
+    else
+        ui_success "$text"
+    fi
+
     ui line_success
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
 }
 
 # 错误 - 盒式 (常用于脚本出错退出前)
 ui_box_error() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
     ui line_error
-    ui_error "$1"
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        ui_error "$text" "$next_arg"
+    else
+        ui_error "$text"
+    fi
+
     ui line_error
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
 }
 
 # 警告 - 盒式 (重要注意事项)
 ui_box_warn() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
     ui line_warn
-    ui_warn "$1"
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        ui_warn "$text" "$next_arg"
+    else
+        ui_warn "$text"
+    fi
+
     ui line_warn
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
 }
 
-# 信息 - 盒式 (大段信息开始前)
+# ==============================================================================
+# 盒式信息反馈函数 (ui_box_info)
+#
+# 支持三种调用方式：
+# 1. ui_box_info "文本" "自定义后缀" "bottom"  -> 显示后缀 + 底部空行
+# 2. ui_box_info "文本" "bottom"             -> 无后缀 + 底部空行 (智能识别)
+# 3. ui_box_info "文本" "自定义后缀"           -> 显示后缀 + 无空行
+# ==============================================================================
 ui_box_info() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
     ui line_info
-    ui_info "$1"
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        ui_info "$text" "$next_arg"
+    else
+        ui_info "$text"
+    fi
+
     ui line_info
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
 }
 
 # ------------------------------------------------------------------------------

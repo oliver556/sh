@@ -46,7 +46,7 @@ do_reinstall() {
     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
         ui blank
-        ui echo "${BOLD_GREEN}✅$(ui_spaces)强制重新安装完成！${RESET}"
+        ui_box_success 强制重新安装完成！
         sleep 1
         # 10: 告诉父进程 (main.sh) 需要重启
         exit 10

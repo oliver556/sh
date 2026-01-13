@@ -15,7 +15,7 @@ guard_system_update(){
     ui clear
 
     if system_update; then
-        ui_box_success "系统更新已完成"
+        ui_box_success "系统更新已完成" "top"
     else
         ui_box_error "系统更新过程中出现错误"
     fi
