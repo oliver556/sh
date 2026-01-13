@@ -231,7 +231,6 @@ _pkg_exec() {
     fi
 }
 
-
 # ------------------------------------------------------------------------------
 # 对外函数: pkg_install
 # 功能:     安装软件包（已存在则跳过）
@@ -250,7 +249,6 @@ pkg_install() {
     done
 }
 
-
 # ------------------------------------------------------------------------------
 # 对外函数: pkg_remove
 # 功能:     卸载软件包
@@ -261,7 +259,6 @@ pkg_remove() {
     ui_warn "正在卸载软件包: $*"
     _pkg_exec remove "$@"
 }
-
 
 # ------------------------------------------------------------------------------
 # 对外函数: pkg_update
@@ -279,25 +276,4 @@ pkg_update() {
 pkg_clean() {
     ui_info "正在清理系统包缓存..."
     _pkg_exec clean
-}
-
-# 修复 dpkg 中断状态（防止清理失败）
-pkg_fix_dpkg() {
-    # 1. 礼貌停止：尝试让 apt/dpkg 正常保存数据并退出
-    # (killall 默认发送 SIGTERM 信号，给进程机会收尾)
-    killall apt apt-get dpkg 2>/dev/null
-    ui_tip "等待后台任务释放..."
-    sleep 3
-
-    # 2. 强制清场：如果礼貌停止后进程还在（卡死了），再强制杀掉
-    # (这一步是防止上面的 killall 没杀掉，导致后面删锁时发生冲突)
-    pkill -9 -f 'apt|dpkg' 2>/dev/null
-
-    # 3. 清理锁文件：这时候由于进程肯定没了，如果是异常退出的，锁文件可能还在，手动删掉
-    rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock
-
-    # 4. 修复环境：处理刚才可能中断的安装包
-    DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-
-    # 5. 执行更新：此时环境已经干净且修复完毕
 }

@@ -74,7 +74,7 @@ ui() {
 
         # 警告横线 (对应 ui_warn) -> 黄色
         "line_warn")
-            ui echo "${YELLOW}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${LIGHT_YELLOW}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
         # 错误横线 (对应 ui_error) -> 红色
@@ -310,7 +310,7 @@ ui_tip() {
 }
 # 信息提示（中性状态）-> 用实心圆点或 i
 ui_info()  {
-    ui echo "${BLUE}●$(ui_spaces 1)$1${LIGHT_WHITE}"
+    ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${LIGHT_WHITE}"
 }
 # 成功提示(绿) -> 经典的对号
 ui_success() {

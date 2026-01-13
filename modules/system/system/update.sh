@@ -57,7 +57,7 @@ system_update() {
             # ui_info "检测到 apt 包管理器，开始更新系统软件包..."
 
             # 修复 dpkg 中断状态（防止清理失败）
-            pkg_fix_dpkg
+            fix_dpkg
 
             # 使用非交互环境变量，避免 tzdata 等包阻塞
             if ! DEBIAN_FRONTEND=noninteractive apt update -y; then

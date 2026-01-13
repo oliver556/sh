@@ -58,7 +58,7 @@ system_clean() {
             # ui_info "检测到 apt 包管理器，开始清理系统..."
 
             # 修复 dpkg 中断状态（防止清理失败）
-            pkg_fix_dpkg
+            fix_dpkg
 
             # 移除无用依赖并清理配置文件
             apt autoremove --purge -y || return 1
