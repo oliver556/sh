@@ -32,7 +32,6 @@
 #   system_menu
 # ------------------------------------------------------------------------------
 system_menu() {
-    # 使用无限循环保证模块不会意外退出
     while true; do
 
         ui clear
@@ -53,6 +52,10 @@ system_menu() {
         ui_menu_item 3 0 7 "$(ui_spaces 1)修改SSH端口"
         ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
         ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
+        ui_menu_done
+
+        ui line
+        ui_menu_item 4 0 11 "修改虚拟内存"
         ui_menu_done
 
         ui line
@@ -91,6 +94,11 @@ system_menu() {
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
                 guard_change_ssh_port
                 ui_wait_enter
+                ;;
+            11)
+                source "${BASE_DIR}/modules/system/memory/menu.sh"
+                system_memory_menu
+                # ui_wait_enter
                 ;;
             99)
                 # 重装系统

@@ -1,0 +1,254 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# VpsScriptKit - Swap 管理核心逻辑
+#
+# @文件路径: modules/system/memory/swap.sh
+# @功能描述: 安全创建 / 删除 / 管理 /swapfile 虚拟内存
+#
+# ⚠️ 设计原则：
+#   - 仅操作 /swapfile
+#   - 绝不自动处理 /dev/* swap 分区
+#   - 高风险操作必须可控、可回滚
+#
+# @作者: Jamison
+# @版本: 0.1.0
+# @创建日期: 2026-01-14
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_status
+# 功能:   显示当前 Swap 状态
+#
+# 参数:
+#   无
+#
+# 返回值:
+#   无
+#
+# 示例:
+#   swap_status
+# ------------------------------------------------------------------------------
+swap_status() {
+    # 读取 swap 总量（KB）
+    local total used percent
+
+    # 单位：KB
+    total=$(awk '/SwapTotal/ {print $2}' /proc/meminfo)
+    used=$(awk '
+        /SwapTotal/ {t=$2}
+        /SwapFree/  {f=$2}
+        END {print t-f}
+    ' /proc/meminfo)
+
+    # 未开启 Swap
+    if [[ -z "$total" || "$total" -eq 0 ]]; then
+        ui_info "当前虚拟内存: 0M / 0M (0%)"
+        return 0
+    fi
+
+    percent=$(( used * 100 / total ))
+
+    ui_info "当前虚拟内存: $((used / 1024))M / $((total / 1024))M (${percent}%)"
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: _swap_check_env
+# 功能:   Swap 操作前的统一环境检查
+#
+# 参数:
+#   无
+#
+# 返回值:
+#   0 - 通过
+#   1 - 失败
+# ------------------------------------------------------------------------------
+_swap_check_env() {
+    check_root || return 1
+
+    for cmd in fallocate mkswap swapon swapoff; do
+        if ! command -v "$cmd" &>/dev/null; then
+            ui_error "缺少必要命令: $cmd"
+            return 1
+        fi
+    done
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_create
+# 功能:   创建或重建 /swapfile
+#
+# 参数:
+#   $1 (number): Swap 大小，单位 MB
+#
+# 返回值:
+#   0 - 成功
+#   1 - 失败
+#
+# 示例:
+#   swap_create 2048
+# ------------------------------------------------------------------------------
+swap_create() {
+    ui_box_info "开始创建 Swap (虚拟内存)..." "bottom"
+
+    local size="$1"
+
+    _swap_check_env || return 1
+
+    # 参数校验
+    if [[ -z "$size" || ! "$size" =~ ^[0-9]+$ ]]; then
+        ui_error "Swap 大小参数无效"
+        return 1
+    fi
+
+    # 若已存在 swapfile，先安全关闭
+    if swapon --show | grep -q "^/swapfile"; then
+        ui_text "检测到已启用的 /swapfile，正在关闭..."
+        swapoff /swapfile || {
+            ui_error "关闭现有 swapfile 失败"
+            return 1
+        }
+    fi
+
+    # 删除旧 swapfile
+    if [[ -f /swapfile ]]; then
+        ui_text "移除旧的 /swapfile"
+        rm -f /swapfile || return 1
+    fi
+
+    ui_text "创建新的 /swapfile (${size}MB)"
+    fallocate -l "${size}M" /swapfile || return 1
+    chmod 600 /swapfile
+    mkswap /swapfile >/dev/null || return 1
+    swapon /swapfile || return 1
+
+    # 安全更新 fstab
+    sed -i '/\/swapfile/d' /etc/fstab
+    echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+
+    # Alpine Linux 特殊处理
+    if [[ -f /etc/alpine-release ]]; then
+        ui_text "检测到 Alpine Linux，配置 swap 自启脚本"
+        mkdir -p /etc/local.d
+        echo "swapon /swapfile" > /etc/local.d/swap.start
+        chmod +x /etc/local.d/swap.start
+        rc-update add local >/dev/null 2>&1
+    fi
+
+    ui_box_success "成功创建 Swap，已成功设置为 ${size}MB" "top"
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_remove
+# 功能:   关闭并移除 /swapfile
+#
+# 参数:
+#   无
+#
+# 返回值:
+#   0 - 成功
+#   1 - 失败
+#
+# 示例:
+#   swap_remove
+# ------------------------------------------------------------------------------
+swap_remove() {
+    _swap_check_env || return 1
+
+    ui_box_info "开始删除 Swap..." "bottom"
+
+    if ! [[ -f /swapfile ]]; then
+        ui_warn "/swapfile 不存在，无需移除"
+        return 0
+    fi
+
+    ui_text "正在关闭并删除 /swapfile..."
+
+    if swapon --show | grep -q "^/swapfile"; then
+        swapoff /swapfile || {
+            ui_error "关闭 swapfile 失败"
+            return 1
+        }
+    fi
+
+    rm -f /swapfile
+    sed -i '/\/swapfile/d' /etc/fstab
+
+    ui_box_success "/swapfile 已成功移除" "all"
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_disable
+# 功能:   关闭当前系统中所有已启用的 Swap（不删除文件）
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 关闭成功或本就未启用
+#   1 - 关闭失败
+# 
+# 示例:
+#   swap_disable
+# ------------------------------------------------------------------------------
+swap_disable() {
+    check_root || return 1
+
+    # 是否存在已启用的 swap
+    if ! swapon --summary | grep -q .; then
+        ui_box_info "当前未启用任何 Swap" "bottom"
+        return 0
+    fi
+
+    ui_box_info "开始关闭 Swap..."
+
+    ui_text "检测到已启用的 Swap，正在关闭..."
+
+    if swapoff -a; then
+        ui_box_success "成功关闭 Swap（未删除 Swap 文件）" "top"
+        return 0
+    else
+        ui_box_error "关闭 Swap 失败" "all"
+        return 1
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_create_interactive
+# 功能:   交互式创建 Swap（自定义大小，单位 MB）
+# ------------------------------------------------------------------------------
+swap_create_interactive() {
+    ui_box_info "自定义 Swap" "bottom"
+
+    local size
+
+    size=$(ui_read_choice --space 1 --prompt "请输入 Swap 大小（单位：MB，输入 0 表示关闭 Swap）")
+
+    # 空输入
+    if [[ -z "$size" ]]; then
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)"未输入任何内容，已取消"${LIGHT_WHITE}"
+        return 1
+    fi
+
+    # 非数字
+    if ! [[ "$size" =~ ^[0-9]+$ ]]; then
+        ui_error "请输入有效的数字"
+        return 1
+    fi
+
+    # 0 = 关闭 Swap
+    if [[ "$size" -eq 0 ]]; then
+        swap_disable
+        return $?
+    fi
+
+    # 最小限制（可选）
+    if [[ "$size" -lt 128 ]]; then
+        ui_warn "Swap 最小建议为 128MB"
+        return 1
+    fi
+
+    ui blank
+
+    swap_create "$size"
+}

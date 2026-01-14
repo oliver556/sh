@@ -139,7 +139,8 @@ ui_return() {
 # 
 # 参数:
 #   $1 (string): 提示语 (必填)
-#   $2 ([类型]): [描述参数2的含义]
+#   $2 (string): 自定义描述
+#   $3 (number): 间距
 # 
 # 返回值: 返回 echo 的值
 # 
@@ -147,15 +148,36 @@ ui_return() {
 #   ui_input "$1"
 # ------------------------------------------------------------------------------
 ui_input() {
-    local prompt="$1"
-    local default_val="${2:-}"
+    local prompt=""
+    local default_val=""
+    local space=3  # 默认间距为 3
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --prompt) prompt="$2"; shift 2 ;;
+            --default) default_val="$2"; shift 2 ;;
+            --space) space="$2"; shift 2 ;;
+            *) 
+                # 兼容旧的顺序调用：如果第一个参数不是以--开头，认为是prompt
+                if [[ -z "$prompt" ]]; then
+                    prompt="$1";
+                else
+                    default_val="$1";
+                fi
+                shift 1 ;;
+        esac
+    done
+
     local input_val
+    local prefix="${LIGHT_CYAN}➜$(ui_spaces "$space")"
     
     if [ -n "$default_val" ]; then
-        read -rp "$(ui echo "👉${LIGHT_CYAN}$(ui_spaces)${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
+        # 带有默认值的提示
+        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
         echo "${input_val:-$default_val}"
     else
-        read -rp "$(ui echo "👉${LIGHT_CYAN}$(ui_spaces)${prompt}: ${LIGHT_WHITE}")" input_val
+        # 普通提示
+        read -rp "$(ui echo "${prefix}${prompt}: ${LIGHT_WHITE}")" input_val
         echo "$input_val"
     fi
 }
@@ -174,8 +196,11 @@ ui_input() {
 #   ui_read_choice "$1"
 # ------------------------------------------------------------------------------
 ui_read_choice() {
-    # 参数 1（可选）：提示文字
-    local prompt="${1:-请输入选项}"
-    # 统一调用 ui_input，保持界面指引符和逻辑的一致性
-    ui_input "$prompt"
+    # 如果没有任何参数，则给定默认提示语
+    if [[ $# -eq 0 ]]; then
+        ui_input --prompt "请输入选项"
+    else
+        # 将所有参数 ($@) 转发给 ui_input
+        ui_input "$@"
+    fi
 }
