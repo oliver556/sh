@@ -25,7 +25,7 @@
 #   install_docker_logic
 # ------------------------------------------------------------------------------
 install_docker_logic() {
-  ui_box_info "开始安装 Docker 环境..."
+  ui_box_info "开始安装 Docker 环境..." "bottom"
 
   if get_supported_package_manager >/dev/null; then
         linuxmirrors_install_docker || {

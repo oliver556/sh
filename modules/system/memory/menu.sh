@@ -17,8 +17,20 @@
 source "${BASE_DIR}/modules/system/memory/swap.sh"
 source "${BASE_DIR}/lib/system_mem.sh"
 
+# ------------------------------------------------------------------------------
+# 函数名: _swap_get_suggested_size
+# 功能:   示例：在创建 Swap 前展示给用户看
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   _swap_get_suggested_size
+# ------------------------------------------------------------------------------
 _swap_get_suggested_size(){
-    # 示例：在创建 Swap 前展示给用户看
     local total_ram=$(mem_get_total_mb)
     local suggest_info=$(swap_get_suggested_info)
 
@@ -48,7 +60,7 @@ system_memory_menu() {
 
         swap_status
 
-        _swap_get_suggested_size
+        # _swap_get_suggested_size
 
         ui line
         ui_menu_item 1 0 1 "$(ui_spaces 1)分配 1024M ${BOLD_YELLOW}★${LIGHT_WHITE}"
