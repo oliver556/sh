@@ -59,7 +59,7 @@ ui_confirm() {
     
     ui blank
 
-    user_choice=$(ui_read_choice)
+    user_choice=$(ui_read_choice --space 1 --prompt "请输入选项")
 
     case "$user_choice" in
         y|Y)

@@ -261,68 +261,68 @@ sys_get_load_avg() {
     awk '{printf "%s, %s, %s\n", $1, $2, $3}' /proc/loadavg 2>/dev/null || echo "N/A"
 }
 
-# ------------------------------------------------------------------------------
-# 函数名: sys_get_mem_usage
-# 功能:   获取物理内存使用
-# 
-# 参数:
-#   无
-# 
-# 返回值:
-#   成功 - 物理内存使用
-#   失败 - N/A
-# 
-# 示例:
-#   sys_get_mem_usage
-# ------------------------------------------------------------------------------
-sys_get_mem_usage() {
-    # free -m 获取内存总量和已用量
-    local total used
-    read -r total used <<< $(free -m | awk '/Mem:/ {print $2, $3}')
-    if [[ -n "$total" && -n "$used" ]]; then
-        local percent
-        # 避免除以 0
-        if [[ "$total" -le 0 ]]; then
-            echo "0M/0M (0%)"
-        else
-            percent=$(( used * 100 / total ))
-            echo "${used}M/${total}M (${percent}%)"
-        fi
-    else
-        echo "N/A"
-    fi
-}
+# # ------------------------------------------------------------------------------
+# # 函数名: sys_get_mem_usage
+# # 功能:   获取物理内存使用
+# # 
+# # 参数:
+# #   无
+# # 
+# # 返回值:
+# #   成功 - 物理内存使用
+# #   失败 - N/A
+# # 
+# # 示例:
+# #   sys_get_mem_usage
+# # ------------------------------------------------------------------------------
+# sys_get_mem_usage() {
+#     # free -m 获取内存总量和已用量
+#     local total used
+#     read -r total used <<< $(free -m | awk '/Mem:/ {print $2, $3}')
+#     if [[ -n "$total" && -n "$used" ]]; then
+#         local percent
+#         # 避免除以 0
+#         if [[ "$total" -le 0 ]]; then
+#             echo "0M/0M (0%)"
+#         else
+#             percent=$(( used * 100 / total ))
+#             echo "${used}M/${total}M (${percent}%)"
+#         fi
+#     else
+#         echo "N/A"
+#     fi
+# }
 
-# ------------------------------------------------------------------------------
-# 函数名: sys_get_swap_usage
-# 功能:   获取虚拟使用
-# 
-# 参数:
-#   无
-# 
-# 返回值:
-#   成功 - 虚拟使用
-#   失败 - N/A
-# 
-# 示例:
-#   sys_get_swap_usage
-# ------------------------------------------------------------------------------
-sys_get_swap_usage() {
-    # free -m 获取 swap 使用
-    local total used
-    read -r total used <<< $(free -m | awk '/Swap:/ {print $2, $3}')
-    if [[ -n "$total" && -n "$used" ]]; then
-        local percent
-        if [[ "$total" -eq 0 ]]; then
-            percent=0
-        else
-            percent=$(( used * 100 / total ))
-        fi
-        echo "${used}M/${total}M (${percent}%)"
-    else
-        echo "N/A"
-    fi
-}
+# # ------------------------------------------------------------------------------
+# # 函数名: sys_get_swap_usage
+# # 功能:   获取虚拟使用
+# # 
+# # 参数:
+# #   无
+# # 
+# # 返回值:
+# #   成功 - 虚拟使用
+# #   失败 - N/A
+# # 
+# # 示例:
+# #   sys_get_swap_usage
+# # ------------------------------------------------------------------------------
+# sys_get_swap_usage() {
+#     # free -m 获取 swap 使用
+#     local total used
+#     read -r total used <<< $(free -m | awk '/Swap:/ {print $2, $3}')
+#     if [[ -n "$total" && -n "$used" ]]; then
+#         local percent
+#         if [[ "$total" -eq 0 ]]; then
+#             percent=0
+#         else
+#             percent=$(( used * 100 / total ))
+#         fi
+#         echo "${used}M/${total}M (${percent}%)"
+#     else
+#         echo "N/A"
+#     fi
+# }
 
 # ------------------------------------------------------------------------------
 # 函数名: sys_get_disk_usage

@@ -26,14 +26,12 @@ source "${BASE_DIR}/modules/docker/uninstall.sh"
 #   menu_install_docker
 # ------------------------------------------------------------------------------
 menu_install_docker() {
-  ui clear
   # 确保为 root 用户执行，不是则提示，重新加载当前菜单界面
   if ! check_root; then
     return
   fi
+
   install_docker_logic
-  # 安装后提示
-  ui_wait_enter
 }
 
 # ------------------------------------------------------------------------------
@@ -55,13 +53,13 @@ menu_uninstall_docker() {
     return
   fi
 
+  ui_box_info "开始卸载前的最后确认..."
+
   if ! ui_confirm " 注意: 确定卸载 Docker 环境吗？[包含: Docker 所有数据 (镜像, 容器, 卷)]"; then
     return 1
   fi
-  uninstall_docker_logic
 
-  # 卸载后提示
-  ui_wait_enter
+  uninstall_docker_logic
 }
 
 # ------------------------------------------------------------------------------
@@ -119,10 +117,14 @@ docker_menu() {
     # 根据用户输入执行不同操作
     case "$choice" in
       1)
+        ui clear
         menu_install_docker
+        ui_wait_enter
       ;;
       20)
+        ui clear
         menu_uninstall_docker
+        ui_wait_enter
       ;;
 
       99)

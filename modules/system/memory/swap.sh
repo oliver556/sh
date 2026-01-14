@@ -16,6 +16,11 @@
 # @创建日期: 2026-01-14
 # ==============================================================================
 
+# ******************************************************************************
+# Shell 环境安全设置（工程级）
+# ******************************************************************************
+source "${BASE_DIR}/lib/system_mem.sh"
+
 # ------------------------------------------------------------------------------
 # 函数名: swap_status
 # 功能:   显示当前 Swap 状态
@@ -251,4 +256,43 @@ swap_create_interactive() {
     ui blank
 
     swap_create "$size"
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: swap_get_suggested_info
+# 功能:   获取 Swap 建议配置信息（数值与理由）
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   成功 - "建议值M (推荐理由)"
+#   失败 - "1024M (通用 VPS 推荐)"
+# 
+# 示例:
+#   info=$(swap_get_suggested_info)
+# ------------------------------------------------------------------------------
+swap_get_suggested_info() {
+    local mem_mb suggest_size reason
+    mem_mb=$(mem_get_total_mb)
+
+    if [[ -z "$mem_mb" || "$mem_mb" -le 0 ]]; then
+        suggest_size=1024
+        reason="无法获取内存信息，使用通用建议"
+    elif (( mem_mb <= 1024 )); then
+        # 针对 1G 左右的机器，直接建议 2048M 看起来更专业
+        suggest_size=2048
+        reason="小内存 VPS，防止 OOM"
+    elif (( mem_mb <= 2048 )); then
+        suggest_size=2048
+        reason="通用 VPS 推荐"
+    elif (( mem_mb <= 4096 )); then
+        suggest_size=4096
+        reason="中等内存，平衡性能"
+    else
+        suggest_size=4096
+        reason="大内存，仅作安全缓冲"
+    fi
+
+    echo "${suggest_size}M (${reason})"
 }

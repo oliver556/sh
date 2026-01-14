@@ -25,15 +25,15 @@
 #   install_docker_logic
 # ------------------------------------------------------------------------------
 install_docker_logic() {
-  ui_info "正在安装 Docker 环境..."
+  ui_box_info "开始安装 Docker 环境..."
 
-  if get_supported_package_manager; then
+  if get_supported_package_manager >/dev/null; then
         linuxmirrors_install_docker || {
             ui_error "Docker 安装失败，请检查网络或系统配置"
             return 1
         }
     else
-        # 暂时先不处理 没有包的情况
+        # TODO 暂时先不处理 没有包的情况
         # install docker docker-compose
         ui_warn "当前系统未检测到 apt/yum/dnf，暂不支持自动安装 Docker"
         return 1
@@ -54,29 +54,22 @@ install_docker_logic() {
 # ------------------------------------------------------------------------------
 start_and_enable_docker() {
     local action=${1:-start}
-    ui_info "====== 启动并启用 Docker 服务======"
+    ui_box_info "开始启动并启用 Docker 服务..." "bottom"
     
     # 启动 Docker
-    if sudo systemctl start docker && sudo systemctl enable docker; then
-        ui_success "Docker 已成功启动并设置开机自启。"
-    else
-        ui_error "Docker 启动或启用失败！"
-        return 1
-    fi
-
     if command -v systemctl &>/dev/null; then
         if sudo systemctl "${action}" docker && sudo systemctl enable docker; then
-            ui_success "Docker 已成功启动并设置开机自启。"
+            ui_box_success "Docker 已成功启动并设置开机自启。" "top"
         else
-            ui_error "Docker 启动或启用失败！"
+            ui_box_error "Docker 启动或启用失败！"
             return 1
         fi
     else
         # 老系统 fallback
         if sudo service docker start; then
-            ui_success "Docker 已成功启动 (service 方式)。"
+            ui_box_success "Docker 已成功启动 (service 方式)。" "top"
         else
-            ui_error "Docker 启动失败！"
+            ui_box_error "Docker 启动失败！"
             return 1
         fi
     fi
@@ -85,7 +78,7 @@ start_and_enable_docker() {
     if [ -f /etc/docker/daemon.json ]; then
         sudo systemctl daemon-reload 2>/dev/null || true
         sudo systemctl restart docker 2>/dev/null || sudo service docker restart 2>/dev/null
-        ui_info "Docker 服务已重载配置并重启。"
+        ui_box_success "Docker 服务已重载配置并重启。" "top"
     fi
 
     return 0
@@ -109,7 +102,7 @@ linuxmirrors_install_docker() {
 
   local docker_script="https://linuxmirrors.cn/docker.sh"
 
-  ui_info "开始下载并执行 LinuxMirrors Docker 安装脚本..."
+  ui_text "开始下载并执行 LinuxMirrors Docker 安装脚本..."
 
   # 中国镜像
   if [ "$country" = "CN" ]; then

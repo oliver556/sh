@@ -15,6 +15,17 @@
 # 引入依赖模块
 # ******************************************************************************
 source "${BASE_DIR}/modules/system/memory/swap.sh"
+source "${BASE_DIR}/lib/system_mem.sh"
+
+_swap_get_suggested_size(){
+    # 示例：在创建 Swap 前展示给用户看
+    local total_ram=$(mem_get_total_mb)
+    local suggest_info=$(swap_get_suggested_info)
+
+    ui_text "物理内存: ${total_ram}M"
+    ui_text "推荐 Swap: ${suggest_info}"
+}
+
 # ------------------------------------------------------------------------------
 # 函数名: system_memory_menu
 # 功能:   虚拟内存工具模块菜单
@@ -36,6 +47,8 @@ system_memory_menu() {
         ui print page_header_full "▥$(ui_spaces 1)内存 / Swap 管理"
 
         swap_status
+
+        _swap_get_suggested_size
 
         ui line
         ui_menu_item 1 0 1 "$(ui_spaces 1)分配 1024M ${BOLD_YELLOW}★${LIGHT_WHITE}"
@@ -82,8 +95,9 @@ system_memory_menu() {
             5)
                 ui clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
-                swap_disable
-                ui_wait_enter
+                if swap_disable; then
+                    ui_wait_enter
+                fi
                 ;;
             6)
                 ui clear
