@@ -18,7 +18,7 @@ test_menu() {
 
     ui clear
 
-    ui print page_header_full "🧪  测试脚本工具"
+    ui print page_header_full "⧗$(ui_spaces 1)测试脚本工具"
 
     ui line
     ui_menu_item 1 0 1 " IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${RESET}"

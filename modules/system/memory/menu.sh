@@ -33,7 +33,7 @@ system_memory_menu() {
 
         ui clear
         
-        ui print page_header_full "🧠 内存 / Swap 管理"
+        ui print page_header_full "▥$(ui_spaces 1)内存 / Swap 管理"
 
         swap_status
 

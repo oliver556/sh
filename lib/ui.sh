@@ -178,7 +178,7 @@ ui() {
                     ((pad < 0)) && pad=0
 
                     # 输出标题行（左对齐，右侧自动补空格）
-                    printf "# %s%*s\n" \
+                    printf "${LIGHT_CYAN}# %s%*s\n" \
                         "${LIGHT_CYAN}${BOLD}${title}${RESET}" \
                         "$pad" ""
 
@@ -678,8 +678,8 @@ ui_box_warn() {
 ui_exit() {
     ui clear
     ui line
-    ui echo "${BOLD_GREEN}👋$(ui_spaces)感谢使用 VpsScriptKit！${LIGHT_WHITE}"
-    ui echo "${BOLD_CYAN}👋$(ui_spaces)江湖有缘再见。${LIGHT_WHITE}"
+    ui echo "${BOLD_GREEN}■$(ui_spaces 1)感谢使用 VpsScriptKit！${LIGHT_WHITE}"
+    ui echo "${BOLD_CYAN}■$(ui_spaces 1)江湖有缘再见。${LIGHT_WHITE}"
     ui line
     sleep 1
     ui clear

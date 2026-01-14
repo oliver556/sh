@@ -36,7 +36,7 @@ system_menu() {
 
         ui clear
         
-        ui print page_header_full "⚙️$(ui_spaces)系统工具"
+        ui print page_header_full "⚙$(ui_spaces 1)系统工具"
 
         ui line
         ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询 ${BOLD_YELLOW}★${LIGHT_WHITE}"

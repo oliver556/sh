@@ -33,7 +33,7 @@ node_menu() {
 
     ui clear
 
-    ui print page_header_full "🏗️  节点搭建脚本合集"
+    ui print page_header_full "⑆$(ui_spaces 1)节点搭建脚本合集"
 
     ui line
     ui_menu_item 1 0 1 "$(ui_spaces 1)3X-UI 面板${BOLD_YELLOW}★${LIGHT_WHITE}"

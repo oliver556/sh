@@ -87,7 +87,7 @@ basic_menu() {
   while true; do
         ui clear
 
-        ui print page_header_full "🛠️$(ui_spaces)基础工具"
+        ui print page_header_full "⚒$(ui_spaces 1)基础工具"
       
         ui line
         # --- 操作选单 ---
