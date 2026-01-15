@@ -41,15 +41,14 @@ router_main() {
             # 基础工具模块
             if [[ -f "${BASE_DIR}/modules/basic/menu.sh" ]]; then
                 source "${BASE_DIR}/modules/basic/menu.sh"
-                # 假设基础模块入口函数名为 basic_menu 或 module_entry
                 basic_menu 
             fi
             ;;
         3)
             # 进阶工具模块
-            if [[ -f "${BASE_DIR}/modules/advanced/entry.sh" ]]; then
-                source "${BASE_DIR}/modules/advanced/entry.sh"
-                module_entry
+            if [[ -f "${BASE_DIR}/modules/advanced/menu.sh" ]]; then
+                source "${BASE_DIR}/modules/advanced/menu.sh"
+                advanced_menu
             fi
             ;;
         4)

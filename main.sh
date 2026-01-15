@@ -76,7 +76,7 @@ main() {
         # 系统工具菜单项
         ui item 1 "系统工具 ▶"
         ui item 2 "基础工具 ▶"
-        ui item 3 "${BOLD_GREY}进阶工具${RESET}"
+        ui item 3 "进阶工具 ▶"
         ui item 4 "Docker 管理 ▶"
         ui line
         ui item 8 "测试脚本合集 ▶"

@@ -4,7 +4,7 @@
 # VpsScriptKit - 基础工具
 #
 # @文件路径: modules/basic/menu.sh
-# @功能描述: 提供基础工具导航页
+# @功能描述: 基础工具导航页
 #
 # @作者: Jamison
 # @版本: 0.1.0
