@@ -69,9 +69,6 @@ main() {
 
     while true; do
         ui clear
-        log_info "INFO"
-        log_warn "INFO"
-        log_error "INFO"
         ui print home_header "$(ui_spaces 1)▣$(ui_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
         ui print tip "$(ui_spaces 1)✦$(ui_spaces 1)命令行输入 ${BOLD_GREEN}v${LIGHT_YELLOW} 可快速启动脚本"
         # --- 菜单区域 ---

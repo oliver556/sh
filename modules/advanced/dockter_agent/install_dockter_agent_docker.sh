@@ -39,6 +39,8 @@ install_dockter_agent_docker() {
         log_info "网络环境检测: 中国大陆 (CN)"
     fi
 
+    sleep 2
+
     if [ "$region" = "CN" ]; then
         exec bash <(curl -fsSL "https://github.viplee.cc/https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-docker.sh")
     else

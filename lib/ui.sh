@@ -151,7 +151,7 @@ ui() {
 
                     # 用不同的风格输出标题
                     # 例如：绿色 + 加粗 + 左对齐 + 尾部补充横线，区分门户页和子菜单页
-                    ui echo "# ${LIGHT_GREEN}${BOLD}${title}${RESET}"
+                    ui echo "# ${LIGHT_CYAN}${BOLD}${title}${RESET}"
 
                     # 再输出一次边框
                     ui border_top
