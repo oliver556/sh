@@ -29,7 +29,19 @@ install_dockter_agent_binary() {
     ui clear
 
     ui_box_info "开始安装 DockTer Agent Linux 一键脚本..."
-    sleep 1
-    return 0
-    # exec bash <(curl -fsSL "bash <(curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-binary.sh")")
+
+    local region
+    region=$(net_region)
+
+    if [ "$region" = "Global" ]; then
+        log_info "网络环境检测: 国际互联 (Global)"
+    else
+        log_info "网络环境检测: 中国大陆 (CN)"
+    fi
+
+    if [ "$region" = "CN" ]; then
+        exec bash <(curl -fsSL "https://github.viplee.cc/https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-binary.sh")
+    else
+        exec bash <(curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-binary.sh")
+    fi
 }

@@ -31,14 +31,11 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 # ------------------------------------------------------------------------------
 status_show_system_info() {
     ui clear
-    ui print info_header "🖥️  系统信息查询"
-
+    ui print info_header "⚙$(ui_spaces 1)系统信息查询"
     ui line_2
-
     ui item_list "主机名" 15 "$_sys_get_hostname"
     ui item_list "系统版本" 15 "$_get_os_pretty_name"
     ui item_list "Linux版本" 15 "$_sys_get_kernel"
-
     ui line_2
 }
 
@@ -62,7 +59,6 @@ status_show_cpu_info() {
     ui item_list "CPU频率" 15 "$_sys_get_cpu_mhz"
     ui item_list "CPU占用" 15 "$_sys_get_cpu_usage"
     ui item_list "系统负载" 15 "$_sys_get_load_avg"
-
     ui line_2
 }
 
@@ -83,7 +79,6 @@ status_show_memory_info() {
     ui item_list "物理内存" 15 "$_sys_get_mem_usage"
     ui item_list "虚拟内存" 15 "$_sys_get_swap_usage"
     ui item_list "硬盘占用" 15 "$_sys_get_disk_usage"
-
     ui line_2
 }
 
@@ -109,7 +104,6 @@ status_show_network_info() {
     ui item_list "DNS服务器" 15 "$_net_get_dns"
     # ui item_list "默认网关" 15 "$_net_get_gateway"
     # ui item_list "网络连通性" 15 "$_check_net_connectivity"
-
     ui line_2
 }
 
@@ -129,7 +123,6 @@ status_show_network_info() {
 status_show_transmission_info() {
     ui item_list "总接收" 15 "$_net_get_total_rx"
     ui item_list "总发送" 15 "$_net_get_total_tx"
-
     ui line_2
 }
 
@@ -148,7 +141,6 @@ status_show_transmission_info() {
 # ------------------------------------------------------------------------------
 status_show_algo_info() {
     ui item_list "网络算法" 15 "$_net_get_algo"
-
     ui line_2
 }
 
@@ -168,7 +160,6 @@ status_show_algo_info() {
 status_show_tz_time_info() {
     ui item_list "地理位置" 15 "$_net_get_geo"
     ui item_list "系统时间" 15 "$_sys_get_tz_time"
-
     ui line_2
 }
 
@@ -234,7 +225,6 @@ _get_sys_info() {
     _net_get_total_rx=$(net_get_total_rx)
     _net_get_total_tx=$(net_get_total_tx)
     _net_get_algo="$(net_get_congestion_control) $(net_get_qdisc)"
-
 }
 
 # ------------------------------------------------------------------------------
@@ -256,8 +246,6 @@ status_show_all() {
     ui echo "${BLUE}正在查询中，请稍后...${LIGHT_WHITE}"
 
     _get_sys_info
-
-    # ui echo "${GREEN}查询完成${LIGHT_WHITE}"
 
     ui clear
 

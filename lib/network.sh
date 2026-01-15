@@ -277,3 +277,35 @@ net_get_qdisc() {
     # 返回如 fq, fq_codel, noop 等
     sysctl -n net.core.default_qdisc 2>/dev/null || echo "N/A"
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: net_region
+# 功能:   检测网络环境
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   CN     - 中国大陆
+#   Global - 全球/境外
+# 
+# 示例:
+#   local region
+#   region=$(net_region)
+# ------------------------------------------------------------------------------
+net_region() {
+    # 优先检测 Google (超时设为 2秒，提高效率)
+    if curl -s --connect-timeout 2 -I https://www.google.com >/dev/null 2>&1; then
+        ui echo "Global"
+        return 0
+    fi
+    
+    # Google 连不通，检测百度
+    if curl -s --connect-timeout 2 -I https://www.baidu.com >/dev/null 2>&1; then
+        ui echo "CN"
+        return 0
+    fi
+    
+    # 啥都不行，啥玩意网络啊
+    ui echo "UNKNOWN"
+}

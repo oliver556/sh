@@ -49,7 +49,6 @@ advanced_menu() {
                 ui clear
                 source "${BASE_DIR}/modules/advanced/dockter_agent/menu.sh"
                 dockter_agent_menu
-                # ui_wait_enter
                 ;;
             0)
                 return

@@ -30,5 +30,18 @@ install_dockter_agent_docker() {
 
     ui_box_info "开始安装 DockTer Agent Docker 一键脚本..."
     
-    exec bash <(curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-docker.sh")
+    local region
+    region=$(net_region)
+
+    if [ "$region" = "Global" ]; then
+        log_info "网络环境检测: 国际互联 (Global)"
+    else
+        log_info "网络环境检测: 中国大陆 (CN)"
+    fi
+
+    if [ "$region" = "CN" ]; then
+        exec bash <(curl -fsSL "https://github.viplee.cc/https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-docker.sh")
+    else
+        exec bash <(curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent-docker.sh")
+    fi
 }

@@ -96,41 +96,50 @@ start_and_enable_docker() {
 #   linuxmirrors_install_docker
 # ------------------------------------------------------------------------------
 linuxmirrors_install_docker() {
-  # 获取国家地区
-  local country
-  country=$(curl -s ipinfo.io/country || echo "UNKNOWN")
+    # 获取国家地区
+    # local country
+    # country=$(curl -s ipinfo.io/country || echo "UNKNOWN")
 
-  local docker_script="https://linuxmirrors.cn/docker.sh"
+    local region
+    region=$(net_region)
 
-  log_info "正在下载并执行 LinuxMirrors Docker 安装脚本..."
-
-  # 中国镜像
-  if [ "$country" = "CN" ]; then
-    if ! curl -sSL "$docker_script" | bash -s -- \
-        --source mirrors.huaweicloud.com/docker-ce \
-        --source-registry docker.1ms.run \
-        --protocol https \
-        --use-intranet-source false \
-        --install-latest true \
-        --close-firewall false \
-        --ignore-backup-tips; then
-        ui_error "Docker 安装脚本执行失败"
-        return 1
+    if [ "$region" = "Global" ]; then
+        log_info "网络环境检测: 国际互联 (Global)"
+    else
+        log_info "网络环境检测: 中国大陆 (CN)"
     fi
-  else
-    # 官方源
-    if ! curl -sSL "$docker_script" | bash -s -- \
-        --source download.docker.com \
-        --source-registry registry.hub.docker.com \
-        --protocol https \
-        --use-intranet-source false \
-        --install-latest true \
-        --close-firewall false \
-        --ignore-backup-tips; then
-        ui_error "Docker 安装脚本执行失败"
-        return 1
+
+    local docker_script="https://linuxmirrors.cn/docker.sh"
+
+    log_info "正在下载并执行 LinuxMirrors Docker 安装脚本..."
+
+    # 中国镜像
+    if [ "$region" = "CN" ]; then
+        if ! curl -sSL "$docker_script" | bash -s -- \
+            --source mirrors.huaweicloud.com/docker-ce \
+            --source-registry docker.1ms.run \
+            --protocol https \
+            --use-intranet-source false \
+            --install-latest true \
+            --close-firewall false \
+            --ignore-backup-tips; then
+            ui_error "Docker 安装脚本执行失败"
+            return 1
+        fi
+    else
+        # 官方源
+        if ! curl -sSL "$docker_script" | bash -s -- \
+            --source download.docker.com \
+            --source-registry registry.hub.docker.com \
+            --protocol https \
+            --use-intranet-source false \
+            --install-latest true \
+            --close-firewall false \
+            --ignore-backup-tips; then
+            ui_error "Docker 安装脚本执行失败"
+            return 1
+        fi
     fi
-  fi
 
   # 设置开机并自启
   start_and_enable_docker || return 1
