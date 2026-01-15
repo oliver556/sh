@@ -102,7 +102,7 @@ linuxmirrors_install_docker() {
 
   local docker_script="https://linuxmirrors.cn/docker.sh"
 
-  ui_text "开始下载并执行 LinuxMirrors Docker 安装脚本..."
+  log_info "正在下载并执行 LinuxMirrors Docker 安装脚本..."
 
   # 中国镜像
   if [ "$country" = "CN" ]; then

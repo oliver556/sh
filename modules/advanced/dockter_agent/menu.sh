@@ -38,19 +38,19 @@ dockter_agent_menu() {
         ui print page_header_full "⚒$(ui_spaces 1)DpockTer Agent 选择"
       
         ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)一键安装 (自动检测 Linux / Unraid / OpenWrt) ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)智能安装 (自动检测) ${BOLD_YELLOW}★${LIGHT_WHITE}"
         ui_menu_done
 
         ui line
-        ui_menu_item 2 0 2 "$(ui_spaces 1)Linux (标准版) 一键安装"
+        ui_menu_item 2 0 2 "$(ui_spaces 1)Linux 二进制安装 (Binary)"
         ui_menu_done
 
         ui line
-        ui_menu_item 3 0 3 "$(ui_spaces 1)Unraid 一键安装"
+        ui_menu_item 3 0 3 "$(ui_spaces 1)Unraid 专用安装"
         ui_menu_done
 
         ui line
-        ui_menu_item 4 0 4 "$(ui_spaces 1)Docker 一键安装"
+        ui_menu_item 4 0 4 "$(ui_spaces 1)Docker 容器安装"
         ui_menu_done
 
         ui_go_level

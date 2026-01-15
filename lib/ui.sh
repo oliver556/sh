@@ -298,6 +298,21 @@ ui_str_width() {
 }
 
 # ******************************************************************************
+# 状态反馈 (一般用于执行各种自动化时的内容输出做切割)
+# ******************************************************************************
+log_info() {
+    ui echo "${ON_GREEN}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+}
+
+log_warn() {
+    ui echo "${ON_YELLOW}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+}
+
+log_error() {
+    ui echo "${ON_RED}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+}
+
+# ******************************************************************************
 # 状态反馈
 # ******************************************************************************
 # 纯文本输出（最低级）
@@ -310,9 +325,9 @@ ui_tip() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 搜索提示
@@ -321,9 +336,9 @@ ui_search() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 信息提示（中性状态）-> 用实心圆点或 i
@@ -332,9 +347,9 @@ ui_info()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 成功提示(绿) -> 经典的对号
@@ -343,9 +358,9 @@ ui_success() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 警告提示（非致命）(黄) -> 叹号
@@ -354,9 +369,9 @@ ui_warn()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 错误提示（致命）(红) -> 经典的叉号
@@ -365,9 +380,9 @@ ui_error() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 菜单选项错误（非致命）
@@ -376,9 +391,9 @@ ui_warn_menu()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${RESET}"
     fi
 }
 # 重载/刷新/处理中 (青色)
@@ -389,9 +404,9 @@ ui_reload() {
     
     # 颜色建议用 CYAN (青色) 代表过程/网络/刷新
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text}${RESET}"
     fi
 }
 
@@ -403,9 +418,9 @@ ui_speed() {
     
     # BOLD_MAGENTA (紫) 或 BOLD_YELLOW (黄) 都很有速度感
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text} ${extra}${LIGHT_WHITE}"
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text} ${extra}${RESET}"
     else
-        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text}${LIGHT_WHITE}"
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text}${RESET}"
     fi
 }
 
@@ -678,8 +693,8 @@ ui_box_warn() {
 ui_exit() {
     ui clear
     ui line
-    ui echo "${BOLD_GREEN}■$(ui_spaces 1)感谢使用 VpsScriptKit！${LIGHT_WHITE}"
-    ui echo "${BOLD_CYAN}■$(ui_spaces 1)江湖有缘再见。${LIGHT_WHITE}"
+    ui echo "${BOLD_GREEN}■$(ui_spaces 1)感谢使用 VpsScriptKit！${RESET}"
+    ui echo "${BOLD_CYAN}■$(ui_spaces 1)江湖有缘再见。${RESET}"
     ui line
     sleep 1
     ui clear
