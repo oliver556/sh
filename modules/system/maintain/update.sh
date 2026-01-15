@@ -94,12 +94,11 @@ do_update() {
     
     # 直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-        ui blank
         ui_box_success "更新完成！" "top"
         sleep 1
         exit 10
     else
-        ui_error "更新失败，请检查网络或稍后重试。"
+        ui_box_error "更新失败，请检查网络或稍后重试。" "top"
         ui_wait_enter
         exit 1
     fi

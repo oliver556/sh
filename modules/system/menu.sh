@@ -55,7 +55,7 @@ system_menu() {
         ui_menu_done
 
         ui line
-        ui_menu_item 4 0 11 "修改虚拟内存"
+        ui_menu_item 4 0 11 "修改虚拟内存 ▶"
         ui_menu_done
 
         ui line

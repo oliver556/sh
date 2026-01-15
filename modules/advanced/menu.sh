@@ -14,7 +14,7 @@
 # ******************************************************************************
 # 基础路径与环境定义
 # ******************************************************************************
-source "${BASE_DIR}/modules/advanced/dockter_agent/install.sh"
+# source "${BASE_DIR}/modules/advanced/dockter_agent/menu.sh"
 
 # ------------------------------------------------------------------------------
 # 函数名: advanced_menu
@@ -47,8 +47,9 @@ advanced_menu() {
         case "$choice" in
             1)
                 ui clear
-                install_dockter_agent
-                ui_wait_enter
+                source "${BASE_DIR}/modules/advanced/dockter_agent/menu.sh"
+                dockter_agent_menu
+                # ui_wait_enter
                 ;;
             0)
                 return

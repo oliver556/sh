@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# VpsScriptKit - DockTer Agent 模块
+# VpsScriptKit - DockTer Agent (自动检测 Linux / Unraid / OpenWrt) 模块
 # 
 # @文件路径: modules/advanced/dockter_agent/dockter_agent.sh
 # @功能描述: 负责 DockTer Agent 一键安装
@@ -14,7 +14,7 @@
 
 # ------------------------------------------------------------------------------
 # 函数名: install_dockter_agent
-# 功能:   执行 DockTer Agent 官方安装脚本
+# 功能:   执行 DockTer Agent 自动检测 官方安装脚本
 #
 # 参数:
 #   无
@@ -28,8 +28,7 @@
 install_dockter_agent() {
     ui clear
 
-    ui_box_info "开始安装 DockTer Agent 一键脚本..." "bottom"
+    ui_box_info "开始安装 DockTer Agent (自动检测 Linux / Unraid / OpenWrt) 一键脚本..."
     
     exec bash <(curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent.sh")
-    # exec curl -fsSL "https://raw.githubusercontent.com/shenxianmq/Dockter-Agent/main/install-dockter-agent.sh" | bash
 }
