@@ -125,43 +125,22 @@ ui() {
                     ;;
             
                 # ------------------------------
-                # 功能页 / 子菜单页
-                # ------------------------------
-                "page_header")
-                    # 参数 1：页面标题
-                    local title="$1"
-
-                    ui border_top
-
-                    # 从左开始输出，不居中
-                    ui echo "# ${LIGHT_CYAN}${BOLD}${title}${RESET}"
-
-                    ui border_top
-                    ;;
-
-                # ------------------------------
                 # 查询 / 信息展示页顶部
                 # ------------------------------
                 "info_header")
-                    # 参数 1：信息页标题
                     local title="$1"
 
-                    # 输出顶部边框
                     ui border_top
 
-                    # 用不同的风格输出标题
-                    # 例如：绿色 + 加粗 + 左对齐 + 尾部补充横线，区分门户页和子菜单页
-                    ui echo "# ${LIGHT_CYAN}${BOLD}${title}${RESET}"
+                    ui echo "${BOLD_LIGHT_CYAN}# ${title}${RESET}"
 
-                    # 再输出一次边框
                     ui border_top
                     ;;
 
                 # ------------------------------
-                # 详情页 / 信息展示顶部 (未开发)
+                # 详情页 / 信息展示顶部
                 # ------------------------------
                 "page_header_full")
-                    # 参数 1：页面标题
                     local title="$1"
 
                     # 内容区固定宽度（和 ui border_top 对齐）
@@ -177,7 +156,6 @@ ui() {
                     local pad=$((content_width - 2 - title_width))
                     ((pad < 0)) && pad=0
 
-                    # 输出标题行（左对齐，右侧自动补空格）
                     printf "${LIGHT_CYAN}# %s%*s\n" \
                         "${LIGHT_CYAN}${BOLD}${title}${RESET}" \
                         "$pad" ""
