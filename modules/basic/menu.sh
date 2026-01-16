@@ -91,8 +91,8 @@ basic_menu() {
       
         ui line
         # --- 操作选单 ---
-        ui_menu_item 1 0 1 "$(ui_spaces 1)curl 下载工具 ${BOLD_YELLOW}★${LIGHT_WHITE}"
-        ui_menu_item 1 10 2 "wget 下载工具 ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)curl 下载工具 ${BOLD_YELLOW}★${BOLD_WHITE}"
+        ui_menu_item 1 10 2 "wget 下载工具 ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_done
 
         ui line

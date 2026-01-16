@@ -11,29 +11,6 @@
 # @创建日期: 2026-01-011
 # ==============================================================================
 
-# ******************************************************************************
-# 基础常量定义
-# ******************************************************************************
-# 安装目录
-export INSTALL_DIR="/opt/VpsScriptKit"
-
-# BASE_DIR: 项目根目录
-export BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
-# 项目名称
-export PROJECT_NAME="VpsScriptKit"
-
-# 远程仓库地址
-export REPO="oliver556/sh"
-
-# 默认分支
-export BRANCH="main"
-
-# 全局 GitHub 代理地址
-export GH_PROXY="https://github.viplee.top/"
-
-export RAW_URL_BASE="${GH_PROXY}raw.githubusercontent.com/${REPO}/${BRANCH}"
-
 # 链接路径
 export BIN_PATHS=(
     "/usr/local/bin/v"
@@ -47,6 +24,79 @@ export SUPPORTED_OS=("debian")
 
 # 读取版本号 (从根目录 version 文件读取，方便自动更新同步) (如果文件不存在则默认 Unknown)
 export VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
+
+# ******************************************************************************
+# 图标定义
+# ******************************************************************************
+# -r: 代表 readonly (只读)
+# -x: 代表 export (导出环境变量)
+
+# 引导图标
+declare -rx ICON_OK="✓"             # 成功 (成功提示)
+declare -rx ICON_FAIL="✗"           # 失败 (错误提示)
+declare -rx ICON_WARNING="⚠"        # 警告 (警告提示)
+declare -rx ICON_ARROW="➜"          # 箭头 (输入引导)
+declare -rx ICON_STAR="★"           # 星星 (亮点功能)
+declare -rx ICON_GEAR="⚙"           # 齿轮 (核心配置)
+declare -rx ICON_TIP="✦"            # 小贴士 (额外建议)
+declare -rx ICON_EXIT="■"           # 结束退出 (运行终止)
+declare -rx ICON_DOT="●"            # 实心圆点 (信息提示)
+declare -rx ICON_LIGHTNING="⚡"      # 闪电
+
+# 菜单栏图标
+declare -rx ICON_HOME="▣"           # 首页
+declare -rx ICON_UPDATE="↻"         # 系统更新 
+declare -rx ICON_MAINTAIN="⚒"       # 系统工具
+declare -rx ICON_DOCKER="☵"         # Docker
+declare -rx ICON_SWAP="▤"           # Swap
+declare -rx ICON_NODE="⑆"           # 节点搭建
+declare -rx ICON_TEST="⧗"           # 测试脚本
+
+# # ******************************************************************************
+# # 颜色定义
+# # ******************************************************************************
+# # shellcheck disable=SC2155
+# {
+#     declare -rx RED=$(tput setaf 1)       # 红色 (错误/危险)
+#     declare -rx GREEN=$(tput setaf 2)     # 绿色 (成功/通过)
+#     declare -rx YELLOW=$(tput setaf 3)    # 黄色 (警告/注意)
+#     declare -rx BLUE=$(tput setaf 4)      # 蓝色 (信息/普通)
+#     declare -rx PURPLE=$(tput setaf 5)    # 紫色 (强调/特殊)
+#     declare -rx CYAN=$(tput setaf 6)      # 青色 (调试/路径)
+#     declare -rx WHITE=$(tput setaf 7)     # 白色 (正文)
+#     declare -rx GREY=$(tput setaf 8)     # 灰色 (正文)
+
+#     declare -rx BOLD=$(tput bold)         # 加粗 (用于标题/重点)
+#     declare -rx DIM=$(tput dim)           # 暗淡 (用于次要信息/注释)
+#     declare -rx NC=$(tput sgr0)           # 重置 (No Color，清除所有格式)
+
+#     # 组合样式
+#     declare -rx BOLD_RED="${BOLD}${RED}"
+#     declare -rx BOLD_GREEN="${BOLD}${GREEN}"
+#     declare -rx BOLD_YELLOW="${BOLD}${YELLOW}"
+#     declare -rx BOLD_BLUE="${BOLD}${BLUE}"
+#     declare -rx BOLD_CYAN="${BOLD}${CYAN}"
+#     declare -rx BOLD_WHITE="${BOLD}${WHITE}"
+#     declare -rx BOLD_GREY="${BOLD}${GREY}"
+# }
+
+# ******************************************************************************
+# 支持的系统版本
+# ******************************************************************************
+declare -rx SUPPORTED_DEBIAN="10 11 12 13"
+declare -rx SUPPORTED_UBUNTU="16.04 18.04 20.04 22.04 24.04"
+
+# ******************************************************************************
+# 基础常量定义
+# ******************************************************************************
+declare -rx SINSTALL_DIR="/opt/VpsScriptKit"                                        # 安装目录
+declare -rx BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"             # 项目根目录
+declare -rx PROJECT_NAME="VpsScriptKit"                                             # 项目名称
+declare -rx REPO="oliver556/sh"                                                     # GitHub 仓库
+declare -rx BRANCH="main"                                                           # GitHub 分支
+declare -rx GH_PROXY="https://github.viplee.cc/"                                    # GitHub 代理地址
+declare -rx GITHUB_URL="https://github.com/${REPO}/${BRANCH}"                       # GitHub 地址
+declare -rx GITHUB_RAW="${GH_PROXY}raw.githubusercontent.com/${REPO}/${BRANCH}"     # GitHub Raw 地址
 
 # ******************************************************************************
 # 核心库统一加载 (Loader)

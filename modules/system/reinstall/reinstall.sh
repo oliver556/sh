@@ -37,7 +37,7 @@ reinstall_finish_reboot() {
 
     # 使用数值循环执行倒计时
     for ((i=delay; i>0; i--)); do
-        ui echo "${LIGHT_CYAN}${i}...${RESET}"
+        ui echo "${BOLD_CYAN}${i}...${NC}"
         sleep 1
     done
 
@@ -229,10 +229,10 @@ reinstall_info_config() {
 
     ui_box_info "请最后确认您的安装选项:"
     ui line
-    ui_tip "系统版本: ${BOLD_RED}${name}${RESET}"
-    ui_tip "初始用户: ${user}${RESET}"
-    ui_tip "初始密码: ${pass}${RESET}"
-    ui_tip "初始端口: ${port}${RESET}"
+    ui_tip "系统版本: ${BOLD_RED}${name}${NC}"
+    ui_tip "初始用户: ${user}${NC}"
+    ui_tip "初始密码: ${pass}${NC}"
+    ui_tip "初始端口: ${port}${NC}"
     ui line
 
     ui blank

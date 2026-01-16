@@ -59,47 +59,47 @@ ui() {
         
         # 样式 1 默认/通用横线 (对应 ui_tip / 普通分隔) -> 推荐用 青色或淡灰，不要太抢眼
         "line" | "line_tip" | "line_reload")
-            ui echo "${BOLD_CYAN}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_CYAN}──────────────────────────────────────────────────────────────${NC}"
             ;;
 
         # 信息横线 (对应 ui_info) -> 蓝色
         "line_info")
-            ui echo "${BOLD_BLUE}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_BLUE}──────────────────────────────────────────────────────────────${NC}"
             ;;
 
         # 成功横线 (对应 ui_success) -> 绿色
         "line_success")
-            ui echo "${BOLD_GREEN}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_GREEN}──────────────────────────────────────────────────────────────${NC}"
             ;;
 
         # 警告横线 (对应 ui_warn) -> 黄色
         "line_warn")
-            ui echo "${BOLD_YELLOW}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_YELLOW}──────────────────────────────────────────────────────────────${NC}"
             ;;
 
         # 错误横线 (对应 ui_error) -> 红色
         "line_error")
-            ui echo "${BOLD_RED}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_RED}──────────────────────────────────────────────────────────────${NC}"
             ;;
         
         "line_2")
             # 样式 2
-            ui echo  ${BOLD_CYAN}"--------------------------------------------------------------"${RESET}
+            ui echo  ${BOLD_CYAN}"--------------------------------------------------------------"${NC}
             ;;
 
         "line_3")
             # 样式 3
-            ui echo ${BOLD_RED}"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"${RESET}
+            ui echo ${BOLD_RED}"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"${NC}
             ;;
 
         # 样式 4（顶部边框）
          "border_top")
-            ui echo  ${BOLD_CYAN}"+============================================================+"${RESET}
+            ui echo  ${BOLD_CYAN}"+============================================================+"${NC}
             ;;
 
         # 样式 5（底部边框）
         "border_bottom")
-            ui echo ${BOLD_CYAN}"=============================================================="${RESET}
+            ui echo ${BOLD_CYAN}"=============================================================="${NC}
             ;;
 
         # ------------------------------
@@ -119,7 +119,7 @@ ui() {
 
                     ui border_top
 
-                    ui echo "${BOLD_CYAN}#${BOLD}$(printf "$title")${RESET}"
+                    ui echo "${BOLD_CYAN}#${BOLD}$(printf "$title")${NC}"
 
                     ui border_top
                     ;;
@@ -144,7 +144,7 @@ ui() {
                     ((pad < 0)) && pad=0
 
                     printf "${BOLD_CYAN}# %s%*s\n" \
-                        "${BOLD_CYAN}${title}${RESET}" \
+                        "${BOLD_CYAN}${title}${NC}" \
                         "$pad" ""
 
                     ui border_top
@@ -156,7 +156,7 @@ ui() {
                 "tip")
                     # 此时 $1 是原来的 $3 (提示文字内容)
                     local tip="$1"
-                    ui echo "${BOLD_YELLOW}#$(printf "$tip")${RESET}"
+                    ui echo "${BOLD_YELLOW}#$(printf "$tip")${NC}"
                     ;;
 
                 *)
@@ -190,7 +190,7 @@ ui() {
             local spaces=$(printf '%*s' "$pad" '')
 
             # 输出菜单
-            ui echo "${CYAN}${index}.${spaces}${RESET}${text}${RESET}"
+            ui echo "${CYAN}${index}.${spaces}${NC}${text}${NC}"
             ;;
 
         # ------------------------------
@@ -221,7 +221,7 @@ ui() {
             local spaces=$(printf '%*s' "$pad" '')
 
             # 统一输出格式：标签(青色):[空格补齐]内容(白色)
-            ui echo "${BOLD_LIGHT_CYAN}${label}:${spaces}${BOLD_LIGHT_WHITE}${value}${RESET}"
+            ui echo "${BOLD_LIGHT_CYAN}${label}:${spaces}${BOLD_WHITE}${value}${NC}"
             ;;
 
         *)
@@ -252,7 +252,8 @@ ui_str_width() {
     # 按字符拆分
     while IFS= read -r -n1 char; do
         # 如果是 ASCII，宽度 +1，否则 +2
-        if [[ "$char" =~ [[:ascii:]] ]]; then
+        # if [[ "$char" =~ [[:ascii:]] ]]; then
+        if [[ "$char" =~ [\x00-\x7f] ]]; then
             ((width+=1))
         else
             ((width+=2))
@@ -266,15 +267,15 @@ ui_str_width() {
 # 状态反馈 (一般用于执行各种自动化时的内容输出做切割)
 # ******************************************************************************
 log_info() {
-    ui echo "${ON_GREEN}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+    ui echo "${ON_GREEN}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 log_warn() {
-    ui echo "${ON_YELLOW}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+    ui echo "${ON_YELLOW}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 log_error() {
-    ui echo "${ON_RED}${LIGHT_WHITE} INFO ${RESET} ${LIGHT_WHITE}$1${RESET}";
+    ui echo "${ON_RED}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 # ******************************************************************************
@@ -290,9 +291,9 @@ ui_tip() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 搜索提示
@@ -301,9 +302,9 @@ ui_search() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 信息提示（中性状态）-> 用实心圆点
@@ -312,9 +313,9 @@ ui_info()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 成功提示(绿) -> 经典的对号
@@ -323,9 +324,9 @@ ui_success() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_GREEN}✔$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 警告提示（非致命）(黄) -> 叹号
@@ -334,9 +335,9 @@ ui_warn()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 错误提示（致命）(红) -> 经典的叉号
@@ -345,9 +346,9 @@ ui_error() {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_RED}✘$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 菜单选项错误（非致命）
@@ -356,9 +357,9 @@ ui_warn_menu()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_YELLOW}✘$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 重载/刷新/处理中 (青色)
@@ -369,9 +370,9 @@ ui_reload() {
     
     # 颜色建议用 CYAN (青色) 代表过程/网络/刷新
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_CYAN}⟳$(ui_spaces 1)${text}${NC}"
     fi
 }
 
@@ -383,9 +384,9 @@ ui_speed() {
     
     # BOLD_MAGENTA (紫) 或 BOLD_YELLOW (黄) 都很有速度感
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text} ${extra}${RESET}"
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text}${RESET}"
+        ui echo "${BOLD_MAGENTA}⚡$(ui_spaces 1)${text}${NC}"
     fi
 }
 
@@ -658,8 +659,8 @@ ui_box_warn() {
 ui_exit() {
     ui clear
     ui line
-    ui echo "${BOLD_GREEN}■$(ui_spaces 1)感谢使用 VpsScriptKit！${RESET}"
-    ui echo "${BOLD_CYAN}■$(ui_spaces 1)江湖有缘再见。${RESET}"
+    ui echo "${BOLD_GREEN}■$(ui_spaces 1)感谢使用 VpsScriptKit！${NC}"
+    ui echo "${BOLD_CYAN}■$(ui_spaces 1)江湖有缘再见。${NC}"
     ui line
     sleep 1
     ui clear
@@ -709,7 +710,7 @@ ui_menu_item() {
 
     # 渲染菜单内容
     # 格式: 编号. 文本
-    ui echo -n "${BOLD_CYAN}${index}.${RESET}$(ui_spaces $space_count)${text}${RESET}"
+    ui echo -n "${BOLD_CYAN}${index}.${NC}$(ui_spaces $space_count)${text}${NC}"
 }
 
 # ------------------------------------------------------------------------------

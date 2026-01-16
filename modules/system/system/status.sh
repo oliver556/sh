@@ -243,7 +243,7 @@ _get_sys_info() {
 status_show_all() {
     ui clear
 
-    ui echo "${BLUE}正在查询中，请稍后...${LIGHT_WHITE}"
+    ui echo "${BLUE}正在查询中，请稍后...${BOLD_WHITE}"
 
     _get_sys_info
 

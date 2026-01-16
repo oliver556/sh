@@ -53,7 +53,7 @@ maintain_menu() {
         ui print page_header "↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
 
         # --- 版本状态看板 ---
-        ui echo "${LIGHT_CYAN}当前版本:${RESET}  ${LIGHT_CYAN}v${V_LOCAL}${RESET}"
+        ui echo "${BOLD_CYAN}当前版本:${NC}  ${BOLD_CYAN}v${V_LOCAL}${NC}"
         ui line
 
         # --- 操作选单 ---

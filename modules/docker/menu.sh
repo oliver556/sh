@@ -81,28 +81,28 @@ docker_menu() {
     ui print page_header "☵$(ui_spaces 1)Docker 管理"
 
     ui line
-    ui echo "${BOLD_YELLOW}当前 Docker 环境: ${RESET}$(get_docker_status_text)"
+    ui echo "${BOLD_YELLOW}当前 Docker 环境: ${NC}$(get_docker_status_text)"
 
     ui line
-    ui_menu_item 1 0 1 "$(ui_spaces 1)安装更新环境 ${BOLD_YELLOW}★${LIGHT_WHITE}"
+    ui_menu_item 1 0 1 "$(ui_spaces 1)安装更新环境 ${BOLD_YELLOW}★${BOLD_WHITE}"
     ui_menu_done
-    ui_menu_item 1 0 2 "$(ui_spaces 1)${BOLD_GREY}查看全局状态${RESET}"
-    ui_menu_done
-
-    ui line
-    ui_menu_item 2 0 3 "$(ui_spaces 1)${BOLD_GREY}容器管理${RESET}"
-    ui_menu_done
-    ui_menu_item 2 0 4 "$(ui_spaces 1)${BOLD_GREY}镜像管理${RESET}"
-    ui_menu_done
-    ui_menu_item 2 0 5 "$(ui_spaces 1)${BOLD_GREY}网络管理${RESET}"
-    ui_menu_done
-    ui_menu_item 2 0 6 "$(ui_spaces 1)${BOLD_GREY}卷管理${RESET}"
+    ui_menu_item 1 0 2 "$(ui_spaces 1)${BOLD_GREY}查看全局状态${NC}"
     ui_menu_done
 
     ui line
-    ui_menu_item 3 0 7 "$(ui_spaces 1)${BOLD_GREY}更换源${RESET}"
+    ui_menu_item 2 0 3 "$(ui_spaces 1)${BOLD_GREY}容器管理${NC}"
     ui_menu_done
-    ui_menu_item 2 0 8 "$(ui_spaces 1)${BOLD_GREY}编辑 daemon.json${RESET}"
+    ui_menu_item 2 0 4 "$(ui_spaces 1)${BOLD_GREY}镜像管理${NC}"
+    ui_menu_done
+    ui_menu_item 2 0 5 "$(ui_spaces 1)${BOLD_GREY}网络管理${NC}"
+    ui_menu_done
+    ui_menu_item 2 0 6 "$(ui_spaces 1)${BOLD_GREY}卷管理${NC}"
+    ui_menu_done
+
+    ui line
+    ui_menu_item 3 0 7 "$(ui_spaces 1)${BOLD_GREY}更换源${NC}"
+    ui_menu_done
+    ui_menu_item 2 0 8 "$(ui_spaces 1)${BOLD_GREY}编辑 daemon.json${NC}"
     ui_menu_done
 
     ui line

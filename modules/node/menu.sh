@@ -36,7 +36,7 @@ node_menu() {
     ui print page_header "⑆$(ui_spaces 1)节点搭建脚本合集"
 
     ui line
-    ui_menu_item 1 0 1 "$(ui_spaces 1)3X-UI 面板${BOLD_YELLOW}★${LIGHT_WHITE}"
+    ui_menu_item 1 0 1 "$(ui_spaces 1)3X-UI 面板${BOLD_YELLOW}${ICON_STAR}${BOLD_WHITE}"
     ui_menu_item 1 14 2 "X-UI 面板"
     ui_menu_done
 

@@ -38,12 +38,12 @@ reinstall_menu() {
         ui echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
         ui line
         ui echo "${GREY}Leitbogioro 项目地址: https://github.com/leitbogioro/Tools"
-        ui echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${LIGHT_WHITE} "
+        ui echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "
 
         ui line
         # --- 操作选单 ---
         ui_menu_item 1 0 1 "$(ui_spaces 1)Debian 13"
-        ui_menu_item 1 16 2 "Debian 12 ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 16 2 "Debian 12 ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_done
         ui_menu_item 1 0 3 " Debian 11"
         ui_menu_item 1 16 4 "Debian 10"
@@ -51,7 +51,7 @@ reinstall_menu() {
 
         ui line
         ui_menu_item 2 0 11 "Ubuntu 24.04"
-        ui_menu_item 2 12 12 "Ubuntu 22.04 ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 2 12 12 "Ubuntu 22.04 ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_done
         ui_menu_item 2 0 13 "Ubuntu 20.04"
         ui_menu_item 2 12 14 "Ubuntu 18.04"

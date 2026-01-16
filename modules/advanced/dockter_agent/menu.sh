@@ -38,7 +38,7 @@ dockter_agent_menu() {
         ui print page_header "⚒$(ui_spaces 1)DpockTer Agent 选择"
       
         ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)智能安装 (自动检测) ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)智能安装 (自动检测) ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_done
 
         ui line

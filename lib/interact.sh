@@ -52,9 +52,9 @@ ui_confirm() {
     ui blank
     # 如果 title 不为空，则显示具体的标题提示
     if [ -n "$title" ]; then
-        ui echo "${LIGHT_WHITE}按${RESET} ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行 ${LIGHT_CYAN}${title}${LIGHT_WHITE}，按其它任意键返回。"
+        ui echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行 ${BOLD_CYAN}${title}${BOLD_WHITE}，按其它任意键返回。"
     else
-        ui echo "${LIGHT_WHITE}按${RESET} ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行，按其它任意键返回。"
+        ui echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行，按其它任意键返回。"
     fi
     
     ui blank
@@ -66,7 +66,7 @@ ui_confirm() {
             return 0  # 返回 0, 代表“确认/继续”
             ;;
         *)
-            echo -e "\n${BOLD_YELLOW}操作已取消...${LIGHT_WHITE}"
+            echo -e "\n${BOLD_YELLOW}操作已取消...${BOLD_WHITE}"
             sleep 1
             return 1  # 返回 1, 代表“失败/取消”
             ;;
@@ -86,8 +86,8 @@ ui_confirm() {
 # ------------------------------------------------------------------------------
 ui_wait_enter() {
     ui blank
-    ui echo "${BOLD_LIGHT_GREEN}执行完成${LIGHT_WHITE}"
-    ui echo "${BOLD_LIGHT_WHITE}按回车键继续...${LIGHT_WHITE}"
+    ui echo "${BOLD_GREEN}执行完成${BOLD_WHITE}"
+    ui echo "${BOLD_WHITE}按回车键继续...${BOLD_WHITE}"
     # 不带 -n，强制等待回车
     # -s: 静默模式，不回显输入
     # -r: 允许反斜杠
@@ -107,7 +107,7 @@ ui_wait_enter() {
 # ------------------------------------------------------------------------------
 ui_wait() {
     ui blank
-    ui echo "${LIGHT_CYAN}按任意键继续...${LIGHT_WHITE}"
+    ui echo "${BOLD_CYAN}按任意键继续...${BOLD_WHITE}"
     # -n 1: 读取 1 个字符立即返回
     # -s: 静默模式，不回显输入
     # -r: 允许反斜杠
@@ -128,7 +128,7 @@ ui_wait() {
 ui_return() {
     # 可选提示信息，但默认不显示
     # ui blank
-    # ui echo "${LIGHT_WHITE}执行完成，自动返回...${LIGHT_WHITE}"
+    # ui echo "${BOLD_WHITE}执行完成，自动返回...${BOLD_WHITE}"
     # 直接返回，不等待输入
     return 0
 }
@@ -173,11 +173,11 @@ ui_input() {
     
     if [ -n "$default_val" ]; then
         # 带有默认值的提示
-        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${BOLD_CYAN}]: ${RESET}")" input_val
+        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${BOLD_CYAN}]: ${NC}")" input_val
         ui echo "${input_val:-$default_val}"
     else
         # 普通提示
-        read -rp "$(ui echo "${prefix}${prompt}: ${RESET}")" input_val
+        read -rp "$(ui echo "${prefix}${prompt}: ${NC}")" input_val
         ui echo "$input_val"
     fi
 }

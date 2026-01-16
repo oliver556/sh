@@ -63,7 +63,7 @@ system_memory_menu() {
         # _swap_get_suggested_size
 
         ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)分配 1024M ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)分配 1024M ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_item 1 6 2 "分配 2048M"
         ui_menu_item 1 12 3 "分配 4096M"
         ui_menu_done

@@ -129,7 +129,7 @@ change_ssh_port() {
         current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
 
         ui line
-        ui_info "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${RESET}"
+        ui_info "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
         ui line
         ui echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
 
@@ -154,7 +154,7 @@ change_ssh_port() {
         if [[ "$choice" -ge 1 && "$choice" -le 65535 ]]; then
             sed -i "s/^Port .*/Port $choice/" /etc/ssh/sshd_config
             if systemctl restart sshd 2>/dev/null || service ssh restart 2>/dev/null; then
-                ui_success "SSH 端口已成功修改为 ${BOLD_GREEN}$choice${RESET}"
+                ui_success "SSH 端口已成功修改为 ${BOLD_GREEN}$choice${NC}"
                 return 0
             else
                 ui_error "SSH 服务重启失败，请手动检查 sshd"

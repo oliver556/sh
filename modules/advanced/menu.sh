@@ -37,7 +37,7 @@ advanced_menu() {
       
         ui line
         # --- 操作选单 ---
-        ui_menu_item 1 0 1 "$(ui_spaces 1)DockTer Agent ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)DockTer Agent ▶"
         ui_menu_done
 
         ui_go_level

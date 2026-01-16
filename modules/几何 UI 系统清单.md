@@ -6,7 +6,7 @@
 |----------|------|----------|----------|----------|
 | 信息提示 | ● | \u25cf | BOLD_BLUE | 中性状态 / 进程开始 |
 | 成功提示 | ✔ | \u2714 | BOLD_GREEN | 任务完成 / 正常 |
-| 输入引导 | ➜ | \u279c | LIGHT_CYAN | 动作指向 / 等待输入 |
+| 输入引导 | ➜ | \u279c | BOLD_CYAN | 动作指向 / 等待输入 |
 | 小贴士 | ✦ | \u2726 | BOLD_YELLOW | 额外建议 / 亮点功能 |
 | 结束退出 | ■ | \u25a0 | BOLD_GREEN | 运行终止 / 完结感谢 |
 
@@ -27,10 +27,10 @@
 
 ```bash
 # 标准间距建议使用 $(ui_spaces 1)
-ui_info()    { ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${LIGHT_WHITE}"; }
-ui_success() { ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${LIGHT_WHITE}"; }
-ui_tip()     { ui echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${LIGHT_WHITE}"; }
-ui_exit()    { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${LIGHT_WHITE}"; }
+ui_info()    { ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_success() { ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_tip()     { ui echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_exit()    { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
 
 # 带参数解析的输入函数 (默认 3 空格美感)
 # ui_input --prompt "请输入" --space 3 --default "Y"

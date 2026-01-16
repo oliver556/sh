@@ -51,6 +51,39 @@ _cleanup() {
 trap _cleanup SIGINT SIGTERM
 
 # ------------------------------------------------------------------------------
+# 函数名: assert_bash_version
+# 功能:  Bash 版本检查
+# 
+# 参数: 无
+# 
+# 返回值:
+#   0 - 错误时的信息提示
+# 
+# 示例:
+#   assert_bash_version
+# ------------------------------------------------------------------------------
+assert_bash_version() {
+    local min_ver=4
+
+    # 1. 防止被 sh / dash (Ubuntu默认sh) 运行
+    if [ -z "$BASH_VERSION" ]; then
+        ui_error "当前解释器非 Bash，无法运行此脚本。"
+        ui_tip "请尝试使用命令：bash main.sh 或 ./main.sh"
+        exit 1
+    fi
+
+    # 2. 检查 Bash 版本是否满足最低要求
+    if ((BASH_VERSINFO[0] < min_ver)); then
+        ui_error "需要 Bash 4.0+ (当前版本: $BASH_VERSION) " >&2
+        ui_tip "升级说明"
+        ui_text "     - Debian/Ubuntu: apt install bash"
+        ui_text "     - Alpine: apk add bash"
+        exit 1
+    fi
+}
+
+assert_bash_version
+# ------------------------------------------------------------------------------
 # 函数名: 脚本主菜单
 # 功能:   提供脚本主菜单导航页
 # 

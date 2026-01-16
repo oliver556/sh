@@ -18,23 +18,12 @@ trap 'error_exit "脚本在第 $LINENO 行执行失败"' ERR
 # ******************************************************************************
 # 基础常量定义
 # ******************************************************************************
-# 安装目录
-INSTALL_DIR="/opt/VpsScriptKit"
-
-# 远程仓库地址
-REPO="oliver556/sh"
-
-# 链接路径
-BIN_LINK="/usr/local/bin/vsk"
-
-# 存放路径
-BIN_SHORT_LINK="/usr/local/bin/v"
-
-# 用户许可协议同意
-AGREEMENT_ACCEPTED="false"
-
-# 初始化，防止 set -u 报错
-SKIP_AGREEMENT="false"
+declare -rx SINSTALL_DIR="/opt/VpsScriptKit"    # 安装目录
+declare -rx REPO="oliver556/sh"                 # GitHub 仓库
+declare -rx BIN_LINK="/usr/local/bin/vsk"       # 链接路径
+declare -rx BIN_SHORT_LINK="/usr/local/bin/v"   # 存放路径
+declare -rx AGREEMENT_ACCEPTED="false"          # 用户许可协议同意
+SKIP_AGREEMENT="false"                          # 初始化，防止 set -u 报错
 
 # ******************************************************************************
 # 参数处理: 检查是否带有 --skip-agreement
@@ -46,15 +35,31 @@ for arg in "$@"; do
 done
 
 # ******************************************************************************
-# 颜色定义 (使用 tput 确保兼容性) 
+# 颜色定义
 # ******************************************************************************
-BOLD_WHITE=$(tput bold)$(tput setaf 7)
-BOLD_RED=$(tput bold)$(tput setaf 1)
-BOLD_GREEN=$(tput bold)$(tput setaf 2)
-BOLD_YELLOW=$(tput bold)$(tput setaf 3)
-BOLD_BLUE=$(tput bold)$(tput setaf 4)
-BOLD_CYAN=$(tput bold)$(tput setaf 6)
-RESET=$(tput sgr0)
+# shellcheck disable=SC2155
+{
+    declare -rx RED=$(tput setaf 1)       # 红色 (错误/危险)
+    declare -rx GREEN=$(tput setaf 2)     # 绿色 (成功/通过)
+    declare -rx YELLOW=$(tput setaf 3)    # 黄色 (警告/注意)
+    declare -rx BLUE=$(tput setaf 4)      # 蓝色 (信息/普通)
+    declare -rx PURPLE=$(tput setaf 5)    # 紫色 (强调/特殊)
+    declare -rx CYAN=$(tput setaf 6)      # 青色 (调试/路径)
+    declare -rx WHITE=$(tput setaf 7)     # 白色 (正文)
+    declare -rx GREY=$(tput setaf 8)      # 灰色 (正文)
+
+    declare -rx BOLD=$(tput bold)         # 加粗 (用于标题/重点)
+    declare -rx DIM=$(tput dim)           # 暗淡 (用于次要信息/注释)
+    declare -rx NC=$(tput sgr0)           # 重置 (No Color，清除所有格式)
+
+    declare -rx BOLD_RED="${BOLD}${RED}"       # 加粗红色 (错误/危险)
+    declare -rx BOLD_GREEN="${BOLD}${GREEN}"   # 加粗绿色 (成功/通过)
+    declare -rx BOLD_YELLOW="${BOLD}${YELLOW}" # 加粗黄色 (警告/注意)
+    declare -rx BOLD_BLUE="${BOLD}${BLUE}"     # 加粗蓝色 (信息/普通)
+    declare -rx BOLD_CYAN="${BOLD}${CYAN}"     # 加粗青色 (调试/路径)
+    declare -rx BOLD_WHITE="${BOLD}${WHITE}"   # 加粗白色 (正文)
+    declare -rx BOLD_GREY="${BOLD}${GREY}"     # 加粗灰色 (正文)
+}
 
 # ------------------------------------------------------------------------------
 # 函数名: error_exit
@@ -70,7 +75,7 @@ RESET=$(tput sgr0)
 #   error_exit "$1"
 # ------------------------------------------------------------------------------
 error_exit() {
-    echo -e "${BOLD_RED}错误: $1${RESET}" >&2
+    echo -e "${BOLD_RED}错误: $1${NC}" >&2
     exit 1
 }
 
@@ -109,7 +114,7 @@ check() {
 
     # 系统是否安装 curl tar
     if ! command_exists "curl" || ! command_exists "tar"; then
-        echo -e "${BOLD_RED}Ubuntu/Debian: apt-get install -y curl tar${RESET}" >&2
+        echo -e "${BOLD_RED}Ubuntu/Debian: apt-get install -y curl tar${NC}" >&2
         error_exit "系统中缺少 curl 或 tar，请先安装。"
     fi
 }
@@ -156,7 +161,7 @@ confirm_agreement() {
 
     # 如果检测到跳过参数，则直接返回
     if [[ "$SKIP_AGREEMENT" == "true" ]]; then
-        echo -e "${BOLD_GREEN}检测到静默安装参数，已自动同意用户协议。${RESET}"
+        echo -e "${BOLD_GREEN}检测到静默安装参数，已自动同意用户协议。${NC}"
         return 0
     fi
 
@@ -320,7 +325,7 @@ download_and_extract() {
     # 创建安装目录
     mkdir -p "$INSTALL_DIR" || error_exit "创建安装目录 $INSTALL_DIR 失败！"
 
-    echo -e "${BOLD_BLUE}--> 正在解压到 $INSTALL_DIR ...${RESET}"
+    echo -e "${BOLD_BLUE}--> 正在解压到 $INSTALL_DIR ...${NC}"
 
     # ===========================
     # [修改说明]
@@ -451,15 +456,15 @@ install_success() {
 main() {
     clear
 
-    echo -e "${BOLD_CYAN}==============================================${RESET}"
-    echo -e "${BOLD_WHITE}     🚀$(ui_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${RESET}"
-    echo -e "${BOLD_CYAN}==============================================${RESET}"
+    echo -e "${BOLD_CYAN}==============================================${NC}"
+    echo -e "${BOLD_WHITE}     🚀$(ui_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${NC}"
+    echo -e "${BOLD_CYAN}==============================================${NC}"
 
     # 1. 前置检查
     check
 
     # 2. 询问用户协议
-    confirm_agreement
+    # confirm_agreement
 
     # 3. 清理旧版本
     clear_version

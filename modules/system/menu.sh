@@ -39,19 +39,19 @@ system_menu() {
         ui print page_header "⚙$(ui_spaces 1)系统工具"
 
         ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询 ${BOLD_YELLOW}★${LIGHT_WHITE}"
+        ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询 ${BOLD_YELLOW}★${BOLD_WHITE}"
         ui_menu_item 1 4 2 "系统更新"
         ui_menu_item 1 14 3 "系统清理"
         ui_menu_done
 
         ui line
         ui_menu_item 2 0 4 "$(ui_spaces 1)修改登录密码"
-        ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${RESET}"
-        ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${RESET}"
+        ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${NC}"
+        ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${NC}"
 
         ui_menu_item 3 0 7 "$(ui_spaces 1)修改SSH端口"
-        ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${RESET}"
-        ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${RESET}"
+        ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${NC}"
+        ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
         ui_menu_done
 
         ui line

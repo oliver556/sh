@@ -231,7 +231,7 @@ swap_create_interactive() {
 
     # 空输入
     if [[ -z "$size" ]]; then
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)"未输入任何内容，已取消"${LIGHT_WHITE}"
+        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)"未输入任何内容，已取消"${BOLD_WHITE}"
         return 1
     fi
 
