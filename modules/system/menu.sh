@@ -36,7 +36,7 @@ system_menu() {
 
         ui clear
         
-        ui print page_header_full "⚙$(ui_spaces 1)系统工具"
+        ui print page_header "⚙$(ui_spaces 1)系统工具"
 
         ui line
         ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询 ${BOLD_YELLOW}★${LIGHT_WHITE}"
@@ -59,7 +59,8 @@ system_menu() {
         ui_menu_done
 
         ui line
-        ui_menu_item 9 0 99 "一键重装系统 ▶"
+        ui_menu_item 9 0 98 "一条龙系统调优"
+        ui_menu_item 9 3 99 "一键重装系统 ▶"
         ui_menu_done
 
         ui_go_level
@@ -98,6 +99,11 @@ system_menu() {
             11)
                 source "${BASE_DIR}/modules/system/memory/menu.sh"
                 system_memory_menu
+                ;;
+            98)
+                ui clear
+                source "${BASE_DIR}/modules/system/tuning/system_tune.sh"
+                system_tune
                 # ui_wait_enter
                 ;;
             99)

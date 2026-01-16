@@ -129,8 +129,6 @@ run_mollylau_install() {
 
     ui_reload "正在检查系统是否安装有必要环境..."
 
-
-
     # 确保 wget 环境就绪
     ensure_cmd wget || return 1
 
@@ -229,20 +227,20 @@ reinstall_info_config() {
             ;;
     esac
 
-    ui echo "${LIGHT_CYAN}请最后确认您的安装选项:${BOLD_LIGHT_WHITE}"
+    ui_box_info "请最后确认您的安装选项:"
     ui line
-    ui echo "${LIGHT_CYAN}- 系统版本:${BOLD_LIGHT_WHITE} ${BOLD_RED}${name}${BOLD_LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始用户:${BOLD_LIGHT_WHITE} ${YELLOW}${user}${BOLD_LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始密码:${BOLD_LIGHT_WHITE} ${YELLOW}${pass}${BOLD_LIGHT_WHITE}"
-    ui echo "${LIGHT_CYAN}- 初始端口:${BOLD_LIGHT_WHITE} ${YELLOW}${port}${BOLD_LIGHT_WHITE}"
+    ui_tip "系统版本: ${BOLD_RED}${name}${RESET}"
+    ui_tip "初始用户: ${user}${RESET}"
+    ui_tip "初始密码: ${pass}${RESET}"
+    ui_tip "初始端口: ${port}${RESET}"
     ui line
 
     ui blank
 
-    ui echo "${BOLD_RED}警告: 这将清除目标服务器上的所有数据！${BOLD_LIGHT_WHITE}"
-    ui echo "${BOLD_RED}请务必记录好上述密码，以免重装后失联。${BOLD_LIGHT_WHITE}"
+    ui_warn "警告: 这将清除目标服务器上的所有数据！"
+    ui_warn "请务必记录好上述密码，以免重装后失联。"
 
-    if ! ui_confirm "确认开始重装系统？"; then
+    if ! ui_confirm "重装系统？"; then
         return 1
     fi
 

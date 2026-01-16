@@ -36,9 +36,9 @@ ui_exit()    { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${LIGHT_WHITE}"; }
 # ui_input --prompt "请输入" --space 3 --default "Y"
 
 # 页面 Header 调用示例
-ui print page_header_full "${BOLD_BLUE}☵$(ui_spaces 1)Docker 管理"
-ui print page_header_full "${BOLD_GREEN}↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
-ui print page_header_full "${BOLD_CYAN}⑆$(ui_spaces 1)节点搭建脚本合集"
+ui print page_header "${BOLD_BLUE}☵$(ui_spaces 1)Docker 管理"
+ui print page_header "${BOLD_GREEN}↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
+ui print page_header "${BOLD_CYAN}⑆$(ui_spaces 1)节点搭建脚本合集"
 
 ```
 

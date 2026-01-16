@@ -33,7 +33,7 @@ advanced_menu() {
   while true; do
         ui clear
 
-        ui print page_header_full "⚒$(ui_spaces 1)进阶工具"
+        ui print page_header "⚒$(ui_spaces 1)进阶工具"
       
         ui line
         # --- 操作选单 ---

@@ -35,7 +35,7 @@ dockter_agent_menu() {
   while true; do
         ui clear
 
-        ui print page_header_full "⚒$(ui_spaces 1)DpockTer Agent 选择"
+        ui print page_header "⚒$(ui_spaces 1)DpockTer Agent 选择"
       
         ui line
         ui_menu_item 1 0 1 "$(ui_spaces 1)智能安装 (自动检测) ${BOLD_YELLOW}★${LIGHT_WHITE}"

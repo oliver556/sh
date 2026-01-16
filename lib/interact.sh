@@ -52,9 +52,9 @@ ui_confirm() {
     ui blank
     # 如果 title 不为空，则显示具体的标题提示
     if [ -n "$title" ]; then
-        ui echo "按 ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行 ${LIGHT_CYAN}${title}${LIGHT_WHITE}，按其它任意键返回。"
+        ui echo "${LIGHT_WHITE}按${RESET} ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行 ${LIGHT_CYAN}${title}${LIGHT_WHITE}，按其它任意键返回。"
     else
-        ui echo "按 ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行，按其它任意键返回。"
+        ui echo "${LIGHT_WHITE}按${RESET} ${BOLD_RED}(Y/y)${LIGHT_WHITE} 键确认执行，按其它任意键返回。"
     fi
     
     ui blank
@@ -169,16 +169,16 @@ ui_input() {
     done
 
     local input_val
-    local prefix="${LIGHT_CYAN}➜$(ui_spaces "$space")"
+    local prefix="${BOLD_CYAN}➜$(ui_spaces "$space")"
     
     if [ -n "$default_val" ]; then
         # 带有默认值的提示
-        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${LIGHT_CYAN}]: ${LIGHT_WHITE}")" input_val
-        echo "${input_val:-$default_val}"
+        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${BOLD_CYAN}]: ${RESET}")" input_val
+        ui echo "${input_val:-$default_val}"
     else
         # 普通提示
-        read -rp "$(ui echo "${prefix}${prompt}: ${LIGHT_WHITE}")" input_val
-        echo "$input_val"
+        read -rp "$(ui echo "${prefix}${prompt}: ${RESET}")" input_val
+        ui echo "$input_val"
     fi
 }
 

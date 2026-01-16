@@ -31,7 +31,7 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 # ------------------------------------------------------------------------------
 status_show_system_info() {
     ui clear
-    ui print info_header "⚙$(ui_spaces 1)系统信息查询"
+    ui print page_header "⚙$(ui_spaces 1)系统信息查询"
     ui line_2
     ui item_list "主机名" 15 "$_sys_get_hostname"
     ui item_list "系统版本" 15 "$_get_os_pretty_name"

@@ -59,32 +59,32 @@ ui() {
         
         # 样式 1 默认/通用横线 (对应 ui_tip / 普通分隔) -> 推荐用 青色或淡灰，不要太抢眼
         "line" | "line_tip" | "line_reload")
-            ui echo "${LIGHT_CYAN}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_CYAN}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
         # 信息横线 (对应 ui_info) -> 蓝色
         "line_info")
-            ui echo "${LIGHT_BLUE}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_BLUE}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
         # 成功横线 (对应 ui_success) -> 绿色
         "line_success")
-            ui echo "${LIGHT_GREEN}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_GREEN}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
         # 警告横线 (对应 ui_warn) -> 黄色
         "line_warn")
-            ui echo "${LIGHT_YELLOW}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_YELLOW}──────────────────────────────────────────────────────────────${RESET}"
             ;;
 
         # 错误横线 (对应 ui_error) -> 红色
         "line_error")
-            ui echo "${LIGHT_RED}──────────────────────────────────────────────────────────────${RESET}"
+            ui echo "${BOLD_RED}──────────────────────────────────────────────────────────────${RESET}"
             ;;
         
         "line_2")
             # 样式 2
-            ui echo  ${LIGHT_CYAN}"--------------------------------------------------------------"${RESET}
+            ui echo  ${BOLD_CYAN}"--------------------------------------------------------------"${RESET}
             ;;
 
         "line_3")
@@ -94,12 +94,12 @@ ui() {
 
         # 样式 4（顶部边框）
          "border_top")
-            ui echo  ${LIGHT_CYAN}"+============================================================+"${RESET}
+            ui echo  ${BOLD_CYAN}"+============================================================+"${RESET}
             ;;
 
         # 样式 5（底部边框）
         "border_bottom")
-            ui echo ${LIGHT_CYAN}"=============================================================="${RESET}
+            ui echo ${BOLD_CYAN}"=============================================================="${RESET}
             ;;
 
         # ------------------------------
@@ -119,20 +119,7 @@ ui() {
 
                     ui border_top
 
-                    ui echo "${LIGHT_CYAN}#${BOLD}$(printf "$title")${RESET}"
-
-                    ui border_top
-                    ;;
-            
-                # ------------------------------
-                # 查询 / 信息展示页顶部
-                # ------------------------------
-                "info_header")
-                    local title="$1"
-
-                    ui border_top
-
-                    ui echo "${BOLD_LIGHT_CYAN}# ${title}${RESET}"
+                    ui echo "${BOLD_CYAN}#${BOLD}$(printf "$title")${RESET}"
 
                     ui border_top
                     ;;
@@ -140,7 +127,7 @@ ui() {
                 # ------------------------------
                 # 详情页 / 信息展示顶部
                 # ------------------------------
-                "page_header_full")
+                "page_header")
                     local title="$1"
 
                     # 内容区固定宽度（和 ui border_top 对齐）
@@ -156,8 +143,8 @@ ui() {
                     local pad=$((content_width - 2 - title_width))
                     ((pad < 0)) && pad=0
 
-                    printf "${LIGHT_CYAN}# %s%*s\n" \
-                        "${LIGHT_CYAN}${BOLD}${title}${RESET}" \
+                    printf "${BOLD_CYAN}# %s%*s\n" \
+                        "${BOLD_CYAN}${title}${RESET}" \
                         "$pad" ""
 
                     ui border_top
@@ -169,7 +156,7 @@ ui() {
                 "tip")
                     # 此时 $1 是原来的 $3 (提示文字内容)
                     local tip="$1"
-                    ui echo "${LIGHT_YELLOW}#$(printf "$tip")${RESET}"
+                    ui echo "${BOLD_YELLOW}#$(printf "$tip")${RESET}"
                     ;;
 
                 *)
@@ -203,7 +190,7 @@ ui() {
             local spaces=$(printf '%*s' "$pad" '')
 
             # 输出菜单
-            ui echo "${LIGHT_CYAN}${index}.${spaces}${RESET}${LIGHT_WHITE}${text}${RESET}"
+            ui echo "${CYAN}${index}.${spaces}${RESET}${text}${RESET}"
             ;;
 
         # ------------------------------
@@ -319,7 +306,7 @@ ui_search() {
         ui echo "${BOLD_CYAN}⌕$(ui_spaces 1)${text}${RESET}"
     fi
 }
-# 信息提示（中性状态）-> 用实心圆点或 i
+# 信息提示（中性状态）-> 用实心圆点
 ui_info()  {
     local text="$1"
     local extra="${2:-}"
@@ -722,7 +709,7 @@ ui_menu_item() {
 
     # 渲染菜单内容
     # 格式: 编号. 文本
-    ui echo -n "${LIGHT_CYAN}${index}.${RESET}$(ui_spaces $space_count)${LIGHT_WHITE}${text}${RESET}"
+    ui echo -n "${BOLD_CYAN}${index}.${RESET}$(ui_spaces $space_count)${text}${RESET}"
 }
 
 # ------------------------------------------------------------------------------

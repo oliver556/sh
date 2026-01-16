@@ -78,7 +78,7 @@ docker_menu() {
 
     ui clear
 
-    ui print page_header_full "☵$(ui_spaces 1)Docker 管理"
+    ui print page_header "☵$(ui_spaces 1)Docker 管理"
 
     ui line
     ui echo "${BOLD_YELLOW}当前 Docker 环境: ${RESET}$(get_docker_status_text)"
