@@ -32,15 +32,22 @@ source "${BASE_DIR}/lib/package.sh"
 _pdk_install_prompt() {
     ui_box_info "手动指定安装工具" "bottom"
 
-    local prompt="${1:-请输入安装的工具名（wget curl）}"
-    local choice=$(ui_input "$prompt")
+    prompt=$(ui_read_choice --space 1 --prompt "请输入安装的工具名（wget curl）")
 
-    if [[ -z "$choice" ]]; then
-        ui_tip "未提供软件包参数！"
+    if [[ -z "$prompt" ]]; then
+        print_info "未提供软件包参数！"
         return 1
     fi
 
-    pkg_install $choice
+    if command -v "$prompt" &> /dev/null; then
+        ui_box_info "$prompt 已安装，跳过安装"
+        curl --help
+    else
+        pkg_install "$prompt"
+        ui clear
+        ui_box_success "$prompt 已安装！"
+        curl --help
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -59,15 +66,21 @@ _pdk_install_prompt() {
 _pdk_remove_prompt() {
     ui_box_info "手动指定卸载工具" "bottom"
 
-    local prompt="${1:-请输入安装的工具名（wget curl）}"
-    local choice=$(ui_input "$prompt")
+    prompt=$(ui_read_choice --space 1 --prompt "请输入卸载的工具名（wget curl）")
 
-    if [[ -z "$choice" ]]; then
-        ui_tip "未提供软件包参数！"
+    if [[ -z "$prompt" ]]; then
+        print_info "未提供软件包参数！"
         return 1
     fi
 
-    pkg_install $choice
+    if ! command -v "$prompt" &> /dev/null; then
+        ui_box_info "$prompt 未安装，跳过卸载"
+    else
+        pkg_remove "$prompt"
+        ui clear
+        ui_box_success "$prompt 已卸载！"
+        curl --help
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -112,23 +125,61 @@ basic_menu() {
         case "$choice" in
             1)
                 ui clear
-                pkg_install curl
-                ui clear
-                ui_box_success "curl 下载工具安装成功！"
-                curl --help
+                if command -v curl &> /dev/null; then
+                    ui_box_info "curl 已安装，跳过安装"
+                    curl --help
+                else
+                    pkg_install curl
+                    ui clear
+                    ui_box_success "curl 安装成功！"
+                    curl --help
+                fi
                 ui_wait_enter
                 ;;
             2)
                 ui clear
-                pkg_install wget
-                ui clear
-                ui_box_success "curl 下载工具安装成功！"
-                curl --help
+                if command -v wget &> /dev/null; then
+                    ui_box_info "wget 已安装，跳过安装"
+                    wget --help
+                else
+                    pkg_install wget
+                    ui clear
+                    ui_box_success "wget 安装成功！"
+                    wget --help
+                fi
+
+                
                 ui_wait_enter
                 ;;
             31)
                 ui clear
-                pkg_remove curl wget
+                DEPENDENCIES=("curl" "wget")
+
+                for cmd in "${DEPENDENCIES[@]}"; do
+                    if ! command -v "$cmd" &> /dev/null; then
+                        ui_tip "$cmd 未安装，正在安装..."
+                        pkg_install "$cmd"
+                    else
+                        ui_box_success "$cmd 已安装"
+                    fi
+                done
+
+                ui_wait_enter
+                ;;
+            32)
+                ui clear
+                DEPENDENCIES=("curl" "wget")
+
+                for cmd in "${DEPENDENCIES[@]}"; do
+                    if command -v "$cmd" &> /dev/null; then
+                        ui_tip "$cmd 已安装，正在卸载..."
+                        pkg_remove "$cmd"
+                    else
+                        ui_box_success "$cmd 已卸载"
+                    fi
+                done
+
+                ui_wait_enter
                 ;;
             41)
                 ui clear

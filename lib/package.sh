@@ -241,10 +241,10 @@ pkg_install() {
     local pkg
     for pkg in "$@"; do
         if ! command -v "$pkg" &>/dev/null; then
-            ui_info "正在安装 $pkg ..."
+            print_step "正在安装 $pkg ..."
             _pkg_exec install "$pkg" || return 1
         else
-            ui_info "$pkg 已存在，跳过"
+            print_info "$pkg 已存在，跳过"
         fi
     done
 }
@@ -256,7 +256,7 @@ pkg_install() {
 pkg_remove() {
     [[ $# -eq 0 ]] && { ui_error "未提供包名"; return 1; }
 
-    ui_warn "正在卸载软件包: $*"
+    print_step "正在卸载软件包: $*"
     _pkg_exec remove "$@"
 }
 

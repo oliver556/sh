@@ -18,7 +18,7 @@ trap 'error_exit "脚本在第 $LINENO 行执行失败"' ERR
 # ******************************************************************************
 # 基础常量定义
 # ******************************************************************************
-declare -rx SINSTALL_DIR="/opt/VpsScriptKit"    # 安装目录
+declare -rx INSTALL_DIR="/opt/VpsScriptKit"    # 安装目录
 declare -rx REPO="oliver556/sh"                 # GitHub 仓库
 declare -rx BIN_LINK="/usr/local/bin/vsk"       # 链接路径
 declare -rx BIN_SHORT_LINK="/usr/local/bin/v"   # 存放路径

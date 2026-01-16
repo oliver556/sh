@@ -40,7 +40,7 @@ declare -rx ICON_STAR="★"           # 星星 (亮点功能)
 declare -rx ICON_GEAR="⚙"           # 齿轮 (核心配置)
 declare -rx ICON_TIP="✦"            # 小贴士 (额外建议)
 declare -rx ICON_EXIT="■"           # 结束退出 (运行终止)
-declare -rx ICON_DOT="●"            # 实心圆点 (信息提示)
+declare -rx ICON_INFO="●"           # 实心圆点 (信息提示)
 declare -rx ICON_LIGHTNING="⚡"      # 闪电
 
 # 菜单栏图标

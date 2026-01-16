@@ -279,6 +279,43 @@ log_error() {
 }
 
 # ******************************************************************************
+# UI 输出函数
+# ******************************************************************************
+# 信息输出
+print_info() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    ui echo "${BLUE}${ICON_INFO}$(ui_spaces 1)${message}${NC}"
+}
+
+# 成功输出
+print_success() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    ui echo "${GREEN}${ICON_OK}$(ui_spaces 1)${message}${NC}"
+}
+
+# 警告输出
+print_warn() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    ui echo "${YELLOW}${ICON_WARNING}$(ui_spaces 1)${message}${NC}"
+}
+# 错误输出
+print_error() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    ui echo "${PURPLE}${ICON_FAIL}$(ui_spaces 1)${message}${NC}"
+}
+
+# 步骤输出
+print_step() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    ui echo "${PURPLE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
+}
+
+# ******************************************************************************
 # 状态反馈
 # ******************************************************************************
 # 纯文本输出（最低级）
@@ -296,6 +333,7 @@ ui_tip() {
         ui echo "${BOLD_WHITE}➜$(ui_spaces 1)${text}${NC}"
     fi
 }
+
 # 搜索提示
 ui_search() {
     local text="$1"
@@ -313,9 +351,9 @@ ui_info()  {
     local extra="${2:-}"
 
     if [[ -n "$extra" ]]; then
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text} ${extra}${NC}"
+        ui echo "${BOLD_CYAN}●$(ui_spaces 1)${text} ${extra}${NC}"
     else
-        ui echo "${BOLD_BLUE}●$(ui_spaces 1)${text}${NC}"
+        ui echo "${BOLD_CYAN}●$(ui_spaces 1)${text}${NC}"
     fi
 }
 # 成功提示(绿) -> 经典的对号
@@ -492,6 +530,7 @@ ui_box_error() {
 }
 
 # 警告 - 盒式 (重要注意事项)
+# shellcheck disable=SC2329
 ui_box_warn() {
     local text="$1"
     local arg2="${2:-}"
@@ -579,7 +618,7 @@ ui_box_info() {
         ui blank
     fi
 
-    ui line_info
+    ui line
     
     # 透传 next_arg (可能是空，可能是自定义内容)
     if [[ -n "$next_arg" ]]; then
@@ -588,56 +627,7 @@ ui_box_info() {
         ui_info "$text"
     fi
 
-    ui line_info
-
-    # 【底部空行】
-    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
-    fi
-}
-
-# 重载/刷新/处理中 - 盒式
-ui_box_warn() {
-    local text="$1"
-    local arg2="${2:-}"
-    local arg3="${3:-}"
-    
-    local padding=""
-    local next_arg="$arg2"
-
-    # -----------------------------------------------------------
-    # 判断 padding (方位) 是哪个参数
-    # -----------------------------------------------------------
-    
-    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
-    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
-        padding="$arg3"
-    
-    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
-    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
-        padding="$arg2"
-        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
-    fi
-
-    # -----------------------------------------------------------
-    # 执行输出
-    # -----------------------------------------------------------
-    
-    # 【顶部空行】
-    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
-    fi
-
-    ui line_warn
-    
-    # 透传 next_arg (可能是空，可能是自定义内容)
-    if [[ -n "$next_arg" ]]; then
-        ui_reload "$text" "$next_arg"
-    else
-        ui_reload "$text"
-    fi
-
-    ui line_reload
+    ui line
 
     # 【底部空行】
     if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then

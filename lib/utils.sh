@@ -97,7 +97,7 @@ fix_dpkg() {
     # 1. 礼貌停止：尝试让 apt/dpkg 正常保存数据并退出
     # (killall 默认发送 SIGTERM 信号，给进程机会收尾)
     killall apt apt-get dpkg 2>/dev/null
-    ui_tip "等待后台任务释放..."
+    print_step "等待后台任务释放..."
     sleep 3
 
     # 2. 强制清场：如果礼貌停止后进程还在（卡死了），再强制杀掉
