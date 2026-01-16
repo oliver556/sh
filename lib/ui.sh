@@ -221,7 +221,7 @@ ui() {
             local spaces=$(printf '%*s' "$pad" '')
 
             # 统一输出格式：标签(青色):[空格补齐]内容(白色)
-            ui echo "${BOLD_LIGHT_CYAN}${label}:${spaces}${BOLD_WHITE}${value}${NC}"
+            ui echo "${BOLD_CYAN}${label}:${spaces}${BOLD_WHITE}${value}${NC}"
             ;;
 
         *)

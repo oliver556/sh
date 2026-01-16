@@ -134,8 +134,8 @@ run_mollylau_install() {
 
     sleep 1
 
-    ui echo "正在准备: ${BOLD_LIGHT_CYAN}[Leitbogioro] DD 脚本...${BOLD_LIGHT_WHITE}"
-    ui echo "目标系统: ${BOLD_LIGHT_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
+    ui echo "正在准备: ${BOLD_CYAN}[Leitbogioro] DD 脚本...${BOLD_LIGHT_WHITE}"
+    ui echo "目标系统: ${BOLD_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
 
     ui line
 
@@ -162,8 +162,8 @@ run_bin456789_install() {
     local system_version_name="$1"
     local system_param="$2"
 
-    ui echo "正在准备: ${BOLD_LIGHT_CYAN}[Bin456789] DD 脚本...${BOLD_LIGHT_WHITE}"
-    ui echo "目标系统: ${BOLD_LIGHT_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
+    ui echo "正在准备: ${BOLD_CYAN}[Bin456789] DD 脚本...${BOLD_LIGHT_WHITE}"
+    ui echo "目标系统: ${BOLD_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
 
     ui line
 
@@ -249,7 +249,7 @@ reinstall_info_config() {
     ui_info "${BOLD_LIGHT_GREEN}确认完毕，准备开始 DD！${BOLD_LIGHT_WHITE}"
 
     ui line
-    ui echo "${BOLD_LIGHT_CYAN}马上开始重装系统${BOLD_LIGHT_WHITE}"
+    ui echo "${BOLD_CYAN}马上开始重装系统${BOLD_LIGHT_WHITE}"
     ui line
 
     sleep 1
