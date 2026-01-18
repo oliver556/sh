@@ -721,3 +721,90 @@ print_menu_go_level() {
 
     print_line -c "=" -C "$BOLD_CYAN"
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: print_key_value
+# 功能:   打印对齐的 "键: 值" 格式信息，自动计算中英文混合宽度的对齐
+#         常用于显示配置列表、系统信息等
+# 
+# 参数:
+#   -k | --key | --label (字符串): 标签名称 (冒号左边的内容) (必填)
+#   -v | --val | --value (字符串): 展示的内容 (冒号右边的内容) (必填)
+#   -w | --width         (整数)  : 对齐宽度 (控制值从第几列开始显示)，默认为 15 (可选)
+#   -C | --color         (变量)  : 标签颜色，默认为 "${BOLD_CYAN}" (可选)
+#   $1, $2               (字符串): (兜底) 若不使用 Flag，分别视为 Key 和 Value
+# 
+# 返回值:
+#   0 - 成功打印
+# 
+# 示例:
+#   print_key_value -k "系统版本" -v "Ubuntu 22.04"
+#   print_key_value -k "IP地址" -v "192.168.1.1" -w 20
+#   print_key_value "状态" "运行中"  (简写模式)
+# ------------------------------------------------------------------------------
+print_key_value() {
+    # 1. 初始化变量
+    local key=""
+    local value=""
+    local width=15             # 默认对齐宽度
+    local color="${BOLD_CYAN}" # 默认标签颜色
+
+    # 2. 解析参数
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -k|--key|--label)
+                key="$2"
+                shift 2
+                ;;
+            -v|--val|--value)
+                value="$2"
+                shift 2
+                ;;
+            -w|--width)
+                width="$2"
+                shift 2
+                ;;
+            -C|--color)
+                color="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑: 
+                # 第一个未知参数视为 Key
+                # 第二个未知参数视为 Value
+                if [[ -z "$key" ]]; then
+                    key="$1"
+                elif [[ -z "$value" ]]; then
+                    value="$1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 视觉宽度计算 (核心逻辑)
+    # 目标：解决中文字符占位宽，但 wc -c 计算字节多的问题
+    # 算法：视觉宽度 ≈ 字符数 + (总字节数 - 字符数) / 2
+    local char_len=${#key}
+    local byte_len
+    byte_len=$(printf "%s" "$key" | wc -c)
+    
+    local key_visual_width
+    (( key_visual_width = char_len + (byte_len - char_len) / 2 ))
+
+    # 计算补齐空格
+    # pad = 目标宽度 - 当前标签视觉宽度
+    local pad
+    (( pad = width - key_visual_width ))
+    
+    # 防止负数 (标签超长时，只给1个空格)
+    if [[ $pad -lt 0 ]]; then pad=0; fi
+
+    local spaces
+    printf -v spaces '%*s' "$pad" ''
+
+    # 输出
+    # 格式: [颜色][Key]:[空格][白色Value]
+    # 注意: 这里冒号紧跟在 Key 后面，空格在冒号后面，这样 Value 会左对齐
+    print_echo "${color}${key}:${spaces}${BOLD_WHITE}${value}${NC}"
+}

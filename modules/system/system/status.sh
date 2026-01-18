@@ -14,6 +14,7 @@
 # ******************************************************************************
 # Shell 环境安全设置（工程级）
 # ******************************************************************************
+# shellcheck disable=SC1091
 source "${BASE_DIR}/lib/guards/memory.sh"
 
 # ------------------------------------------------------------------------------
@@ -31,12 +32,12 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 # ------------------------------------------------------------------------------
 status_show_system_info() {
     print_clear
-    ui print page_header "⚙$(ui_spaces 1)系统信息查询"
-    ui line_2
-    ui item_list "主机名" 15 "$_sys_get_hostname"
-    ui item_list "系统版本" 15 "$_get_os_pretty_name"
-    ui item_list "Linux版本" 15 "$_sys_get_kernel"
-    ui line_2
+    print_box_header "${ICON_GEAR}$(ui_spaces 1)系统信息查询"
+    print_line -c "-"
+    print_key_value -k "主机名" -v "$_sys_get_hostname"
+    print_key_value -k "系统版本" -v "$_get_os_pretty_name"
+    print_key_value -k "Linux版本" -v "$_sys_get_kernel"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -53,13 +54,13 @@ status_show_system_info() {
 #   status_show_cpu_info
 # ------------------------------------------------------------------------------
 status_show_cpu_info() {
-    ui item_list "CPU架构" 15 "$_sys_get_arch"
-    ui item_list "CPU型号" 15 "$_sys_get_cpu_model"
-    ui item_list "CPU核心数" 15 "$_sys_get_cpu_cores"
-    ui item_list "CPU频率" 15 "$_sys_get_cpu_mhz"
-    ui item_list "CPU占用" 15 "$_sys_get_cpu_usage"
-    ui item_list "系统负载" 15 "$_sys_get_load_avg"
-    ui line_2
+    print_key_value -k "CPU架构" -v "$_sys_get_arch"
+    print_key_value -k "CPU型号" -v "$_sys_get_cpu_model"
+    print_key_value -k "CPU核心数" -v "$_sys_get_cpu_cores"
+    print_key_value -k "CPU频率" -v "$_sys_get_cpu_mhz"
+    print_key_value -k "CPU占用" -v "$_sys_get_cpu_usage"
+    print_key_value -k "系统负载" -v "$_sys_get_load_avg"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -76,10 +77,10 @@ status_show_cpu_info() {
 #   status_show_memory_info
 # ------------------------------------------------------------------------------
 status_show_memory_info() {
-    ui item_list "物理内存" 15 "$_sys_get_mem_usage"
-    ui item_list "虚拟内存" 15 "$_sys_get_swap_usage"
-    ui item_list "硬盘占用" 15 "$_sys_get_disk_usage"
-    ui line_2
+    print_key_value -k "物理内存" -v "$_sys_get_mem_usage"
+    print_key_value -k "虚拟内存" -v "$_sys_get_swap_usage"
+    print_key_value -k "硬盘占用" -v "$_sys_get_disk_usage"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -96,15 +97,16 @@ status_show_memory_info() {
 #   status_show_network_info
 # ------------------------------------------------------------------------------
 status_show_network_info() {
-    ui item_list "运营商" 15 "$_net_get_isp"
-    ui item_list "IPv4公网" 15 "$_net_get_ipv4"
-    # ui item_list "IPv4 内网" 15 "$_net_get_private_ipv4"
-    ui item_list "IPv6公网" 15 "$_net_get_ipv6"
-    # ui item_list "IPv6 内网" 15 "$_net_get_private_ipv6"
-    ui item_list "DNS服务器" 15 "$_net_get_dns"
-    # ui item_list "默认网关" 15 "$_net_get_gateway"
-    # ui item_list "网络连通性" 15 "$_check_net_connectivity"
-    ui line_2
+    print_key_value -k "运营商" -v "$_net_get_isp"
+    print_key_value -k "IPv4公网" -v "$_net_get_ipv4"
+    print_key_value -k "IPv6公网" -v "$_net_get_ipv6"
+    print_key_value -k "DNS服务器" -v "$_net_get_dns"
+
+    # print_key_value -k "IPv4内网" -v "$_net_get_private_ipv4"
+    # print_key_value -k "IPv6内网" -v "$_net_get_private_ipv6"
+    # print_key_value -k "默认网关" -v "$_net_get_gateway"
+    # print_key_value -k "网络连通性" -v "$_check_net_connectivity"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -121,9 +123,9 @@ status_show_network_info() {
 #   status_show_transmission_info
 # ------------------------------------------------------------------------------
 status_show_transmission_info() {
-    ui item_list "总接收" 15 "$_net_get_total_rx"
-    ui item_list "总发送" 15 "$_net_get_total_tx"
-    ui line_2
+    print_key_value -k "总接收" -v "$_net_get_total_rx"
+    print_key_value -k "总发送" -v "$_net_get_total_tx"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -140,8 +142,8 @@ status_show_transmission_info() {
 #   status_show_algo_info
 # ------------------------------------------------------------------------------
 status_show_algo_info() {
-    ui item_list "网络算法" 15 "$_net_get_algo"
-    ui line_2
+    print_key_value -k "网络算法" -v "$_net_get_algo"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -158,9 +160,9 @@ status_show_algo_info() {
 #   status_show_tz_time_info
 # ------------------------------------------------------------------------------
 status_show_tz_time_info() {
-    ui item_list "地理位置" 15 "$_net_get_geo"
-    ui item_list "系统时间" 15 "$_sys_get_tz_time"
-    ui line_2
+    print_key_value -k "地理位置" -v "$_net_get_geo"
+    print_key_value -k "系统时间" -v "$_sys_get_tz_time"
+    print_line -c "-"
 }
 
 # ------------------------------------------------------------------------------
@@ -177,7 +179,7 @@ status_show_tz_time_info() {
 #   status_show_run_time_info
 # ------------------------------------------------------------------------------
 status_show_run_time_info() {
-    ui item_list "运行时间" 15 "$_sys_get_uptime"
+    print_key_value -k "运行时间" -v "$_sys_get_uptime"
 }
 
 # ------------------------------------------------------------------------------
@@ -243,7 +245,7 @@ _get_sys_info() {
 status_show_all() {
     print_clear
 
-    ui echo "${BLUE}正在查询中，请稍后...${BOLD_WHITE}"
+    print_echo "${BLUE}正在查询中，请稍后...${BOLD_WHITE}"
 
     _get_sys_info
 

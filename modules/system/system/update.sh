@@ -15,7 +15,7 @@ guard_system_update(){
     print_clear
 
     if system_update; then
-        ui_box_success "系统更新已完成" "top"
+        print_box_success --status finish --msg "更新系统"
     else
         ui_box_error "系统更新过程中出现错误"
     fi
@@ -43,7 +43,7 @@ system_update() {
         return 1
     }
 
-    ui_box_info  "开始更新系统软件包..."
+    print_box_info --status start --msg "更新系统"
     # --------------------------------------------------------------------------
     # 根据不同包管理器，执行对应的系统更新逻辑
     # 所有命令均使用非交互模式，避免阻塞脚本执行
