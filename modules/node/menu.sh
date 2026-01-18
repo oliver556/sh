@@ -31,7 +31,7 @@ source "${BASE_DIR}/modules/node/xui/xui.sh"
 node_menu() {
   while true; do
 
-    ui clear
+    print_clear
 
     ui print page_header "⑆$(ui_spaces 1)节点搭建脚本合集"
 

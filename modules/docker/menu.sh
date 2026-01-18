@@ -46,7 +46,7 @@ menu_install_docker() {
 #   menu_uninstall_docker
 # ------------------------------------------------------------------------------
 menu_uninstall_docker() {
-  ui clear
+  print_clear
 
   # 确保为 root 用户执行，不是则提示，重新加载当前菜单界面
   if ! check_root; then
@@ -76,7 +76,7 @@ menu_uninstall_docker() {
 docker_menu() {
   while true; do
 
-    ui clear
+    print_clear
 
     ui print page_header "☵$(ui_spaces 1)Docker 管理"
 
@@ -117,12 +117,12 @@ docker_menu() {
     # 根据用户输入执行不同操作
     case "$choice" in
       1)
-        ui clear
+        print_clear
         menu_install_docker
         ui_wait_enter
       ;;
       20)
-        ui clear
+        print_clear
         menu_uninstall_docker
         ui_wait_enter
       ;;

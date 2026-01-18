@@ -99,7 +99,7 @@ ui() {
 
         # 样式 5（底部边框）
         "border_bottom")
-            ui echo ${BOLD_CYAN}"=============================================================="${NC}
+            ui echo "${BOLD_CYAN}==============================================================${NC}"
             ;;
 
         # ------------------------------
@@ -282,11 +282,11 @@ log_error() {
 # UI 输出函数
 # ******************************************************************************
 # 信息输出
-print_info() {
-    [[ $# -eq 0 ]] && return
-    local message="$*"
-    ui echo "${BLUE}${ICON_INFO}$(ui_spaces 1)${message}${NC}"
-}
+# print_info() {
+#     [[ $# -eq 0 ]] && return
+#     local message="$*"
+#     ui echo "${BLUE}${ICON_INFO}$(ui_spaces 1)${message}${NC}"
+# }
 
 # 成功输出
 print_success() {
@@ -313,6 +313,58 @@ print_step() {
     [[ $# -eq 0 ]] && return
     local message="$*"
     ui echo "${PURPLE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
+}
+
+# ==============================================================================
+# 盒式反馈 (带上下边框的强调模式)
+# ==============================================================================
+# 成功 - 盒式
+print_box_success() {
+    local text="$1"
+    local arg2="${2:-}"
+    local arg3="${3:-}"
+    
+    local padding=""
+    local next_arg="$arg2"
+
+    # -----------------------------------------------------------
+    # 判断 padding (方位) 是哪个参数
+    # -----------------------------------------------------------
+    
+    # 优先检查第3个参数 (标准写法: 文本, 内容, 方位)
+    if [[ "$arg3" == "top" || "$arg3" == "bottom" || "$arg3" == "both" || "$arg3" == "all" ]]; then
+        padding="$arg3"
+    
+    # 如果第3个没传，检查第2个参数是否为方位词 (偷懒写法: 文本, 方位)
+    elif [[ "$arg2" == "top" || "$arg2" == "bottom" || "$arg2" == "both" || "$arg2" == "all" ]]; then
+        padding="$arg2"
+        next_arg="" # 既然 arg2 被识别为方位控制，那就把它从内容里清空，防止被打印出来
+    fi
+
+    # -----------------------------------------------------------
+    # 执行输出
+    # -----------------------------------------------------------
+    
+    # 【顶部空行】
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
+
+    ui line_success
+    
+    # 透传 next_arg (可能是空，可能是自定义内容)
+    if [[ -n "$next_arg" ]]; then
+        print_success "$text" "$next_arg"
+    else
+        print_success "$text"
+    fi
+
+    ui line_success
+
+    # 【底部空行】
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        ui blank
+    fi
 }
 
 # ******************************************************************************

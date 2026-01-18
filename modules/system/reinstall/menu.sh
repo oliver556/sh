@@ -31,7 +31,7 @@ source "${BASE_DIR}/modules/system/reinstall/reinstall.sh"
 # ------------------------------------------------------------------------------
 reinstall_menu() {
     while true; do
-        ui clear
+        print_clear
 
         ui print page_header "⚙$(ui_spaces 1)一键重装系统"
         ui echo "${BOLD_RED}注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"

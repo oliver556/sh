@@ -26,7 +26,7 @@
 #   install_dockter_agent
 # ------------------------------------------------------------------------------
 install_dockter_agent() {
-    ui clear
+    print_clear
 
     ui_box_info "开始安装 DockTer Agent (自动检测 Linux / Unraid / OpenWrt) 一键脚本..."
 

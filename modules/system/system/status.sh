@@ -30,7 +30,7 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 #   status_show_system_info
 # ------------------------------------------------------------------------------
 status_show_system_info() {
-    ui clear
+    print_clear
     ui print page_header "⚙$(ui_spaces 1)系统信息查询"
     ui line_2
     ui item_list "主机名" 15 "$_sys_get_hostname"
@@ -241,13 +241,13 @@ _get_sys_info() {
 #   status_show_all
 # ------------------------------------------------------------------------------
 status_show_all() {
-    ui clear
+    print_clear
 
     ui echo "${BLUE}正在查询中，请稍后...${BOLD_WHITE}"
 
     _get_sys_info
 
-    ui clear
+    print_clear
 
     status_show_system_info
     status_show_cpu_info

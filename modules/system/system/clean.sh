@@ -12,10 +12,10 @@
 # ==============================================================================
 
 guard_system_clean(){
-    ui clear
+    print_clear
 
     if system_clean; then
-        ui_box_success "系统清理完成"
+        print_box_success --status finish --msg "清理系统"
     else
         ui_box_error "系统清理失败"
     fi
@@ -45,7 +45,7 @@ system_clean() {
         return 1
     }
 
-    ui_box_info  "开始执行系统清理..."
+    print_box_info --status start --msg "清理系统"
     # --------------------------------------------------------------------------
     # 根据包管理器类型执行对应的清理逻辑
     # --------------------------------------------------------------------------

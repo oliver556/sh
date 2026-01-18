@@ -25,7 +25,7 @@
 # ------------------------------------------------------------------------------
 
 uninstall_docker_logic() {
-  ui clear
+  print_clear
 
   ui_box_info "开始卸载 Docker..." "bottom"
 

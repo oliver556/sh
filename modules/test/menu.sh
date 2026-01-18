@@ -16,7 +16,7 @@
 test_menu() {
   while true; do
 
-    ui clear
+    print_clear
 
     ui print page_header "⧗$(ui_spaces 1)测试脚本工具"
 
@@ -43,7 +43,7 @@ test_menu() {
 
     case "$choice" in
       1)
-        ui clear
+        print_clear
         ui_speed "正在运行 IP 质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -I
@@ -51,7 +51,7 @@ test_menu() {
       ;;
 
       2)
-        ui clear
+        print_clear
         ui_speed "正在运行 NetQuality 网络质量检测..."
         ui blank
         bash <(curl -sL https://Check.Place) -N
@@ -59,7 +59,7 @@ test_menu() {
       ;;
 
       31)
-        ui clear
+        print_clear
         ui_speed "正在运行 bench 性能测试..."
         ui blank
         curl -Lso- bench.sh | bash
@@ -75,7 +75,7 @@ test_menu() {
       ;;
 
       91)
-        ui clear
+        print_clear
         # sudo apt-get install virt-what
         bash <(curl -L https://run.NodeQuality.com)
         ui blank

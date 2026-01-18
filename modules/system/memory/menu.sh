@@ -54,7 +54,7 @@ _swap_get_suggested_size(){
 system_memory_menu() {
     while true; do
 
-        ui clear
+        print_clear
         
         ui print page_header "▥$(ui_spaces 1)内存 / Swap 管理"
 
@@ -80,39 +80,39 @@ system_memory_menu() {
 
         case "$choice" in
             1)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 1024
                 ui_wait_enter
                 ;;
 
             2)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 2048
                 ui_wait_enter
                 ;;
             3)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 4096
                 ui_wait_enter
                 ;;
             4)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create_interactive
                 ui_wait_enter
                 ;;
             5)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 if swap_disable; then
                     ui_wait_enter
                 fi
                 ;;
             6)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_remove
                 ui_wait_enter

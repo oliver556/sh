@@ -70,7 +70,7 @@ get_versions() {
 #   do_update
 # ------------------------------------------------------------------------------
 do_update() {
-    ui clear
+    print_clear
     ui_box_info "检查版本" "bottom"
 
     # 获取并比对版本

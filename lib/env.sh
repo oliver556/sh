@@ -23,7 +23,8 @@ export BIN_PATHS=(
 export SUPPORTED_OS=("debian")
 
 # 读取版本号 (从根目录 version 文件读取，方便自动更新同步) (如果文件不存在则默认 Unknown)
-export VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
+export VSK_VERSION
+VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
 
 # ******************************************************************************
 # 图标定义
@@ -32,6 +33,7 @@ export VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
 # -x: 代表 export (导出环境变量)
 
 # 引导图标
+declare -rx ICON_NAV="▶"               # 引导 (仍有下级菜单页)
 declare -rx ICON_OK="✓"             # 成功 (成功提示)
 declare -rx ICON_FAIL="✗"           # 失败 (错误提示)
 declare -rx ICON_WARNING="⚠"        # 警告 (警告提示)
@@ -107,6 +109,7 @@ LIBS=(
     "os.sh"              # 系统识别
     "color.sh"           # 颜色定义
     "ui.sh"              # UI 渲染 (依赖颜色定义)
+    "print.sh"
     "utils.sh"           # 全局通用工具 (最基础)
     "interact.sh"        # 交互逻辑 (依赖 UI)
     "check.sh"           # 环境检测 (依赖 UI 和 utils)

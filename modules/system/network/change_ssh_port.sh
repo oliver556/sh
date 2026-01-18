@@ -27,7 +27,7 @@
 #   ssh_change_ssh_port
 # ------------------------------------------------------------------------------
 guard_change_ssh_port() {
-    ui clear
+    print_clear
 
     if ! check_root; then
         return 1
@@ -87,7 +87,7 @@ guard_change_ssh_port() {
 #   ssh_change_ssh_port
 # ------------------------------------------------------------------------------
 guard_change_ssh_port() {
-    ui clear
+    print_clear
 
     if ! check_root; then
         return 1
@@ -123,7 +123,7 @@ change_ssh_port() {
     sed -i 's/^\s*#Port\s*/Port /' /etc/ssh/sshd_config
 
     while true; do
-        ui clear
+        print_clear
         # 获取当前 SSH 端口
         local current_port
         current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')

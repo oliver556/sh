@@ -12,7 +12,7 @@
 # ==============================================================================
 
 guard_system_update(){
-    ui clear
+    print_clear
 
     if system_update; then
         ui_box_success "系统更新已完成" "top"

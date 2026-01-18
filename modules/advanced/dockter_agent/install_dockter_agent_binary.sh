@@ -26,7 +26,7 @@
 #   install_dockter_agent_binary
 # ------------------------------------------------------------------------------
 install_dockter_agent_binary() {
-    ui clear
+    print_clear
 
     ui_box_info "开始安装 DockTer Agent Linux 一键脚本..."
 

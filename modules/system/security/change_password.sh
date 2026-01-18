@@ -27,7 +27,7 @@
 #   guard_change_password
 # ------------------------------------------------------------------------------
 guard_change_password() {
-    ui clear
+    print_clear
 
     if ! has_cmd passwd; then
         ui_error "系统未检测到 passwd 命令，无法修改密码"

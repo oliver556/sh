@@ -74,7 +74,7 @@ command_exists() {
 # 函数名: get_docker_status_text
 # 功能:   辅助函数: 获取 Docker 环境状态字符串
 # 
-# 参数:
+# 参数:w
 #   无
 # 
 # 返回值:

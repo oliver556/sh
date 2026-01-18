@@ -43,7 +43,7 @@ do_uninstall() {
         return 1
     fi
 
-    ui clear
+    print_clear
     ui line_3
     ui_warn "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
     ui line_3
@@ -71,7 +71,7 @@ do_uninstall() {
 
     ui_box_success "VpsScriptKit 所有组件已彻底卸载完成，感谢使用！江湖有缘再见！！！"
     sleep 1
-    ui clear
+    print_clear
 
     return 0
 }

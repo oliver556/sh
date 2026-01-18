@@ -48,7 +48,7 @@ maintain_menu() {
         # 获取本地最新版本号，确保更新后重启前显示一致
         _refresh_local_version
 
-        ui clear
+        print_clear
 
         ui print page_header "↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
 

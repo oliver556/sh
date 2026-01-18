@@ -26,7 +26,7 @@
 #   install_dockter_agent_docker
 # ------------------------------------------------------------------------------
 install_dockter_agent_docker() {
-    ui clear
+    print_clear
 
     ui_box_info "开始安装 DockTer Agent Docker 一键脚本..."
     

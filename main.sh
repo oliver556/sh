@@ -26,11 +26,13 @@ set -o nounset   # 使用未定义变量时直接报错，避免拼写错误导�
 # ******************************************************************************
 
 # 导入环境变量
+# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib/env.sh"
 
 # 检测系统是否支持本脚本
 # check_supported_os
 
+# shellcheck disable=SC1091
 source "${BASE_DIR}/modules/system/maintain/menu.sh"
 
 # ------------------------------------------------------------------------------
@@ -101,24 +103,24 @@ main() {
     # is_root || ui_warn "当前非 root 用户运行，部分功能可能受限。"
 
     while true; do
-        ui clear
-        ui print home_header "$(ui_spaces 1)▣$(ui_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
-        ui print tip "$(ui_spaces 1)✦$(ui_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
+        print_clear
+        print_box_header "$(ui_spaces 1)▣$(ui_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
+        print_box_header_tip "$(ui_spaces 1)✦$(ui_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
         # --- 菜单区域 ---
-        ui line
+        print_line
         # 系统工具菜单项
-        ui item 1 "系统工具 ▶"
-        ui item 2 "基础工具 ▶"
-        ui item 3 "进阶工具 ▶"
-        ui item 4 "Docker 管理 ▶"
-        ui line
-        ui item 8 "测试脚本合集 ▶"
-        ui item 9 "节点搭建脚本 ▶"
-        ui line
-        ui item 99 "脚本自管理 ▶"
-        ui border_bottom
-        ui item 0 "退出程序"
-        ui border_bottom
+        print_box_item --index 1 "系统工具 ▶"
+        print_box_item --index 2 "基础工具 ▶"
+        print_box_item --index 3 "进阶工具 ▶"
+        print_box_item --index 4 "Docker 管理 ▶"
+        print_line
+        print_box_item --index 8 "测试脚本合集 ▶"
+        print_box_item --index 9 "节点搭建脚本 ▶"
+        print_line
+        print_box_item --index 99 "脚本自管理 ▶"
+        print_line -c "="  
+        print_box_item --index 0 "退出程序"
+        print_line -c "="  
 
         # --- 交互逻辑 ---
         choice=$(ui_read_choice)

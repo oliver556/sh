@@ -31,7 +31,7 @@
 # ------------------------------------------------------------------------------
 advanced_menu() {
   while true; do
-        ui clear
+        print_clear
 
         ui print page_header "⚒$(ui_spaces 1)进阶工具"
       
@@ -46,7 +46,7 @@ advanced_menu() {
 
         case "$choice" in
             1)
-                ui clear
+                print_clear
                 source "${BASE_DIR}/modules/advanced/dockter_agent/menu.sh"
                 dockter_agent_menu
                 ;;

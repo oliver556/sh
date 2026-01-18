@@ -38,7 +38,7 @@ source "${BASE_DIR}/lib/env.sh"
 #   do_reinstall
 # ------------------------------------------------------------------------------
 do_reinstall() {
-    ui clear
+    print_clear
     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then

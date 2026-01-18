@@ -34,36 +34,36 @@
 system_menu() {
     while true; do
 
-        ui clear
+        print_clear
         
-        ui print page_header "⚙$(ui_spaces 1)系统工具"
+        print_box_header "${ICON_GEAR}$(ui_spaces 1)系统工具"
 
-        ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)系统信息查询 ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_item 1 4 2 "系统更新"
-        ui_menu_item 1 14 3 "系统清理"
-        ui_menu_done
+        print_line
+        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)系统信息查询" -I star
+        print_menu_item -r 1 -p 4 -i 2 -m "系统更新"
+        print_menu_item -r 1 -p 14 -i 3 -m "系统清理"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 2 0 4 "$(ui_spaces 1)修改登录密码"
-        ui_menu_item 2 6 5 "${BOLD_GREY}开启ROOT密码登录${NC}"
-        ui_menu_item 2 6 6 "${BOLD_GREY}开放所有端口${NC}"
+        print_line
+        print_menu_item -r 2 -p 0 -i 4 -m "$(ui_spaces 1)修改登录密码"
+        print_menu_item -r 2 -p 6 -i 5 -m "${BOLD_GREY}开启ROOT密码登录${NC}"
+        print_menu_item -r 2 -p 6 -i 6 -m "${BOLD_GREY}开放所有端口${NC}"
 
-        ui_menu_item 3 0 7 "$(ui_spaces 1)修改SSH端口"
-        ui_menu_item 3 7 8 "${BOLD_GREY}优化DNS地址${NC}"
-        ui_menu_item 3 11 9 "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
-        ui_menu_done
+        print_menu_item -r 3 -p 0 -i 7 -m "$(ui_spaces 1)修改SSH端口"
+        print_menu_item -r 3 -p 7 -i 8 -m "${BOLD_GREY}优化DNS地址${NC}"
+        print_menu_item -r 3 -p 11 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 4 0 11 "修改虚拟内存 ▶"
-        ui_menu_done
+        print_line
+        print_menu_item -r 4 -p 0 -i 11 -m "修改虚拟内存$(ui_spaces 1)${ICON_NAV}"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 9 0 98 "一条龙系统调优"
-        ui_menu_item 9 3 99 "一键重装系统 ▶"
-        ui_menu_done
+        print_line
+        print_menu_item -r 9 -p 0 -i 98 -m "一条龙系统调优"
+        print_menu_item -r 9 -p 3 -i 99 -m "一键重装系统$(ui_spaces 1)${ICON_NAV}"
+        print_menu_item_done
 
-        ui_go_level
+        print_menu_go_level
 
         # 读取用户输入
         choice=$(ui_read_choice)
@@ -72,36 +72,43 @@ system_menu() {
         case "$choice" in
 
             1)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/system/status.sh"
                 status_show_all
                 ;;
 
             2)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/system/update.sh"
                 guard_system_update
                 ui_wait_enter
                 ;;
             3)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/system/clean.sh"
                 guard_system_clean
                 ui_wait_enter
                 ;;
             4)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/security/change_password.sh"
                 guard_change_password
                 ui_wait_enter
                 ;;
             7)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
                 guard_change_ssh_port
                 ui_wait_enter
                 ;;
             11)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/memory/menu.sh"
                 system_memory_menu
                 ;;
             98)
-                ui clear
+                print_clear
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/tuning/system_tune.sh"
                 system_tune
                 # ui_wait_enter

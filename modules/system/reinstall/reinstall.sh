@@ -274,7 +274,7 @@ reinstall_info_config() {
 #   reinstall_logic_main
 # ------------------------------------------------------------------------------
 reinstall_logic_main() {
-    ui clear
+    print_clear
     reinstall_info_config "$1"
     return $?
 }

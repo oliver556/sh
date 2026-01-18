@@ -12,7 +12,7 @@
 # ==============================================================================
 
 system_tune() {
-    ui clear
+    print_clear
 
     ui_box_info "一条龙调优"
 
@@ -34,7 +34,7 @@ system_tune() {
         return 1
     fi
 
-    ui clear
+    print_clear
 
     ui_box_info "开始一条龙调优..."
 

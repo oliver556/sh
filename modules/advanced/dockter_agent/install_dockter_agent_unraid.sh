@@ -26,7 +26,7 @@
 #   install_dockter_agent_unraid
 # ------------------------------------------------------------------------------
 install_dockter_agent_unraid() {
-    ui clear
+    print_clear
 
     ui_box_info "开始安装 DockTer Agent Unraid 一键脚本..."
     
