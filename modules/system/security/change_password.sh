@@ -119,9 +119,9 @@ change_password() {
 
     # 4. 提示信息
     if [[ "$target_user" == "$(whoami)" ]]; then
-        print_info -m "即将修改 [当前用户 ($target_user)] 的登录密码"
+        print_box_info -s star -m "修改 [当前用户 ($target_user)] 的登录密码"
     else
-        print_info -m "即将修改 [指定用户 ($target_user)] 的登录密码"
+        print_box_info -s star -m "修改 [指定用户 ($target_user)] 的登录密码"
     fi
 
     ui_warn "请输入新密码（输入过程不会显示，输入完毕按回车）"
@@ -138,7 +138,7 @@ change_password() {
 
     # 捕获 passwd 的返回值 ($?)
     if [[ $? -eq 0 ]]; then
-        print_success "用户 [$target_user] 密码修改成功"
+        print_box_success -s finish -m "修改 [指定用户 ($target_user)] 的登录密码"
         return 0
     else
         print_error "密码修改失败或已取消"

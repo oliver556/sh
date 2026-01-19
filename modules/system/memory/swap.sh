@@ -223,7 +223,7 @@ swap_disable() {
 # 功能:   交互式创建 Swap（自定义大小，单位 MB）
 # ------------------------------------------------------------------------------
 swap_create_interactive() {
-    print_box_info -m "自定义 Swap"
+    print_box_info -s start -m "自定义 Swap"
 
     local size
 

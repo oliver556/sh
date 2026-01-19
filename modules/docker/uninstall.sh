@@ -26,7 +26,7 @@
 uninstall_docker_logic() {
   print_clear
 
-  print_box_info -s star -m "卸载 Docker 环境..."
+  print_box_info -s start -m "卸载 Docker 环境..."
  
   # 1. 停止所有容器
   print_step "正在停止并删除所有容器..."

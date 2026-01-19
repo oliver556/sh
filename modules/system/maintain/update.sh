@@ -44,7 +44,7 @@ get_versions() {
         LOCAL_VER="Unknown"
     fi
 
-    ui_search "正在检查远程版本..."
+    print_step "正在检查远程版本..."
     
     # 获取远程最新版本 (GitHub API)，使用 curl 获取，设置超时时间防止卡死
     REMOTE_VER=$(curl -fsSL --connect-timeout 5 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
@@ -71,7 +71,7 @@ get_versions() {
 # ------------------------------------------------------------------------------
 do_update() {
     print_clear
-    print_box_info -m "检查版本" -p bottom
+    print_box_info -m "检查版本"
 
     # 获取并比对版本
     if ! get_versions; then

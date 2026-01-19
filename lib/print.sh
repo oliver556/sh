@@ -447,7 +447,7 @@ print_box_info() {
         esac
     done
 
-    # 处理状态标签格式 (start -> [Start])
+    # 处理状态标签格式
     local label=""
     if [[ -n "$status" ]]; then
         case "$status" in
