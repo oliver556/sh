@@ -241,7 +241,7 @@ pkg_install() {
     local pkg
     for pkg in "$@"; do
         if ! command -v "$pkg" &>/dev/null; then
-            print_box_info -s start -m "正在安装 $pkg ..."
+            pring_step -m "正在安装 $pkg ..."
             _pkg_exec install "$pkg" || return 1
         else
             print_info "$pkg 已存在，跳过"
@@ -255,7 +255,7 @@ pkg_install() {
 # ------------------------------------------------------------------------------
 pkg_remove() {
     [[ $# -eq 0 ]] && { print_error -m "未提供包名"; return 1; }
-    print_box_info -s start -m "正在卸载软件包: $*"
+    pring_step -m "正在卸载软件包: $*"
     _pkg_exec remove "$@"
 }
 
@@ -264,7 +264,7 @@ pkg_remove() {
 # 功能:     更新软件源索引
 # ------------------------------------------------------------------------------
 pkg_update() {
-    print_box_info -s start -m "正在更新软件源..."
+    pring_step -m "正在更新软件源..."
     _pkg_exec update
 }
 
@@ -273,6 +273,6 @@ pkg_update() {
 # 功能:     清理无用依赖和缓存
 # ------------------------------------------------------------------------------
 pkg_clean() {
-    print_box_info -s start -m "正在清理系统包缓存..."
+    pring_step -m "正在清理系统包缓存..."
     _pkg_exec clean
 }
