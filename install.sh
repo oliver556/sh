@@ -511,9 +511,9 @@ print_line() {
 main() {
     clear
 
-    print_line -c "=" -C "$color"
+    print_line -c "=" -C "$BOLD_CYAN"
     echo -e "${BOLD_WHITE}     🚀$(ui_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${NC}"
-    print_line -c "=" -C "$color"
+    print_line -c "=" -C "$BOLD_CYAN"
 
     # 1. 前置检查
     check
