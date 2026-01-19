@@ -54,18 +54,18 @@ net_get_geo() {
     ipinfo=$(curl -s --max-time 2 https://ipinfo.io/json)
     
     if [[ -z "$ipinfo" ]]; then
-        ui echo "未获取到地理位置"
+        print_echo "未获取到地理位置"
         return
     fi
 
     # 按照您提供的逻辑拆分
-    local country=$(ui echo "$ipinfo" | grep 'country' | awk -F': ' '{print $2}' | tr -d '",')
-    local city=$(ui echo "$ipinfo" | grep 'city' | awk -F': ' '{print $2}' | tr -d '",')
+    local country=$(print_echo "$ipinfo" | grep 'country' | awk -F': ' '{print $2}' | tr -d '",')
+    local city=$(print_echo "$ipinfo" | grep 'city' | awk -F': ' '{print $2}' | tr -d '",')
 
     if [[ -n "$country" && -n "$city" ]]; then
         # 输出格式：US Los Angeles
-        ui echo "${country} ${city}" | xargs
+        print_echo "${country} ${city}" | xargs
     else
-        ui echo "未获取到地理位置"
+        print_echo "未获取到地理位置"
     fi
 }

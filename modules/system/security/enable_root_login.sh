@@ -62,7 +62,7 @@ enable_root_login() {
 
     local sshd_config="/etc/ssh/sshd_config"
 
-    ui_info "正在配置 SSH，开启 root 登录权限..."
+    print_step "正在配置 SSH，开启 root 登录权限..."
 
     # --------------------------------------------------------------------------
     # 处理 PermitRootLogin 配置项

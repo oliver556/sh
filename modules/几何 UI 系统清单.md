@@ -27,10 +27,10 @@
 
 ```bash
 # 标准间距建议使用 $(ui_spaces 1)
-ui_info()    { ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${BOLD_WHITE}"; }
-ui_success() { ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${BOLD_WHITE}"; }
-ui_tip()     { ui echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${BOLD_WHITE}"; }
-print_exit() { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_info()    { print_echo "${BOLD_BLUE}●$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_success() { print_echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${BOLD_WHITE}"; }
+ui_tip()     { print_echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${BOLD_WHITE}"; }
+print_exit() { print_echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
 
 # 带参数解析的输入函数 (默认 3 空格美感)
 # ui_input --prompt "请输入" --space 3 --default "Y"

@@ -48,7 +48,7 @@ swap_status() {
 
     # 未开启 Swap
     if [[ -z "$total" || "$total" -eq 0 ]]; then
-        ui_info "当前虚拟内存: 0M / 0M (0%)"
+        print_info -m "当前虚拟内存: 0M / 0M (0%)"
         return 0
     fi
 
@@ -201,20 +201,19 @@ swap_disable() {
 
     # 是否存在已启用的 swap
     if ! swapon --summary | grep -q .; then
-        ui_box_info "当前未启用任何 Swap" "bottom"
+        print_box_info -m "当前未启用任何 Swap" "bottom"
         return 0
     fi
 
-    print_box_info --status start --msg "关闭 Swap..."
+    print_box_info -s start -m "关闭 Swap..."
 
     print_step "检测到已启用的 Swap，正在关闭..."
 
     if swapoff -a; then
-        print_box_success --status finish --msg "关闭 Swap（未删除 Swap 文件）"
+        print_box_success -s finish -m "关闭 Swap（未删除 Swap 文件）"
         return 0
     else
-        # TODO
-        ui_box_error "关闭 Swap 失败" "all"
+        print_box_error -m "关闭 Swap 失败" "all"
         return 1
     fi
 }
@@ -224,7 +223,7 @@ swap_disable() {
 # 功能:   交互式创建 Swap（自定义大小，单位 MB）
 # ------------------------------------------------------------------------------
 swap_create_interactive() {
-    print_box_info --msg "自定义 Swap"
+    print_box_info -m "自定义 Swap"
 
     local size
 

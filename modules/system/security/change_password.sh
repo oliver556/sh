@@ -30,13 +30,13 @@ guard_change_password() {
     print_clear
 
     if ! has_cmd passwd; then
-        ui_error "系统未检测到 passwd 命令，无法修改密码"
+        print_error "系统未检测到 passwd 命令，无法修改密码"
         return 1
     fi
     
-    change_password
+    change_password "$@"
     
-    return 0
+    return $?
 }
 
 # ------------------------------------------------------------------------------
@@ -56,75 +56,92 @@ guard_change_password() {
 #   change_password
 #   change_password "testuser"
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 函数名: change_password
+# 功能:   交互式修改用户密码
+# 
+# 参数:
+#   -u | --user (字符串): 指定目标用户名 (仅 root 可用)
+#   $1          (字符串): (兜底) 直接传入用户名
+# 
+# 示例:
+#   change_password                 # 修改当前用户(root改root, 普通改自己)
+#   change_password -u www          # root 修改 www 用户
+#   change_password "admin"         # 简写模式
+# ------------------------------------------------------------------------------
+# shellcheck disable=SC2120
 change_password() {
+    local target_user=""
+    
+    # 1. 解析参数
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -u|--user)
+                target_user="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底：支持 change_password "username" 这种写法
+                if [[ -z "$target_user" ]]; then
+                    target_user="$1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
 
-    local target_user
-
-    # --------------------------------------------------------------------------
-    # 判断当前执行用户身份
-    # --------------------------------------------------------------------------
-
+    # 2. 确定目标用户逻辑
     if is_root; then
-        # root 用户
-
-        if [[ -n "${1:-}" ]]; then
-            # root 且指定了目标用户
-            target_user="$1"
-        else
-            # root 未指定用户，默认修改 root 自身
+        # === Root 用户逻辑 ===
+        if [[ -z "$target_user" ]]; then
+            # 如果没指定，默认为 root
             target_user="root"
         fi
-
     else
-        # 非 root 用户只能修改自身密码
-        target_user="$(whoami)"
+        # === 普通用户逻辑 ===
+        # 强制只能修改自己，忽略传入的参数
+        local current_user
+        current_user=$(whoami)
+        
+        if [[ -n "$target_user" ]] && [[ "$target_user" != "$current_user" ]]; then
+            # 如果普通用户试图修改别人，给出警告并修正
+            print_error "普通用户只能修改自己的密码，已自动修正目标为: $current_user"
+        fi
+        target_user="$current_user"
     fi
 
-    # --------------------------------------------------------------------------
-    # 检查目标用户是否存在
-    # --------------------------------------------------------------------------
-
+    # 3. 检查用户是否存在
     if ! id "$target_user" &>/dev/null; then
-        ui_error "用户不存在: $target_user"
+        print_error "用户不存在: $target_user"
         return 1
     fi
 
-    # --------------------------------------------------------------------------
-    # 提示用户即将修改的账号
-    # --------------------------------------------------------------------------
-
-    if is_root; then
-        ui_info "即将修改用户 [$target_user] 的登录密码"
+    # 4. 提示信息
+    if [[ "$target_user" == "$(whoami)" ]]; then
+        print_info -m "即将修改 [当前用户 ($target_user)] 的登录密码"
     else
-        ui_info "即将修改当前用户 [$target_user] 的登录密码"
+        print_info -m "即将修改 [指定用户 ($target_user)] 的登录密码"
     fi
 
-    ui_warn "请输入新密码（输入过程不会显示）"
+    ui_warn "请输入新密码（输入过程不会显示，输入完毕按回车）"
 
-    # --------------------------------------------------------------------------
-    # 执行密码修改
-    # - root 可直接 passwd user
-    # - 非 root passwd 不带参数
-    # --------------------------------------------------------------------------
-
+    # 5. 执行修改
+    # 注意：passwd 命令交互性较强
     if is_root; then
-        # root 修改指定用户
-        if ! passwd "$target_user"; then
-            ui_error "密码修改失败"
-            return 1
-        fi
+        # root 修改别人不需要知道旧密码
+        passwd "$target_user"
     else
-        # 普通用户修改自身密码
-        if ! passwd; then
-            ui_error "密码修改失败"
-            return 1
-        fi
+        # 普通用户修改自己需要先输入旧密码
+        passwd
     fi
 
-    # --------------------------------------------------------------------------
-    # 修改成功
-    # --------------------------------------------------------------------------
-
-    ui_success "用户 [$target_user] 密码修改成功"
-    return 0
+    # 捕获 passwd 的返回值 ($?)
+    if [[ $? -eq 0 ]]; then
+        print_success "用户 [$target_user] 密码修改成功"
+        return 0
+    else
+        print_error "密码修改失败或已取消"
+        return 1
+    fi
 }

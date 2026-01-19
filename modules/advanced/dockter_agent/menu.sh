@@ -14,6 +14,7 @@
 # ******************************************************************************
 # 基础路径与环境定义
 # ******************************************************************************
+# shellcheck disable=SC1091
 source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent.sh"
 source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent_binary.sh"
 source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent_unraid.sh"
@@ -35,23 +36,23 @@ dockter_agent_menu() {
   while true; do
         print_clear
 
-        ui print page_header "⚒$(ui_spaces 1)DpockTer Agent 选择"
+        print_box_header "${ICON_MAINTAIN}$(ui_spaces 1)DpockTer Agent 选择"
       
-        ui line
-        ui_menu_item 1 0 1 "$(ui_spaces 1)智能安装 (自动检测) ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_done
+        print_line
+        print_menu_item -r 1 -s 2  -p 0 -i 1 -m "智能安装 (自动检测)" -I star
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 2 0 2 "$(ui_spaces 1)Linux 二进制安装 (Binary)"
-        ui_menu_done
+        print_line
+        print_menu_item -r 2 -s 2 -p 0 -i 2 -m "Linux 二进制安装 (Binary)"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 3 0 3 "$(ui_spaces 1)Unraid 专用安装"
-        ui_menu_done
+        print_line
+        print_menu_item -r 3 -s 2 -p 0 -i 3 -m "Unraid 专用安装"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 4 0 4 "$(ui_spaces 1)Docker 容器安装"
-        ui_menu_done
+        print_line
+        print_menu_item -r 4 -s 2 -p 0 -i 4 -m "Docker 容器安装"
+        print_menu_item_done
 
         print_menu_go_level
 

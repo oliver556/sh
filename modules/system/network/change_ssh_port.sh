@@ -128,10 +128,10 @@ change_ssh_port() {
         local current_port
         current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
 
-        ui line
-        ui_info "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
-        ui line
-        ui echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
+        print_line
+        print_info -m "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
+        print_line
+        print_echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
 
         local choice
         choice=$(ui_read_choice "请输入新的 SSH 端口号")
@@ -145,8 +145,8 @@ change_ssh_port() {
 
         # 用户取消
         if [[ "$choice" -eq 0 ]]; then
-            ui_info "取消修改 SSH 端口"
-            ui blank
+            print_info -m "取消修改 SSH 端口"
+            print_blank
             return 2
         fi
 

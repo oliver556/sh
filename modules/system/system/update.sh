@@ -15,9 +15,9 @@ guard_system_update(){
     print_clear
 
     if system_update; then
-        print_box_success --status finish --msg "更新系统"
+        print_box_success -s finish -m "更新系统"
     else
-        ui_box_error "系统更新过程中出现错误"
+        print_box_error -m "系统更新过程中出现错误"
     fi
 }
 
@@ -43,7 +43,7 @@ system_update() {
         return 1
     }
 
-    print_box_info --status start --msg "更新系统"
+    print_box_info -s start -m "更新系统"
     # --------------------------------------------------------------------------
     # 根据不同包管理器，执行对应的系统更新逻辑
     # 所有命令均使用非交互模式，避免阻塞脚本执行
@@ -54,8 +54,6 @@ system_update() {
         # Debian / Ubuntu 系列
         # ----------------------------------------------------------------------
         apt)
-            # ui_info "检测到 apt 包管理器，开始更新系统软件包..."
-
             # 修复 dpkg 中断状态（防止清理失败）
             fix_dpkg
 
@@ -76,8 +74,6 @@ system_update() {
         # RHEL 8+ / Fedora
         # ----------------------------------------------------------------------
         dnf)
-            # ui_info "检测到 dnf 包管理器，开始更新系统软件包..."
-
             # 执行系统更新
             if ! dnf -y update; then
                 ui_error "dnf 系统更新失败"
@@ -89,8 +85,6 @@ system_update() {
         # RHEL 7 / CentOS 7
         # ----------------------------------------------------------------------
         yum)
-            # ui_info "检测到 yum 包管理器，开始更新系统软件包..."
-
             # 执行系统更新
             if ! yum -y update; then
                 ui_error "yum 系统更新失败"
@@ -102,8 +96,6 @@ system_update() {
         # Alpine Linux
         # ----------------------------------------------------------------------
         apk)
-            # ui_info "检测到 apk 包管理器，开始更新系统软件包..."
-
             # 更新软件包索引
             if ! apk update; then
                 ui_error "apk 更新索引失败"
@@ -121,8 +113,6 @@ system_update() {
         # Arch Linux
         # ----------------------------------------------------------------------
         pacman)
-            # ui_info "检测到 pacman 包管理器，开始更新系统软件包..."
-
             # 同步并升级所有软件包
             if ! pacman -Syu --noconfirm; then
                 ui_error "pacman 系统更新失败"
@@ -134,8 +124,6 @@ system_update() {
         # openSUSE
         # ----------------------------------------------------------------------
         zypper)
-            # ui_info "检测到 zypper 包管理器，开始更新系统软件包..."
-
             # 刷新软件源
             if ! zypper refresh; then
                 ui_error "zypper 刷新软件源失败"
@@ -153,8 +141,6 @@ system_update() {
         # OpenWrt / 嵌入式系统
         # ----------------------------------------------------------------------
         opkg)
-            # ui_info "检测到 opkg 包管理器，开始更新系统软件包..."
-
             # 更新软件源
             if ! opkg update; then
                 ui_error "opkg 更新软件源失败"

@@ -35,9 +35,9 @@ net_get_ipv4() {
     ip=$(curl -s4 --max-time 2 https://ipinfo.io/ip || curl -s4 --max-time 2 https://api64.ipify.org || curl -s4 --max-time 2 https://4.icanhazip.com)
     
     if [[ -z "$ip" ]]; then
-        ui echo "未检测到公网 IPv4"
+        print_echo "未检测到公网 IPv4"
     else
-        ui echo "$ip"
+        print_echo "$ip"
     fi
 }
 
@@ -61,9 +61,9 @@ net_get_ipv6() {
     ip=$(curl -s6 --max-time 2 https://ipinfo.io/ip || curl -s6 --max-time 2 https://6.icanhazip.com || curl -s6 --max-time 2 https://4.icanhazip.com)
     
     if [[ "$ip" == *":"* ]]; then
-        ui echo "$ip"
+        print_echo "$ip"
     else
-        ui echo "未检测到公网 IPv6"
+        print_echo "未检测到公网 IPv6"
     fi
 }
 
@@ -85,9 +85,9 @@ net_get_private_ipv4() {
     local ip
     ip=$(hostname -I 2>/dev/null | awk '{print $1}' | xargs)
     if [[ -z "$ip" ]]; then
-        ui echo "未检测到内网 IPv4"
+        print_echo "未检测到内网 IPv4"
     else
-        ui echo "$ip"
+        print_echo "$ip"
     fi
 }
 
@@ -116,9 +116,9 @@ net_get_private_ipv6() {
     fi
 
     if [[ -z "$ip" ]]; then
-        ui echo "未检测到内网 IPv6"
+        print_echo "未检测到内网 IPv6"
     else
-        ui echo "$ip"
+        print_echo "$ip"
     fi
 }
 
@@ -296,16 +296,16 @@ net_get_qdisc() {
 net_region() {
     # 优先检测 Google (超时设为 2秒，提高效率)
     if curl -s --connect-timeout 2 -I https://www.google.com >/dev/null 2>&1; then
-        ui echo "Global"
+        print_echo "Global"
         return 0
     fi
     
     # Google 连不通，检测百度
     if curl -s --connect-timeout 2 -I https://www.baidu.com >/dev/null 2>&1; then
-        ui echo "CN"
+        print_echo "CN"
         return 0
     fi
     
     # 啥都不行，啥玩意网络啊
-    ui echo "UNKNOWN"
+    print_echo "UNKNOWN"
 }

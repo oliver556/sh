@@ -106,20 +106,18 @@ main() {
         print_clear
         print_box_header "$(ui_spaces 1)▣$(ui_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
         print_box_header_tip "$(ui_spaces 1)✦$(ui_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
-        # --- 菜单区域 ---
         print_line
-        # 系统工具菜单项
-        print_box_item --index 1 "系统工具 ▶"
-        print_box_item --index 2 "基础工具 ▶"
-        print_box_item --index 3 "进阶工具 ▶"
-        print_box_item --index 4 "Docker 管理 ▶"
+        print_menu_item -i 1 -s 2 -m "系统工具" -I "$ICON_NAV" -T 2
+        print_menu_item -i 2 -s 2 -m "基础工具" -I "$ICON_NAV" -T 2
+        print_menu_item -i 3 -s 2 -m "进阶工具" -I "$ICON_NAV" -T 2
+        print_menu_item -i 4 -s 2 -m "Docker 管理" -I "$ICON_NAV" -T 2
         print_line
-        print_box_item --index 8 "测试脚本合集 ▶"
-        print_box_item --index 9 "节点搭建脚本 ▶"
+        print_menu_item -i 8 -s 2 -m "测试脚本合集" -I "$ICON_NAV" -T 2
+        print_menu_item -i 9 -s 2 -m "节点搭建脚本" -I "$ICON_NAV" -T 2
         print_line
-        print_box_item --index 99 "脚本自管理 ▶"
+        print_menu_item -i 99 -s 1 -m "脚本自管理" -I "$ICON_NAV" -T 2
         print_line -c "="  
-        print_box_item --index 0 "退出程序"
+        print_menu_item -i 0 -s 2 -m "退出程序"
         print_line -c "="  
 
         # --- 交互逻辑 ---

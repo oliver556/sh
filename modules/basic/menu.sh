@@ -30,7 +30,7 @@ source "${BASE_DIR}/lib/package.sh"
 #   _pdk_install_prompt
 # ------------------------------------------------------------------------------
 _pdk_install_prompt() {
-    print_box_info --msg "手动指定安装工具" --padding "bottom"
+    print_box_info -m "手动指定安装工具" -p bottom
 
     prompt=$(ui_read_choice --space 1 --prompt "请输入安装的工具名（wget curl）")
 
@@ -40,12 +40,12 @@ _pdk_install_prompt() {
     fi
 
     if command -v "$prompt" &> /dev/null; then
-        ui_box_info "$prompt 已安装，跳过安装"
+        print_step "$prompt 已安装，跳过安装"
         curl --help
     else
         pkg_install "$prompt"
         print_clear
-        ui_box_success "$prompt 已安装！"
+        print_box_success -m "$prompt 已安装！"
         curl --help
     fi
 }
@@ -64,7 +64,7 @@ _pdk_install_prompt() {
 #   _pdk_remove_prompt
 # ------------------------------------------------------------------------------
 _pdk_remove_prompt() {
-    ui_box_info "手动指定卸载工具" "bottom"
+    print_box_info -m "手动指定卸载工具" -p bottom
 
     prompt=$(ui_read_choice --space 1 --prompt "请输入卸载的工具名（wget curl）")
 
@@ -74,11 +74,11 @@ _pdk_remove_prompt() {
     fi
 
     if ! command -v "$prompt" &> /dev/null; then
-        ui_box_info "$prompt 未安装，跳过卸载"
+        print_step -m "$prompt 未安装，跳过卸载"
     else
         pkg_remove "$prompt"
         print_clear
-        ui_box_success "$prompt 已卸载！"
+        print_box_success -m "$prompt 已卸载！"
         curl --help
     fi
 }
@@ -100,23 +100,23 @@ basic_menu() {
   while true; do
         print_clear
 
-        ui print page_header "⚒$(ui_spaces 1)基础工具"
+        print_box_header "${ICON_MAINTAIN}$(ui_spaces 1)基础工具"
+
       
-        ui line
-        # --- 操作选单 ---
-        ui_menu_item 1 0 1 "$(ui_spaces 1)curl 下载工具 ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_item 1 10 2 "wget 下载工具 ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_done
+        print_line
+        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)curl 下载工具" -I star
+        print_menu_item -r 2 -p 0 -i 2 -m "$(ui_spaces 1)wget 下载工具" -I star
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 1 0 31 "全部安装"
-        ui_menu_item 1 16 32 "全部卸载"
-        ui_menu_done
+        print_line
+        print_menu_item -r 31 -p 0 -i 31 -m "全部安装"
+        print_menu_item -r 32 -p 0 -i 32 -m "全部卸载"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 1 0 41 "安装指定工具"
-        ui_menu_item 1 12 42 "卸载指定工具"
-        ui_menu_done
+        print_line
+        print_menu_item -r 41 -p 0 -i 41 -m "安装指定工具"
+        print_menu_item -r 42 -p 0 -i 42 -m "卸载指定工具"
+        print_menu_item_done
 
         print_menu_go_level
 
@@ -126,12 +126,12 @@ basic_menu() {
             1)
                 print_clear
                 if command -v curl &> /dev/null; then
-                    ui_box_info "curl 已安装，跳过安装"
+                    print_box_info -m "curl 已安装，跳过安装"
                     curl --help
                 else
                     pkg_install curl
                     print_clear
-                    ui_box_success "curl 安装成功！"
+                    print_box_success -m "curl 安装成功！"
                     curl --help
                 fi
                 print_wait_enter
@@ -139,12 +139,12 @@ basic_menu() {
             2)
                 print_clear
                 if command -v wget &> /dev/null; then
-                    ui_box_info "wget 已安装，跳过安装"
+                    print_box_success -m  "wget 已安装，跳过安装"
                     wget --help
                 else
                     pkg_install wget
                     print_clear
-                    ui_box_success "wget 安装成功！"
+                    print_box_success -m "wget 安装成功！"
                     wget --help
                 fi
                 
@@ -153,7 +153,7 @@ basic_menu() {
             31)
                 print_clear
 
-                print_box_info --msg "全部安装..." --status start
+                print_box_info -m "全部安装..." -s start
 
                 DEPENDENCIES=("curl" "wget")
 
@@ -161,18 +161,18 @@ basic_menu() {
                     if ! command -v "$cmd" &> /dev/null; then
                         pkg_install "$cmd"
                     else
-                        ui_box_success "$cmd 已安装"
+                        print_box_success -m "$cmd 已安装"
                     fi
                 done
 
-                print_box_info --msg "全部安装" --status success
+                print_box_info -m "全部安装" -s success
 
                 print_wait_enter
                 ;;
             32)
                 print_clear
 
-                print_box_info --msg "全部卸载..." --status start
+                print_box_info -m "全部卸载..." -s start
 
                 DEPENDENCIES=("curl" "wget")
 
@@ -181,11 +181,11 @@ basic_menu() {
                     if command -v "$cmd" &> /dev/null; then
                         pkg_remove "$cmd"
                     else
-                        ui_box_success "$cmd 已卸载"
+                        print_box_success -m "$cmd 已卸载"
                     fi
                 done
 
-                print_box_info --msg "全部卸载" --status success
+                print_box_info -m "全部卸载" -s success
 
                 print_wait_enter
                 ;;

@@ -64,7 +64,7 @@ system_memory_menu() {
 
         print_line
         print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)分配 1024M" -I star
-        print_menu_item -r 1 -p 6 -i 2 -m "分配 2048M"
+        print_menu_item -r 1 -p 7 -i 2 -m "分配 2048M"
         print_menu_item -r 1 -p 12 -i 3 -m "分配 4096M"
         print_menu_item_done
 

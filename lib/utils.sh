@@ -86,9 +86,9 @@ command_exists() {
 # ------------------------------------------------------------------------------
 get_docker_status_text() {
   if check_docker; then
-    ui echo "${BOLD_GREEN}已安装${NC}"
+    print_echo "${BOLD_GREEN}已安装${NC}"
   else
-    ui echo "${BOLD_RED}未安装${NC}"
+    print_echo "${BOLD_RED}未安装${NC}"
   fi
 }
 

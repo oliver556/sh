@@ -37,7 +37,7 @@ reinstall_finish_reboot() {
 
     # 使用数值循环执行倒计时
     for ((i=delay; i>0; i--)); do
-        ui echo "${BOLD_CYAN}${i}...${NC}"
+        print_echo "${BOLD_CYAN}${i}...${NC}"
         sleep 1
     done
 

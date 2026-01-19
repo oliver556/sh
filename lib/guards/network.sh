@@ -32,8 +32,8 @@
 check_net_connectivity() {
     # 测试 8.8.8.8 是否可达
     if ping -c 1 -W 1 8.8.8.8 &>/dev/null; then
-        ui echo "正常"
+        print_echo "正常"
     else
-        ui echo "异常"
+        print_echo "异常"
     fi
 }

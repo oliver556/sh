@@ -28,7 +28,7 @@
 install_dockter_agent_unraid() {
     print_clear
 
-    ui_box_info "开始安装 DockTer Agent Unraid 一键脚本..."
+    print_box_info -s start -m "安装 DockTer Agent Linux 一键脚本..."
     
     local region
     region=$(net_region)

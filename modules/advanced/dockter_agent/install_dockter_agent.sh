@@ -28,7 +28,7 @@
 install_dockter_agent() {
     print_clear
 
-    ui_box_info "开始安装 DockTer Agent (自动检测 Linux / Unraid / OpenWrt) 一键脚本..."
+    print_box_info -s start -m "安装 DockTer Agent (自动检测 Linux / Unraid / OpenWrt) 一键脚本..."
 
     local region
     region=$(net_region)

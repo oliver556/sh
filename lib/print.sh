@@ -259,22 +259,109 @@ print_success() {
 
 # 警告输出
 print_warn() {
-    [[ $# -eq 0 ]] && return
-    local message="$*"
-    print_echo "${YELLOW}${ICON_WARNING}$(ui_spaces 1)${message}${NC}"
+    local message=""
+    local spaces=1  # 默认缩进为 1
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -s|--spaces)
+                spaces="$2"
+                shift 2
+                ;;
+            -m|--msg|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑：支持直接传文本，不带 --msg
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 如果没有消息内容，直接返回 (对应原代码的 [[ $# -eq 0 ]] && return)
+    if [[ -z "$message" ]]; then
+        return
+    fi
+
+    # 执行输出
+    print_echo "${YELLOW}${ICON_WARNING}$(ui_spaces "$spaces")${message}${NC}"
 }
 # 错误输出
 print_error() {
-    [[ $# -eq 0 ]] && return
-    local message="$*"
-    print_echo "${RED}${ICON_FAIL}$(ui_spaces 1)${message}${NC}"
+    local message=""
+    local spaces=1  # 默认缩进为 1
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -s|--spaces)
+                spaces="$2"
+                shift 2
+                ;;
+            -m|--msg|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑：支持直接传文本，不带 --msg
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 如果没有消息内容，直接返回 (对应原代码的 [[ $# -eq 0 ]] && return)
+    if [[ -z "$message" ]]; then
+        return
+    fi
+
+    # 执行输出
+    print_echo "${RED}${ICON_FAIL}$(ui_spaces "$spaces")${message}${NC}"
 }
 
 # 步骤输出
 print_step() {
-    [[ $# -eq 0 ]] && return
-    local message="$*"
-    print_echo "${PURPLE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
+    local message=""
+    local spaces=1  # 默认缩进为 1
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -s|--spaces)
+                spaces="$2"
+                shift 2
+                ;;
+            -m|--msg|--message)
+                message="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑：支持直接传文本，不带 --msg
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 如果没有消息内容，直接返回 (对应原代码的 [[ $# -eq 0 ]] && return)
+    if [[ -z "$message" ]]; then
+        return
+    fi
+
+    # 执行输出
+    print_echo "${PURPLE}${ICON_ARROW}$(ui_spaces "$spaces")${message}${NC}"
 }
 
 print_tip() {
@@ -389,7 +476,7 @@ print_box_info() {
 
     # UI 渲染逻辑
     if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
+        print_blank
     fi
 
     print_line -C "$color"
@@ -397,7 +484,7 @@ print_box_info() {
     print_line -C "$color"
 
     if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
+        print_blank
     fi
 }
 
@@ -481,7 +568,7 @@ print_box_success() {
 
     # UI 渲染逻辑
     if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
+        print_blank
     fi
 
     print_line -C "$BOLD_GREEN"
@@ -489,9 +576,102 @@ print_box_success() {
     print_line -C "$BOLD_GREEN"
 
     if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
-        ui blank
+        print_blank
     fi
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: print_box_error
+# 功能:   打印一个红色主题的“成功”状态盒子，包含红色上下边框和成功图标(√)
+#         常用于脚本执行结束后的最终成功提示
+# 
+# 参数:
+#   -s | --status  (字符串): 状态标识，如 ok/finish (显示绿色[完成])，默认为空 (可选)
+#   -m | --msg     (字符串): 消息内容文本
+#   -p | --padding (字符串): 上下留白控制，支持 top, bottom, both, all (默认为空)
+#   $1             (字符串): (兜底) 若不使用 Flag，直接传入的内容将被视为消息文本
+# 
+# 返回值:
+#   0 - 成功打印
+# 
+# 示例:
+#   print_box_error "部署失败"                    # 只有消息和边框
+#   print_box_error -s ok -m "系统清理失败"       # 显示 [完成] 标签
+#   print_box_error -s finish -p both "所有任务结束" 
+# ------------------------------------------------------------------------------
+print_box_error() {
+    local status=""
+    local message=""
+    local padding=""
+
+    # $# 表示剩余参数的个数，只要还有参数就继续循环
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -s|--status)
+                status="$2"
+                shift 2 # 吃掉 "--status" 和 "具体的状体值"，指针向后移两位
+                ;;
+            -m|--msg|--message)
+                message="$2"
+                shift 2
+                ;;
+            -p|--padding)
+                padding="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑：如果有没加 --前缀的参数，默认追加到消息里
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 处理状态标签格式 (start -> [Start])
+    local label=""
+    if [[ -n "$status" ]]; then
+        case "$status" in
+            start|begin)
+                label="${BOLD}[开始]${NC}"
+                ;;
+            success|finish|ok)
+                label="${BOLD}[完成]${NC}"
+                ;;
+            *)
+                # 自动首字母大写
+                local first_char
+                first_char=$(echo "${status:0:1}" | tr '[:lower:]' '[:upper:]')
+                label="${BOLD}[${first_char}${status:1}]${NC}"
+                ;;
+        esac
+    fi
+
+    # 拼接最终显示的文本 (如果 status 为空，前面就没有空格)
+    local final_text=""
+    if [[ -n "$label" ]]; then
+        final_text="$label $message"
+    else
+        final_text="$message"
+    fi
+
+    # UI 渲染逻辑
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        print_blank
+    fi
+
+    print_line -C "$BOLD_RED"
+    print_error -m "$final_text"
+    print_line -C "$BOLD_RED"
+
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        print_blank
+    fi
+}
+
 
 # ------------------------------------------------------------------------------
 # 函数名: print_box_header
@@ -541,149 +721,67 @@ print_box_header_tip() {
     print_echo "${BOLD_YELLOW}# ${tip}${NC}"
 }
 
-# ------------------------------------------------------------------------------
-# 函数名: print_box_item
-# 功能:   打印格式化对齐的菜单项，支持自动计算缩进
-#         格式为：[编号] [空格] [说明文本]
-# 
-# 参数:
-#   -i | --index   (整数/字符串): 菜单编号 (如 1, 2, A, B)
-#   -w | --width   (整数)       : 编号区域的最大对齐宽度，默认为 2 (支持1-99对齐) (可选)
-#   -m | --msg     (字符串)     : 菜单项描述文本
-#   $1             (字符串)     : (兜底) 若不使用 Flag，直接传入的内容将被视为描述文本
-# 
-# 返回值:
-#   0 - 成功打印
-# 
-# 示例:
-#   print_box_item -i 1 "安装 Docker"            # 输出: 1.  安装 Docker
-#   print_box_item -i 10 -m "系统监控"           # 输出: 10. 系统监控
-#   print_box_item -i 100 -w 3 "更多选项"        # 宽编号场景
-#   print_box_item "退出脚本" -i 0               # 混合写法
-# ------------------------------------------------------------------------------
-print_box_item() {
-    local index=""
-    local text=""
-    local max_width=2  # 默认编号宽度 (支持 1-99)
-
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -i|--index)
-                index="$2"
-                shift 2
-                ;;
-            -w|--width)  # 允许调整对齐宽度
-                max_width="$2"
-                shift 2
-                ;;
-            -m|--msg|--message)
-                text="$2"
-                shift 2
-                ;;
-            *)
-                # 兜底逻辑：其余参数视为文本
-                if [[ -z "$text" ]]; then
-                    text="$1"
-                else
-                    text="$text $1"
-                fi
-                shift 1
-                ;;
-        esac
-    done
-
-    # 计算空格填充
-    # 逻辑: 总空格数 = (最大宽度 - 当前编号长度) + 1 (留一个基本间隙)
-    local index_len=${#index}
-    local pad
-    (( pad = max_width - index_len + 1 ))
-
-    # 防止 pad 为负数 (当 index 长度超过设定的 max_width 时)
-    if [[ $pad -lt 1 ]]; then pad=1; fi
-
-    # 生成空格字符串
-    local spaces
-    printf -v spaces '%*s' "$pad" ''
-
-    # 输出
-    # 格式: [青色编号]. [空格] [白色文本]
-    print_echo "${CYAN}${index}.${spaces}${NC}${text}${NC}"
-}
-
 # ******************************************************************************
 # 全局变量：用于跟踪当前行 ID
-# 提供：ui_menu_item、ui_menu_done 使用
+# 提供: print_menu_item、print_menu_item_done 使用
 # ******************************************************************************
 G_LAST_MENU_ROW="-1"
 
 # ------------------------------------------------------------------------------
-# 函数名: ui_menu_item
-# 功能:   渲染流式布局的菜单项。通过对比 row_id 自动判断是否需要换行。
-#         注意：需要在调用此函数前初始化全局变量 G_LAST_MENU_ROW="-1"
-# 
+# 函数名: print_menu_item
+# 功能:   通用的菜单项渲染函数，支持“垂直列表”和“流式网格”两种模式。
+#
+# 模式切换:
+#   1. 列表模式 (默认): 不传 -r 参数。每项占一行，支持 -w 参数对齐编号。
+#   2. 网格模式 (流式): 传 -r 参数。需配合全局变量 G_LAST_MENU_ROW，多项同行显示。
+#
 # 参数:
-#   -r | --row     (字符串): 行标识符 (Row ID)。若与上一次调用相同，则不换行；不同则换行 (必填)
-#   -p | --padding (整数)  : 该项左侧的间距/填充空格数 (必填)
-#   -i | --index   (字符串): 菜单编号 (如 1, 2, A) (必填)
-#   -m | --msg     (字符串): 菜单文本内容 (必填)
-#   -s | --space   (整数)  : 编号与文本之间的空格数，默认为 1 (可选)
-#   -I | --icon    (字符串): 后缀图标/标签内容 (可选)
-#                            - 传 "star" : 显示默认黄色星星 (★)
-#                            - 传 "hot"  : 显示红色 [HOT]
-#                            - 传 "new"  : 显示绿色 [NEW]
-#                            - 传 其他   : 原样显示自定义文本
-#   $1             (字符串): (兜底) 若无 Flag，则视为文本内容
-# 
+#   -i | --index   (字符串): 菜单编号 (必填)
+#   -m | --msg     (字符串): 菜单文本 (必填)
+#   -r | --row     (字符串): [网格模式专用] 行标识符。若存在，则启用流式布局
+#   -p | --padding (整数)  : 左侧缩进空格数 (列表模式默认0，网格模式根据布局设置)
+#   -w | --width   (整数)  : [列表模式专用] 编号区域对齐宽度，默认0(不开启对齐计算)
+#   -s | --space   (整数)  : 编号与文本之间的固定空格数 (仅当 -w 为 0 时生效)，默认为 1
+#   -I | --icon    (字符串): 后缀图标/标签 (支持 star, hot, new 或自定义)
+#   -n | --newline (开关)  : [网格模式专用] 强制在末尾换行 (极少使用，通常由 -r 控制)
+#   $1             (字符串): (兜底) 文本内容
+#
 # 返回值:
 #   (无返回值) - 直接输出格式化后的字符串
 # 
 # 示例:
-#   
-#   # 第一行
-#   print_menu_item -r 1 -p 2 -i 1 -m "开始"
-#   print_menu_item -r 1 -p 4 -i 2 -m "停止"  # 还是 row 1，不换行
-#   
-#   # 第二行 (row 变了，自动换行)
-#   print_menu_item -r 2 -p 2 -i 3 -m "重启"
+#   # 场景1: 普通列表
+#   print_menu_item -i 1 -m "安装 Docker" -w 2
 #
-#   print_menu_item ... -I star   (显示 ★)
-#   print_menu_item ... -I hot    (显示 [HOT])
-#   print_menu_item ... -I "推荐" (显示 推荐)
+#   # 场景2: 一行两列 (原 print_menu_item)
+#   G_LAST_MENU_ROW="-1"
+#   print_menu_item -r 1 -p 0 -i 1 -m "开始"
+#   print_menu_item -r 1 -p 4 -i 2 -m "停止"
 # ------------------------------------------------------------------------------
 print_menu_item() {
     local row_id=""
     local padding=0
     local index=""
     local text=""
-    local space_count=1
+    local max_width=0    # 编号对齐宽度
+    local space_count=1  # 编号与文本间距
     local icon_val=""
+    local force_newline=false
+    local suffix_space=1 # 默认文本和图标中间空 1 格
+    local text_target_width=0 # 文本区域目标宽度 (0表示不启用对齐)
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -r|--row)
-                row_id="$2"
-                shift 2
-                ;;
-            -p|--padding|--gap) # 支持 --gap 别名，语义更通顺
-                padding="$2"
-                shift 2
-                ;;
-            -i|--index)
-                index="$2"
-                shift 2
-                ;;
-            -m|--msg|--message)
-                text="$2"
-                shift 2
-                ;;
-            -s|--space)
-                space_count="$2"
-                shift 2
-                ;;
-            -I|--icon)
-                icon_val="$2"
-                shift 2
-                ;;
+            -r|--row)           row_id="$2"; shift 2 ;;
+            -p|--padding)      padding="$2"; shift 2 ;;
+            -i|--index)        index="$2"; shift 2 ;;
+            -w|--width)        max_width="$2"; shift 2 ;;
+            -m|--msg)          text="$2"; shift 2 ;;
+            -I|--icon)         icon_val="$2"; shift 2 ;;
+            -s|--space)        space_count="$2"; shift 2 ;;
+            -n|--newline)      force_newline=true; shift 1 ;;
+            -S|--suffix-space) suffix_space="$2"; shift 2 ;;
+            -T|--text-width)   text_target_width="$2"; shift 2 ;;
             *)
                 # 兜底逻辑
                 if [[ -z "$text" ]]; then
@@ -696,55 +794,77 @@ print_menu_item() {
         esac
     done
 
-    # 自动换行逻辑
-    # 依赖全局变量 G_LAST_MENU_ROW 来记录上一次渲染是在哪一行
-    if [[ "$row_id" != "$G_LAST_MENU_ROW" ]]; then
-        # 如果 row_id 变了，且不是初始状态(-1)，则先打印一个换行符
-        if [[ "$G_LAST_MENU_ROW" != "-1" ]]; then
-            echo "" 
+    # 1. [网格模式] 自动换行前置逻辑
+    # 只有指定了 row_id 时，才进行行状态检查
+    if [[ -n "$row_id" ]]; then
+        if [[ "$row_id" != "$G_LAST_MENU_ROW" ]]; then
+            [[ "$G_LAST_MENU_ROW" != "-1" ]] && echo ""
+            G_LAST_MENU_ROW="$row_id"
         fi
-        # 更新全局状态
-        G_LAST_MENU_ROW="$row_id"
     fi
 
-    # 渲染左侧间距 (Padding/Gap)
-    # 使用 printf 生成指定数量的空格
-    if [[ "$padding" -gt 0 ]]; then
-        printf "%*s" "$padding" ""
+    # 2. 渲染左侧整体缩进 (Padding)
+    [[ "$padding" -gt 0 ]] && printf "%*s" "$padding" ""
+
+    # 3. 计算编号与文本中间的间隔 (Spacer)
+    local spacer=""
+    if [[ "$max_width" -gt 0 ]]; then
+        local index_len=${#index}
+        local pad
+        (( pad = max_width - index_len + 1 ))
+        [[ $pad -lt 1 ]] && pad=1
+        printf -v spacer '%*s' "$pad" ''
+    else
+        # 简单空格
+        printf -v spacer '%*s' "$space_count" ''
     fi
 
-    # 处理图标/后缀逻辑
+    # 4. 计算文本后的填充 (Text Padding)
+    local text_padding_str=""
+    
+    if [[ "$text_target_width" -gt 0 ]]; then
+        # 策略A：启用对齐 (计算中文字宽)
+        local char_len=${#text}
+        local byte_len=$(printf "%s" "$text" | wc -c)
+        # 视觉宽度 ≈ 字符数 + (字节数 - 字符数) / 2
+        local v_len=$(( char_len + (byte_len - char_len) / 2 ))
+        
+        local fill_len
+        (( fill_len = text_target_width - v_len ))
+        [[ $fill_len -lt 1 ]] && fill_len=1 # 至少保留1个空格
+        
+        printf -v text_padding_str '%*s' "$fill_len" ''
+    else
+        # 策略B：不启用对齐，直接使用 -S 指定的空格数
+        printf -v text_padding_str '%*s' "$suffix_space" ''
+    fi
+
+   # 5. 处理图标
     local suffix=""
     if [[ -n "$icon_val" ]]; then
         case "$icon_val" in
-            star|default) 
-                # 默认星星 (需确保全局定义了 ICON_STAR，例如 ICON_STAR="★")
-                suffix=" ${BOLD_YELLOW}${ICON_STAR}${NC}"
-                ;;
-            hot)
-                # 预设：热门
-                suffix=" ${BOLD_RED}[HOT]${NC}"
-                ;;
-            new)
-                # 预设：最新
-                suffix=" ${BOLD_GREEN}[NEW]${NC}"
-                ;;
-            *)
-                # 自定义文本：默认用黄色高亮
-                suffix=" ${BOLD_YELLOW}${icon_val}${NC}"
-                ;;
+            star|default) suffix="${BOLD_YELLOW}${ICON_STAR:-★}${NC}" ;;
+            hot)          suffix="${BOLD_RED}[HOT]${NC}" ;;
+            new)          suffix="${BOLD_GREEN}[NEW]${NC}" ;;
+            *)            suffix="${icon_val}" ;;
         esac
     fi
 
-    # 6. 渲染菜单内容
-    # 注意：这里使用了 -n (不换行)，因为后面可能还有同行的其他项
-    # 假设 ui_spaces 是你定义的生成空格的函数，如果没有，可以用 printf 代替
-    print_echo -n "${BOLD_CYAN}${index}.${NC}$(ui_spaces "$space_count")${text}${suffix}${NC}"
+    # 6. 最终拼接输出
+    # 结构: [编号][间隔][文本][文本填充][图标]
+    # 注意：text_padding_str 放在文本和图标中间
+    local final_content="${BOLD_CYAN}${index}.${NC}${spacer}${text}${text_padding_str}${suffix}${NC}"
+
+    if [[ -n "$row_id" ]] && [[ "$force_newline" == "false" ]]; then
+        print_echo -n "$final_content"
+    else
+        print_echo "$final_content"
+    fi
 }
 
 # ------------------------------------------------------------------------------
 # 函数名: print_menu_item_done
-# 功能:   强制重置行状态 (通常用于菜单结束后) 与 ui_menu_item 配套使用
+# 功能:   强制重置行状态 (通常用于菜单结束后) 与 print_menu_item 配套使用
 # 
 # 参数: 无
 # 

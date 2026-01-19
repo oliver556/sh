@@ -35,7 +35,7 @@ reinstall_menu() {
 
         print_box_header "${ICON_GEAR}$(ui_spaces 1)一键重装系统"
         print_error "注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"
-        ui echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
+        print_echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
         print_line
         print_echo "${GREY}Leitbogioro 项目地址: https://github.com/leitbogioro/Tools"
         print_echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "

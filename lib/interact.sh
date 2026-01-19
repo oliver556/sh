@@ -49,15 +49,15 @@ ui_confirm() {
     local title="$1"
     local user_choice
 
-    ui blank
+    print_blank
     # 如果 title 不为空，则显示具体的标题提示
     if [ -n "$title" ]; then
-        ui echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行 ${BOLD_CYAN}${title}${BOLD_WHITE}，按其它任意键返回。"
+        print_echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行 ${BOLD_CYAN}${title}${BOLD_WHITE}，按其它任意键返回。"
     else
-        ui echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行，按其它任意键返回。"
+        print_echo "${BOLD_WHITE}按${NC} ${BOLD_RED}(Y/y)${BOLD_WHITE} 键确认执行，按其它任意键返回。"
     fi
     
-    ui blank
+    print_blank
 
     user_choice=$(ui_read_choice --space 1 --prompt "请输入选项")
 
@@ -85,8 +85,8 @@ ui_confirm() {
 #   ui_wait
 # ------------------------------------------------------------------------------
 ui_wait() {
-    ui blank
-    ui echo "${BOLD_CYAN}按任意键继续...${BOLD_WHITE}"
+    print_blank
+    print_echo "${BOLD_CYAN}按任意键继续...${BOLD_WHITE}"
     # -n 1: 读取 1 个字符立即返回
     # -s: 静默模式，不回显输入
     # -r: 允许反斜杠
@@ -106,8 +106,8 @@ ui_wait() {
 # ------------------------------------------------------------------------------
 ui_return() {
     # 可选提示信息，但默认不显示
-    # ui blank
-    # ui echo "${BOLD_WHITE}执行完成，自动返回...${BOLD_WHITE}"
+    # print_blank
+    # print_echo "${BOLD_WHITE}执行完成，自动返回...${BOLD_WHITE}"
     # 直接返回，不等待输入
     return 0
 }
@@ -152,12 +152,12 @@ ui_input() {
     
     if [ -n "$default_val" ]; then
         # 带有默认值的提示
-        read -rp "$(ui echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${BOLD_CYAN}]: ${NC}")" input_val
-        ui echo "${input_val:-$default_val}"
+        read -rp "$(print_echo "${prefix}${prompt} [默认: ${BOLD_WHITE}${default_val}${BOLD_CYAN}]: ${NC}")" input_val
+        print_echo "${input_val:-$default_val}"
     else
         # 普通提示
-        read -rp "$(ui echo "${prefix}${prompt}: ${NC}")" input_val
-        ui echo "$input_val"
+        read -rp "$(print_echo "${prefix}${prompt}: ${NC}")" input_val
+        print_echo "$input_val"
     fi
 }
 

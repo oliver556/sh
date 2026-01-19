@@ -21,16 +21,16 @@ test_menu() {
         print_box_header "${ICON_TEST}$(ui_spaces 1)测试脚本工具"
 
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${NC}"
+        print_menu_item -r 1 -p 0 -i 1 -s 2 -m "IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${NC}"
         print_menu_item_done
 
-        print_menu_item -r 2 -p 0 -i 2 -m "$(ui_spaces 1)网络质量测试"
-        # print_menu_item -r 3 -p 0 -i 3 -m "$(ui_spaces 1)回程路由"
+        print_menu_item -r 2 -p 0 -i 2 -s 2 -m "网络质量测试"
+        # print_menu_item -r 3 -p 0 -i 3 -s 2 -m "回程路由"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 31 -p 0 -i 31 -m "$(ui_spaces 1)bench 性能测试"
-        print_menu_item -r 32 -p 0 -i 32 -m "$(ui_spaces 1)spiritysdx 融合怪测评"
+        print_menu_item -r 31 -p 0 -i 31 -m "bench 性能测试"
+        print_menu_item -r 32 -p 0 -i 32 -m "spiritysdx 融合怪测评"
         print_menu_item_done
 
         print_line

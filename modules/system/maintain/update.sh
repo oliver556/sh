@@ -99,7 +99,7 @@ do_update() {
         exit 10
     else
         # TODO
-        ui_box_error "更新失败，请检查网络或稍后重试。" "top"
+        print_box_error -m "更新失败，请检查网络或稍后重试。" "top"
         print_wait_enter
         exit 1
     fi

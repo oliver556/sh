@@ -62,7 +62,7 @@ check_root() {
     is_root && return 0
 
     ui_error "该功能需要使用 root 用户才能运行此脚本"
-    ui blank
+    print_blank
     ui_tip "请切换到 'root' 用户来执行。"
     
     print_wait_enter

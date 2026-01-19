@@ -40,7 +40,7 @@ system_menu() {
 
         print_line
         print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)系统信息查询" -I star
-        print_menu_item -r 1 -p 4 -i 2 -m "系统更新"
+        print_menu_item -r 1 -p 5 -i 2 -m "系统更新"
         print_menu_item -r 1 -p 14 -i 3 -m "系统清理"
         print_menu_item_done
 
@@ -115,6 +115,7 @@ system_menu() {
                 ;;
             99)
                 # 重装系统
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/reinstall/menu.sh"
                 reinstall_menu
                 ;;
