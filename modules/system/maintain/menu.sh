@@ -50,7 +50,7 @@ maintain_menu() {
 
         print_clear
 
-        print_box_header "${ICON_UPDATE}$(print_spaces 1)VpsScriptKit 系统更新中心"
+        print_box_header  "${ICON_UPDATE}$(print_spaces 1)VpsScriptKit 系统更新中心"
 
         # --- 版本状态看板 ---
         print_echo "${BOLD_CYAN}当前版本:${NC}  ${BOLD_CYAN}v${V_LOCAL}${NC}"
@@ -85,7 +85,7 @@ maintain_menu() {
                     # 1: 表示取消，继续循环
                     [[ $? -eq 0 ]] && exit 0
                 else
-                    ui error "文件丢失: uninstall.sh"
+                    print_error -m "文件丢失: uninstall.sh"
                     sleep 1
                 fi
                 ;;

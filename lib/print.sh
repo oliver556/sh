@@ -718,14 +718,33 @@ print_box_error() {
 #   print_box_header "网络配置模块"
 # ------------------------------------------------------------------------------
 print_box_header() {
-    local title=""
-    title="$1"
+    local message=""
+    local spaces=2
+    local color="${BOLD_CYAN}"
+    local icon_val=""
 
-    print_line -e "+" -c "=" -C "$BOLD_CYAN"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -m|--msg|--message) message="$2"; shift 2 ;;
+            -s|--spaces)        padding="$2"; shift 2 ;;
+            -c|--color)         color="$2"; shift 2 ;;
+            -I|--icon)          icon_val="$2"; shift 2 ;;
+            *)
+                # 兜底逻辑：如果有没加 --前缀的参数，默认追加到消息里
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
 
-    print_echo "${BOLD_CYAN}# ${BOLD}${title}${NC}"
 
-    print_line -e "+" -c "=" -C "$BOLD_CYAN"
+    print_line -e "+" -c "=" -C "$color"
+    print_echo "$color" "# ${BOLD}" "$message" "${NC}"
+    print_line -e "+" -c "=" -C "$color"
 }
 
 # ------------------------------------------------------------------------------
