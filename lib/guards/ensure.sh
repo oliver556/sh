@@ -32,10 +32,10 @@ ensure_cmd() {
 
   	has_cmd "$cmd" && return 0
 
-  	ui_warn "未检测到命令: $cmd，正在尝试安装..."
+  	print_warn -m "未检测到命令: $cmd，正在尝试安装..."
 
 	install_cmd "$cmd" || {
-        ui_error "安装 $cmd 失败，请手动检查网络或源设置。"
+        print_error -m "安装 $cmd 失败，请手动检查网络或源设置。"
         return 1
     }
 
@@ -70,7 +70,7 @@ install_cmd() {
     # elif is_alpine; then
     #     sudo apk add --no-cache "$cmd" || return 1
     else
-        ui_warn "当前系统不支持自动安装: $cmd"
+        print_warn -m "当前系统不支持自动安装: $cmd"
         return 1
     fi
 

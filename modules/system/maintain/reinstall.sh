@@ -48,7 +48,7 @@ do_reinstall() {
         # 10: 告诉父进程 (main.sh) 需要重启
         exit 10
     else
-        ui_error "强制安装过程中出现异常"
+        print_error -m "强制安装过程中出现异常"
         print_wait_enter
         exit 1
     fi

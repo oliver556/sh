@@ -23,26 +23,7 @@
 | 节点搭建 | ⑆ | \u2446 | BOLD_CYAN | 网络拓扑 / 链路分发 |
 | 测试脚本 | ⧗ | \u29d7 | BOLD_YELLOW | 沙漏 / 实验验证处理 |
 
-## 3. 代码实现规范 (Bash 示例)
-
-```bash
-# 标准间距建议使用 $(ui_spaces 1)
-ui_info()    { print_echo "${BOLD_BLUE}●$(ui_spaces 1)$1${BOLD_WHITE}"; }
-ui_success() { print_echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${BOLD_WHITE}"; }
-ui_tip()     { print_echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${BOLD_WHITE}"; }
-print_exit() { print_echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
-
-# 带参数解析的输入函数 (默认 3 空格美感)
-# ui_input --prompt "请输入" --space 3 --default "Y"
-
-# 页面 Header 调用示例
-ui print page_header "${BOLD_BLUE}☵$(ui_spaces 1)Docker 管理"
-ui print page_header "${BOLD_GREEN}↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
-ui print page_header "${BOLD_CYAN}⑆$(ui_spaces 1)节点搭建脚本合集"
-
-```
-
-## 4. 设计优势说明
+## 3. 设计优势说明
 
 - 极致对齐：几何字符在所有终端字体中占位固定，解决 Emoji 导致的排版崩坏。
 - 专业观感：纯几何设计符合 2026 年 Linux 生产力工具的工业审美。

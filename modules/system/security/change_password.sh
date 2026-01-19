@@ -124,7 +124,7 @@ change_password() {
         print_box_info -s star -m "修改 [指定用户 ($target_user)] 的登录密码"
     fi
 
-    ui_warn "请输入新密码（输入过程不会显示，输入完毕按回车）"
+    print_warn -m "请输入新密码（输入过程不会显示，输入完毕按回车）"
 
     # 5. 执行修改
     # 注意：passwd 命令交互性较强

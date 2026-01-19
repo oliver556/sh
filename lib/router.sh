@@ -29,73 +29,44 @@ router_main() {
     case "$choice" in
         1)
             # 系统工具模块
-            if [[ -f "${BASE_DIR}/modules/system/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/system/menu.sh"
-                system_menu
-            else
-                ui_error "模块文件丢失: modules/system/menu.sh"
-                sleep 1
-            fi
+            source "${BASE_DIR}/modules/system/menu.sh"
+            system_menu
             ;;
         2)
             # 基础工具模块
-            if [[ -f "${BASE_DIR}/modules/basic/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/basic/menu.sh"
-                basic_menu 
-            fi
+            source "${BASE_DIR}/modules/basic/menu.sh"
+            basic_menu 
             ;;
         3)
             # 进阶工具模块
-            if [[ -f "${BASE_DIR}/modules/advanced/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/advanced/menu.sh"
-                advanced_menu
-            fi
+            source "${BASE_DIR}/modules/advanced/menu.sh"
+            advanced_menu
             ;;
         4)
             # Docker 管理模块
-            if [[ -f "${BASE_DIR}/modules/docker/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/docker/menu.sh"
-                docker_menu
-            else
-                ui_error "模块文件丢失: modules/docker/menu.sh"
-                sleep 1
-            fi
+            source "${BASE_DIR}/modules/docker/menu.sh"
+            docker_menu
             ;;
         8)
             # 测试脚本合集
-            if [[ -f "${BASE_DIR}/modules/test/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/test/menu.sh"
-                test_menu
-            else
-                ui_error "模块文件丢失: modules/test/menu.sh"
-                sleep 1
-            fi
+            source "${BASE_DIR}/modules/test/menu.sh"
+            test_menu
             ;;
         9)
             # 节点搭建脚本
-            if [[ -f "${BASE_DIR}/modules/node/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/node/menu.sh"
-                node_menu
-            else
-                ui_error "模块文件丢失: modules/node/menu.sh"
-                sleep 1
-            fi
+            source "${BASE_DIR}/modules/node/menu.sh"
+            node_menu
             ;;
 		99)
 			# 脚本自管理
-			if [[ -f "${BASE_DIR}/modules/system/maintain/menu.sh" ]]; then
-                source "${BASE_DIR}/modules/system/maintain/menu.sh"
-                maintain_menu
-            else
-                ui_error "模块文件丢失: modules/system/maintain/menu.sh"
-                sleep 1
-            fi
+            source "${BASE_DIR}/modules/system/maintain/menu.sh"
+            maintain_menu
 			;;	
 		0)
 			print_exit
 			;;
         *)
-            ui error "无效选项，请输入菜单中存在的数字"
+            print_error -m "无效选项，请输入菜单中存在的数字"
       		sleep 1
             ;;
     esac

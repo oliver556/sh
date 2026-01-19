@@ -37,7 +37,7 @@ guard_enable_root_login() {
     # 检查 sshd 配置文件是否存在
     # --------------------------------------------------------------------------
     if [[ ! -f /etc/ssh/sshd_config ]]; then
-        ui_error "未检测到 sshd_config，可能未安装 SSH 服务"
+        print_error -m "未检测到 sshd_config，可能未安装 SSH 服务"
         return 1
     fi
 
@@ -81,7 +81,7 @@ enable_root_login() {
     # 校验配置文件语法（防止写坏）
     # --------------------------------------------------------------------------
     if ! sshd -t &>/dev/null; then
-        ui_error "sshd 配置校验失败，未应用更改"
+        print_error -m "sshd 配置校验失败，未应用更改"
         return 1
     fi
 
@@ -93,9 +93,9 @@ enable_root_login() {
     elif systemctl list-units --type=service | grep -q ssh.service; then
         systemctl reload ssh
     else
-        ui_warn "未检测到可重载的 SSH 服务，请手动重启 sshd"
+        print_warn -m "未检测到可重载的 SSH 服务，请手动重启 sshd"
     fi
 
-    ui_success "root 登录已启用（PermitRootLogin yes）"
+    print_box_success -m "root 登录已启用（PermitRootLogin yes）"
     return 0
 }

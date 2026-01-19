@@ -109,7 +109,7 @@ LIBS=(
     # 核心基础库
     "os.sh"              # 系统识别
     "color.sh"           # 颜色定义
-    "ui.sh"              # UI 渲染 (依赖颜色定义)
+    # "ui.sh"              # UI 渲染 (依赖颜色定义)
     "print.sh"
     "utils.sh"           # 全局通用工具 (最基础)
     "interact.sh"        # 交互逻辑 (依赖 UI)

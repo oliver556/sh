@@ -29,13 +29,13 @@ install_docker_logic() {
 
   if get_supported_package_manager >/dev/null; then
         linuxmirrors_install_docker || {
-            ui_error "Docker 安装失败，请检查网络或系统配置"
+            print_error -m "Docker 安装失败，请检查网络或系统配置"
             return 1
         }
     else
         # TODO 暂时先不处理 没有包的情况
         # install docker docker-compose
-        ui_warn "当前系统未检测到 apt/yum/dnf，暂不支持自动安装 Docker"
+        print_warn -m "当前系统未检测到 apt/yum/dnf，暂不支持自动安装 Docker"
         return 1
     fi
 }

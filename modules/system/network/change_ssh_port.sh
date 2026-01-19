@@ -26,6 +26,7 @@
 # 示例:
 #   ssh_change_ssh_port
 # ------------------------------------------------------------------------------
+# shellcheck disable=SC2329
 guard_change_ssh_port() {
     print_clear
 
@@ -35,7 +36,7 @@ guard_change_ssh_port() {
 
     # 必须存在 sshd_config 文件
     if [[ ! -f /etc/ssh/sshd_config ]]; then
-        ui_error "未找到 /etc/ssh/sshd_config 文件，无法修改 SSH 端口"
+        print_error -m "未找到 /etc/ssh/sshd_config 文件，无法修改 SSH 端口"
         return 1
     fi
 
@@ -95,7 +96,7 @@ guard_change_ssh_port() {
 
     # 必须存在 sshd_config 文件
     if [[ ! -f /etc/ssh/sshd_config ]]; then
-        ui_error "未找到 /etc/ssh/sshd_config 文件，无法修改 SSH 端口"
+        print_error -m "未找到 /etc/ssh/sshd_config 文件，无法修改 SSH 端口"
         return 1
     fi
 
@@ -137,7 +138,7 @@ change_ssh_port() {
 
         # 如果不是数字，提示错误并重新循环
         if [[ ! "$choice" =~ ^[0-9]+$ ]]; then
-            ui_error "输入无效，请输入数字"
+            print_error -m "输入无效，请输入数字"
             sleep 2
             continue
         fi

@@ -39,7 +39,7 @@ system_update() {
     local pkg_manager
     pkg_manager="$(os_get_pkg_manager)" || {
         # 如果无法识别包管理器，直接返回失败
-        ui_error "当前系统未检测到支持的包管理器，无法执行系统更新"
+        print_error -m "当前系统未检测到支持的包管理器，无法执行系统更新"
         return 1
     }
 
@@ -59,13 +59,13 @@ system_update() {
 
             # 使用非交互环境变量，避免 tzdata 等包阻塞
             if ! DEBIAN_FRONTEND=noninteractive apt update -y; then
-                ui_error "apt 更新软件源失败"
+                print_error -m "apt 更新软件源失败"
                 return 1
             fi
 
             # 执行完整升级（允许安装/移除依赖）
             if ! DEBIAN_FRONTEND=noninteractive apt full-upgrade -y; then
-                ui_error "apt 系统升级失败"
+                print_error -m "apt 系统升级失败"
                 return 1
             fi
             ;;
@@ -76,7 +76,7 @@ system_update() {
         dnf)
             # 执行系统更新
             if ! dnf -y update; then
-                ui_error "dnf 系统更新失败"
+                print_error -m "dnf 系统更新失败"
                 return 1
             fi
             ;;
@@ -87,7 +87,7 @@ system_update() {
         yum)
             # 执行系统更新
             if ! yum -y update; then
-                ui_error "yum 系统更新失败"
+                print_error -m "yum 系统更新失败"
                 return 1
             fi
             ;;
@@ -98,13 +98,13 @@ system_update() {
         apk)
             # 更新软件包索引
             if ! apk update; then
-                ui_error "apk 更新索引失败"
+                print_error -m "apk 更新索引失败"
                 return 1
             fi
 
             # 升级所有已安装包
             if ! apk upgrade; then
-                ui_error "apk 系统升级失败"
+                print_error -m "apk 系统升级失败"
                 return 1
             fi
             ;;
@@ -115,7 +115,7 @@ system_update() {
         pacman)
             # 同步并升级所有软件包
             if ! pacman -Syu --noconfirm; then
-                ui_error "pacman 系统更新失败"
+                print_error -m "pacman 系统更新失败"
                 return 1
             fi
             ;;
@@ -126,13 +126,13 @@ system_update() {
         zypper)
             # 刷新软件源
             if ! zypper refresh; then
-                ui_error "zypper 刷新软件源失败"
+                print_error -m "zypper 刷新软件源失败"
                 return 1
             fi
 
             # 执行系统升级
             if ! zypper update -y; then
-                ui_error "zypper 系统更新失败"
+                print_error -m "zypper 系统更新失败"
                 return 1
             fi
             ;;
@@ -143,13 +143,13 @@ system_update() {
         opkg)
             # 更新软件源
             if ! opkg update; then
-                ui_error "opkg 更新软件源失败"
+                print_error -m "opkg 更新软件源失败"
                 return 1
             fi
 
             # 升级所有可升级包
             if ! opkg upgrade; then
-                ui_error "opkg 系统更新失败"
+                print_error -m "opkg 系统更新失败"
                 return 1
             fi
             ;;
@@ -158,7 +158,7 @@ system_update() {
         # 未支持的包管理器（理论上不会进入）
         # ----------------------------------------------------------------------
         *)
-            ui_error "当前包管理器不受支持: $pkg_manager"
+            print_error -m "当前包管理器不受支持: $pkg_manager"
             return 1
             ;;
     esac

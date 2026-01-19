@@ -45,7 +45,7 @@ do_uninstall() {
 
     print_clear
     print_line -c "━"
-    ui_warn "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
+    print_warn -m "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
     print_line -c "━"
 
     # 交互确认

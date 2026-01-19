@@ -226,7 +226,7 @@ _pkg_exec() {
         esac
 
     else
-        ui_error "未识别的包管理器"
+        print_error -m "未识别的包管理器"
         return 1
     fi
 }
@@ -236,7 +236,7 @@ _pkg_exec() {
 # 功能:     安装软件包（已存在则跳过）
 # ------------------------------------------------------------------------------
 pkg_install() {
-    [[ $# -eq 0 ]] && { ui_error "请输入包名"; return 1; }
+    [[ $# -eq 0 ]] && { print_error -m "请输入包名"; return 1; }
 
     local pkg
     for pkg in "$@"; do
@@ -254,7 +254,7 @@ pkg_install() {
 # 功能:     卸载软件包
 # ------------------------------------------------------------------------------
 pkg_remove() {
-    [[ $# -eq 0 ]] && { ui_error "未提供包名"; return 1; }
+    [[ $# -eq 0 ]] && { print_error -m "未提供包名"; return 1; }
     print_step "正在卸载软件包: $*"
     _pkg_exec remove "$@"
 }

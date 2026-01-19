@@ -29,8 +29,8 @@ check_supported_os() {
     local os
     os=$(get_os_type)
     if [[ "$os" != "debian" ]]; then
-        ui_error "当前系统不受支持: $os"
-        ui_tip "仅支持 Debian 系列系统（Debian / Ubuntu）"
+        print_error -m "当前系统不受支持: $os"
+        ptint_info -m "仅支持 Debian 系列系统（Debian / Ubuntu）"
         exit 1
     fi
 }
@@ -60,13 +60,10 @@ check_supported_os() {
 # ------------------------------------------------------------------------------
 check_root() {
     is_root && return 0
-
-    ui_error "该功能需要使用 root 用户才能运行此脚本"
+    print_error -m "该功能需要使用 root 用户才能运行此脚本"
     print_blank
-    ui_tip "请切换到 'root' 用户来执行。"
-    
+    print_info -m "请切换到 'root' 用户来执行。"
     print_wait_enter
-    
     return 1
 }
 
@@ -108,15 +105,15 @@ check_cmd() {
     local tip="{$2:-false}"
 
     if [ -z "$cmd" ]; then
-        ui_error "check_cmd: 缺少命令名称参数"
+        print_error -m "check_cmd: 缺少命令名称参数"
         return 1
     fi
 
     has_cmd "$cmd" && return 0
 
     if [ "$tip" = true ]; then
-        ui_error "未检测到命令: $cmd"
-        ui_tip   "请先安装该依赖后再继续"
+        print_error -m "未检测到命令: $cmd"
+        print_info -m   "请先安装该依赖后再继续"
         print_wait_enter
     fi
     return 1

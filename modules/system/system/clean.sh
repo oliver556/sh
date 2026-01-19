@@ -41,7 +41,7 @@ system_clean() {
     # 获取当前系统使用的包管理器
     pkg_manager="$(os_get_pkg_manager)" || {
         # 未检测到支持的包管理器，直接返回失败
-        ui_error "当前系统未检测到支持的包管理器，无法执行系统清理"
+        print_error -m "当前系统未检测到支持的包管理器，无法执行系统清理"
         return 1
     }
 
@@ -192,7 +192,7 @@ system_clean() {
         # 未支持的包管理器
         # ----------------------------------------------------------------------
         *)
-            ui_error "当前包管理器不受支持: $pkg_manager"
+            print_error -m "当前包管理器不受支持: $pkg_manager"
             return 1
             ;;
     esac

@@ -128,14 +128,10 @@ docker_menu() {
                 :
                 ;;
             0)
-                # 选项 0: 返回主菜单
                 return
-                # 使用 return 而不是 exit，返回到上级调用者（router）
                 ;;
             *)
-                # 处理非法输入
-                ui_warn_menu "无效选项，请重新输入..."
-                # 短暂暂停，避免立刻刷新
+                print_error -m "无效选项，请重新输入..."
                 sleep 1
                 ;;
         esac

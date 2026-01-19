@@ -427,7 +427,7 @@ sys_get_tcp_congestion() {
 # yum → CentOS / RHEL 7 
 #
 # 示例:
-#    pm=$(get_supported_package_manager) || ui_error "不支持的系统"
+#    pm=$(get_supported_package_manager) || print_error -m "不支持的系统"
 # ------------------------------------------------------------------------------
 get_supported_package_manager() {
     if command -v apt &>/dev/null; then

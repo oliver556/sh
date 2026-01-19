@@ -18,27 +18,6 @@ source "${BASE_DIR}/modules/system/memory/swap.sh"
 source "${BASE_DIR}/lib/system_mem.sh"
 
 # ------------------------------------------------------------------------------
-# 函数名: _swap_get_suggested_size
-# 功能:   示例：在创建 Swap 前展示给用户看
-# 
-# 参数:
-#   无
-# 
-# 返回值:
-#   无
-# 
-# 示例:
-#   _swap_get_suggested_size
-# ------------------------------------------------------------------------------
-_swap_get_suggested_size(){
-    local total_ram=$(mem_get_total_mb)
-    local suggest_info=$(swap_get_suggested_info)
-
-    ui_text "物理内存: ${total_ram}M"
-    ui_text "推荐 Swap: ${suggest_info}"
-}
-
-# ------------------------------------------------------------------------------
 # 函数名: system_memory_menu
 # 功能:   虚拟内存工具模块菜单
 # 
@@ -59,8 +38,6 @@ system_memory_menu() {
         print_box_info --msg "${ICON_SWAP}$(ui_spaces 1)内存 / Swap 管理"
 
         swap_status
-
-        # _swap_get_suggested_size
 
         print_line
         print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)分配 1024M" -I star
@@ -122,7 +99,7 @@ system_memory_menu() {
                 ;;
 
             *)
-                ui_warn_menu "无效选项，请重新输入..."
+                print_error -m "无效选项，请重新输入..."
                 sleep 1
                 ;;
         esac

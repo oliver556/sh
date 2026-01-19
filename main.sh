@@ -69,17 +69,17 @@ assert_bash_version() {
 
     # 1. 防止被 sh / dash (Ubuntu默认sh) 运行
     if [ -z "$BASH_VERSION" ]; then
-        ui_error "当前解释器非 Bash，无法运行此脚本。"
-        ui_tip "请尝试使用命令：bash main.sh 或 ./main.sh"
+        print_error -m "当前解释器非 Bash，无法运行此脚本。"
+        ptint_info -m "请尝试使用命令: bash main.sh 或 ./main.sh"
         exit 1
     fi
 
     # 2. 检查 Bash 版本是否满足最低要求
     if ((BASH_VERSINFO[0] < min_ver)); then
-        ui_error "需要 Bash 4.0+ (当前版本: $BASH_VERSION) " >&2
-        ui_tip "升级说明"
-        ui_text "     - Debian/Ubuntu: apt install bash"
-        ui_text "     - Alpine: apk add bash"
+        print_error -m "需要 Bash 4.0+ (当前版本: $BASH_VERSION) " >&2
+        print_tip "升级说明"
+        print_echo "     - Debian/Ubuntu: apt install bash"
+        print_echo "     - Alpine: apk add bash"
         exit 1
     fi
 }
@@ -100,7 +100,7 @@ assert_bash_version
 # ------------------------------------------------------------------------------
 main() {
     # 权限校验 (可选，如果不想让非root用户运行主菜单)
-    # is_root || ui_warn "当前非 root 用户运行，部分功能可能受限。"
+    # is_root || print_warn -m "当前非 root 用户运行，部分功能可能受限。"
 
     while true; do
         print_clear
@@ -154,7 +154,7 @@ main() {
                 print_exit
                 ;;
             *)
-                print_error "无效选项，请重新输入"
+                print_error -m "无效选项，请重新输入"
                 sleep 1
                 ;;
         esac

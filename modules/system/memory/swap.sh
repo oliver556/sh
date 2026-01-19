@@ -73,7 +73,7 @@ _swap_check_env() {
 
     for cmd in fallocate mkswap swapon swapoff; do
         if ! command -v "$cmd" &>/dev/null; then
-            ui_error "缺少必要命令: $cmd"
+            print_error -m "缺少必要命令: $cmd"
             return 1
         fi
     done
@@ -102,7 +102,7 @@ swap_create() {
 
     # 参数校验
     if [[ -z "$size" || ! "$size" =~ ^[0-9]+$ ]]; then
-        ui_error "Swap 大小参数无效"
+        print_error -m "Swap 大小参数无效"
         return 1
     fi
 
@@ -110,7 +110,7 @@ swap_create() {
     if swapon --show | grep -q "^/swapfile"; then
         print_step "检测到已启用的 /swapfile，正在关闭..."
         swapoff /swapfile || {
-            ui_error "关闭现有 swapfile 失败"
+            print_error -m "关闭现有 swapfile 失败"
             return 1
         }
     fi
@@ -171,7 +171,7 @@ swap_remove() {
 
     if swapon --show | grep -q "^/swapfile"; then
         swapoff /swapfile || {
-            ui_error "关闭 swapfile 失败"
+            print_error -m "关闭 swapfile 失败"
             return 1
         }
     fi

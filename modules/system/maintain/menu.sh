@@ -95,7 +95,7 @@ maintain_menu() {
                 return
                 ;;
             *)
-                ui_warn_menu "无效选项，请重新输入..."
+                print_error -m "无效选项，请重新输入..."
                 sleep 1
                 ;;
         esac
