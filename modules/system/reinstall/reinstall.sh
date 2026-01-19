@@ -29,9 +29,9 @@ reinstall_finish_reboot() {
     
     print_blank
     print_line
-    ui_success "重装预处理已完成！"
-    ui_info "系统将在 ${delay} 秒后自动重启并开始 DD..."
-    ui_warn "提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。"
+    print_success "重装预处理已完成！"
+    print_info "系统将在 ${delay} 秒后自动重启并开始 DD..."
+    print_warn "提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。"
 
     print_line
 
@@ -41,7 +41,7 @@ reinstall_finish_reboot() {
         sleep 1
     done
 
-    ui_reload "正在执行系统重启..."
+    print_step -m "脚本正在重启..."
     
     # 同步磁盘数据并重启
     sync

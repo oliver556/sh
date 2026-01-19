@@ -135,7 +135,7 @@ main() {
                     # 检查返回值是否为 10 (重启信号)
                     if [[ $ret -eq 10 ]]; then
                         
-                        ui_reload "ui_reload" "top"
+                        print_step -m "脚本正在重启..."
                         sleep 1
                         
                         # 确保有执行权限
@@ -146,15 +146,15 @@ main() {
                         exec bash "$0" "$@"
                     fi
                 else
-                    ui_error "路由函数 router_main 未找到"
+                    print_error "路由函数 router_main 未找到"
                     sleep 1
                 fi
                 ;;
             0)
-                ui_exit
+                print_exit
                 ;;
             *)
-                ui_error "无效选项，请重新输入"
+                print_error "无效选项，请重新输入"
                 sleep 1
                 ;;
         esac
