@@ -59,7 +59,7 @@ start_and_enable_docker() {
     # 启动 Docker
     if command -v systemctl &>/dev/null; then
         if sudo systemctl "${action}" docker && sudo systemctl enable docker; then
-            print_box_success -m "Docker 已成功启动并设置开机自启。"
+            print_box_success -s finish -m "安装 Docker 环境，成功启动并设置开机自启。"
         else
             ui_box_error "Docker 启动或启用失败！"
             return 1
@@ -67,10 +67,9 @@ start_and_enable_docker() {
     else
         # 老系统 fallback
         if sudo service docker start; then
-            print_box_success -m "Docker 已成功启动 (service 方式)。"
+            print_box_success -s finish -m "安装 Docker 环境，成功启动并设置开机自启 (service 方式)。"
         else
-            # TODO 改成 print
-            ui_box_error "Docker 启动失败！"
+            print_box_error -m "Docker 启动失败！"
             return 1
         fi
     fi
@@ -79,7 +78,7 @@ start_and_enable_docker() {
     if [ -f /etc/docker/daemon.json ]; then
         sudo systemctl daemon-reload 2>/dev/null || true
         sudo systemctl restart docker 2>/dev/null || sudo service docker restart 2>/dev/null
-        pring_box_success -s finish -m "Docker 服务已重载配置并重启。"
+        pring_box_success -s finish -m "Docker 重载配置并重启。"
     fi
 
     return 0

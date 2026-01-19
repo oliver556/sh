@@ -32,7 +32,7 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 # ------------------------------------------------------------------------------
 status_show_system_info() {
     print_clear
-    print_box_info --msg "${ICON_GEAR}$(ui_spaces 1)系统信息查询"
+    print_box_info --msg "${ICON_GEAR}$(print_spaces 1)系统信息查询"
     print_line -c "-"
     print_key_value -k "主机名" -v "$_sys_get_hostname"
     print_key_value -k "系统版本" -v "$_get_os_pretty_name"

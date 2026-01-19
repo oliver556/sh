@@ -89,7 +89,7 @@ do_update() {
     fi
 
     print_blank
-    print_info -m "正在拉取最新代码..."
+    print_step -m "正在拉取最新代码..."
     sleep 1
     
     # 直接调用远程的一键安装脚本，并传递跳过协议参数

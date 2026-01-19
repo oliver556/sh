@@ -112,3 +112,8 @@ fix_dpkg() {
 
     # 5. 执行更新：此时环境已经干净且修复完毕
 }
+
+# 刷新 hash
+refresh_hash() {
+  hash -r 2>/dev/null
+}

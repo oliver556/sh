@@ -48,8 +48,7 @@ do_uninstall() {
     print_warn -m "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
     print_line -c "━"
 
-    # 交互确认
-    if ! ui_confirm "确认继续卸载？"; then
+    if ! read_confirm; then
         return 1
     fi
 

@@ -36,39 +36,36 @@ system_menu() {
 
         print_clear
         
-        print_box_header "${ICON_GEAR}$(ui_spaces 1)系统工具"
-
+        print_box_header "${ICON_GEAR}$(print_spaces 1)系统工具"
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)系统信息查询" -I star
+        print_menu_item -r 1 -p 0 -s 2 -i 1 -m "系统信息查询" -I star
         print_menu_item -r 1 -p 5 -i 2 -m "系统更新"
         print_menu_item -r 1 -p 14 -i 3 -m "系统清理"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 2 -p 0 -i 4 -m "$(ui_spaces 1)修改登录密码"
+        print_menu_item -r 2 -p 0 -s 2 -i 4 -m "修改登录密码"
         print_menu_item -r 2 -p 6 -i 5 -m "${BOLD_GREY}开启ROOT密码登录${NC}"
         print_menu_item -r 2 -p 6 -i 6 -m "${BOLD_GREY}开放所有端口${NC}"
 
-        print_menu_item -r 3 -p 0 -i 7 -m "$(ui_spaces 1)修改SSH端口"
+        print_menu_item -r 3 -p 0 -s 2 -i 7 -m "修改SSH端口"
         print_menu_item -r 3 -p 7 -i 8 -m "${BOLD_GREY}优化DNS地址${NC}"
         print_menu_item -r 3 -p 11 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 4 -p 0 -i 11 -m "修改虚拟内存$(ui_spaces 1)${ICON_NAV}"
+        print_menu_item -r 4 -p 0 -i 11 -m "修改虚拟内存" -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_line
         print_menu_item -r 9 -p 0 -i 98 -m "一条龙系统调优"
-        print_menu_item -r 9 -p 3 -i 99 -m "一键重装系统$(ui_spaces 1)${ICON_NAV}"
+        print_menu_item -r 9 -p 3 -i 99 -m "一键重装系统"  -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_menu_go_level
 
-        # 读取用户输入
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
-        # 根据用户输入执行不同操作
         case "$choice" in
 
             1)

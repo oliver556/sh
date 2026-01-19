@@ -33,16 +33,16 @@ node_menu() {
 
     print_clear
 
-    print_box_header "${ICON_NODE}$(ui_spaces 1)节点搭建脚本合集"
+    print_box_header "${ICON_NODE}$(print_spaces 1)节点搭建脚本合集"
 
     print_line
-    print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)3X-UI 面板" -I star
-    print_menu_item -r 1 -p 14 -i 2 -m "$(ui_spaces 1)X-UI 面板" -I star
+    print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)3X-UI 面板" -I star
+    print_menu_item -r 1 -p 14 -i 2 -m "$(print_spaces 1)X-UI 面板" -I star
     print_menu_item_done
 
     print_menu_go_level
 
-    choice=$(ui_read_choice)
+    choice=$(read_choice)
 
     case "$choice" in
       1)

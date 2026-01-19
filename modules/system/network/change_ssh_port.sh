@@ -133,8 +133,7 @@ change_ssh_port() {
         print_info -m "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
         print_echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
 
-        local choice
-        choice=$(ui_read_choice "请输入新的 SSH 端口号")
+        choice=$(read_choice -s 1 -m "请输入 SSH 端口")
 
         # 如果不是数字，提示错误并重新循环
         if [[ ! "$choice" =~ ^[0-9]+$ ]]; then

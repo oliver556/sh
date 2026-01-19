@@ -35,25 +35,25 @@ system_memory_menu() {
 
         print_clear
         
-        print_box_info --msg "${ICON_SWAP}$(ui_spaces 1)内存 / Swap 管理"
+        print_box_info --msg "${ICON_SWAP}$(print_spaces 1)内存 / Swap 管理"
 
         swap_status
 
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)分配 1024M" -I star
+        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)分配 1024M" -I star
         print_menu_item -r 1 -p 7 -i 2 -m "分配 2048M"
         print_menu_item -r 1 -p 12 -i 3 -m "分配 4096M"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 2 -p 0 -i 4 -m "$(ui_spaces 1)自定义大小"
+        print_menu_item -r 2 -p 0 -i 4 -m "$(print_spaces 1)自定义大小"
         print_menu_item -r 2 -p 8 -i 5 -m "关闭 Swap (保留文件)"
         print_menu_item -r 2 -p 2 -i 6 -m "删除 Swap (彻底清除)"
         print_menu_item_done
 
         print_menu_go_level
 
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
         case "$choice" in
             1)

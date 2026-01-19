@@ -32,7 +32,7 @@ source "${BASE_DIR}/lib/package.sh"
 _pdk_install_prompt() {
     print_box_info -m "手动指定安装工具" -p bottom
 
-    prompt=$(ui_read_choice --space 1 --prompt "请输入安装的工具名（wget curl）")
+    prompt=$(read_choice -s 1 -m "请输入安装的工具名（wget curl）")
 
     if [[ -z "$prompt" ]]; then
         print_info -m "未提供软件包参数！"
@@ -66,7 +66,7 @@ _pdk_install_prompt() {
 _pdk_remove_prompt() {
     print_box_info -m "手动指定卸载工具" -p bottom
 
-    prompt=$(ui_read_choice --space 1 --prompt "请输入卸载的工具名（wget curl）")
+    prompt=$(read_choice -s 1 -m "请输入卸载的工具名（wget curl）")
 
     if [[ -z "$prompt" ]]; then
         print_info -m "未提供软件包参数！"
@@ -100,12 +100,12 @@ basic_menu() {
   while true; do
         print_clear
 
-        print_box_header "${ICON_MAINTAIN}$(ui_spaces 1)基础工具"
+        print_box_header "${ICON_MAINTAIN}$(print_spaces 1)基础工具"
 
       
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)curl 下载工具" -I star
-        print_menu_item -r 2 -p 0 -i 2 -m "$(ui_spaces 1)wget 下载工具" -I star
+        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)curl 下载工具" -I star
+        print_menu_item -r 2 -p 0 -i 2 -m "$(print_spaces 1)wget 下载工具" -I star
         print_menu_item_done
 
         print_line
@@ -120,7 +120,9 @@ basic_menu() {
 
         print_menu_go_level
 
-        choice=$(ui_read_choice)
+        refresh_hash
+
+        choice=$(read_choice)
 
         case "$choice" in
             1)
@@ -131,7 +133,7 @@ basic_menu() {
                 else
                     pkg_install curl
                     print_clear
-                    print_box_success -m "curl 安装成功！"
+                    print_box_success -s finish -m "curl 安装成功！"
                     curl --help
                 fi
                 print_wait_enter
@@ -139,12 +141,12 @@ basic_menu() {
             2)
                 print_clear
                 if command -v wget &> /dev/null; then
-                    print_box_success -m  "wget 已安装，跳过安装"
+                    print_box_success -s finish -m "wget 已安装，跳过安装"
                     wget --help
                 else
                     pkg_install wget
                     print_clear
-                    print_box_success -m "wget 安装成功！"
+                    print_box_success -s finish -m "wget 安装成功！"
                     wget --help
                 fi
                 
@@ -161,7 +163,7 @@ basic_menu() {
                     if ! command -v "$cmd" &> /dev/null; then
                         pkg_install "$cmd"
                     else
-                        print_box_success -m "$cmd 已安装"
+                        print_box_success -s finish -m "$cmd 已安装"
                     fi
                 done
 
@@ -181,7 +183,7 @@ basic_menu() {
                     if command -v "$cmd" &> /dev/null; then
                         pkg_remove "$cmd"
                     else
-                        print_box_success -m "$cmd 已卸载"
+                        print_box_success -s finish -m "$cmd 已卸载"
                     fi
                 done
 

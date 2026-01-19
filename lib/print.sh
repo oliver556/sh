@@ -8,7 +8,7 @@
 #
 # @作者: Jamison
 # @版本: 0.1.0
-# @创建日期: 2026-01-16
+# @创建日期: 2025-12-31
 # ==============================================================================
 
 # ******************************************************************************
@@ -40,6 +40,44 @@ print_exit() {
     sleep 1
     print_clear
     exit 0
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: print_spaces
+# 功能:   生成指定数量的空格字符串
+# 
+# 参数:
+#   $1 (number): 需要的空格数量 (可选)
+# 
+# 返回值: 需要的空格数量
+# 
+# 示例:
+#   "A$(print_spaces 2)B"
+# ------------------------------------------------------------------------------
+print_spaces() {
+    local count="${1:-2}"
+    ((count < 0)) && count=0
+    printf "%*s" "$count" ""
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: print_wait
+# 功能:  流程中的临时暂停，“任意键“ 继续
+# 
+# 参数: 无
+# 
+# 返回值: 无
+# 
+# 示例:
+#   print_wait
+# ------------------------------------------------------------------------------
+print_wait() {
+    print_blank
+    print_echo "${BOLD_CYAN}按任意键继续...${BOLD_WHITE}"
+    # -n 1: 读取 1 个字符立即返回
+    # -s: 静默模式，不回显输入
+    # -r: 允许反斜杠
+    read -n 1 -s -r
 }
 
 # ------------------------------------------------------------------------------
@@ -134,7 +172,7 @@ print_line() {
 # 功能:   打印带有图标、颜色和缩进格式的信息提示文本
 # 
 # 参数:
-#   -s | --spaces  (整数)  : 缩进层级，默认为 1 (也就是 ui_spaces 1) (可选)
+#   -s | --spaces  (整数)  : 缩进层级，默认为 1 (也就是 print_spaces 1) (可选)
 #   -m | --msg     (字符串): 消息内容文本 (可选)
 #   -C | --color   (变量)  : 文本颜色，需传入颜色变量如 "$RED"，默认为 "${BLUE}" (可选)
 #   -I | --icon    (字符串): 前缀图标/标签内容 (可选)
@@ -193,7 +231,7 @@ print_info() {
     fi
 
     # 执行输出
-    print_echo "${color}${icon}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${color}${icon}$(print_spaces "$spaces")${message}${NC}"
 }
 
 # ------------------------------------------------------------------------------
@@ -201,7 +239,7 @@ print_info() {
 # 功能:   打印带有“成功”图标（通常是勾号）和绿色文本的提示信息
 # 
 # 参数:
-#   -s | --spaces  (整数)  : 缩进层级，默认为 1 (即 ui_spaces 1) (可选)
+#   -s | --spaces  (整数)  : 缩进层级，默认为 1 (即 print_spaces 1) (可选)
 #   -m | --msg     (字符串): 消息内容文本 (可选)
 #   $1             (字符串): (兜底) 若不使用 Flag，直接传入的内容将被视为消息文本
 # 
@@ -246,7 +284,7 @@ print_success() {
     fi
 
     # 执行输出
-    print_echo "${GREEN}${ICON_OK}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${GREEN}${ICON_OK}$(print_spaces "$spaces")${message}${NC}"
 }
 
 # 警告输出
@@ -282,7 +320,7 @@ print_warn() {
     fi
 
     # 执行输出
-    print_echo "${YELLOW}${ICON_WARNING}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${YELLOW}${ICON_WARNING}$(print_spaces "$spaces")${message}${NC}"
 }
 # 错误输出
 print_error() {
@@ -317,7 +355,7 @@ print_error() {
     fi
 
     # 执行输出
-    print_echo "${RED}${ICON_FAIL}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${RED}${ICON_FAIL}$(print_spaces "$spaces")${message}${NC}"
 }
 
 # 步骤输出
@@ -353,13 +391,13 @@ print_step() {
     fi
 
     # 执行输出
-    print_echo "${PURPLE}${ICON_ARROW}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${PURPLE}${ICON_ARROW}$(print_spaces "$spaces")${message}${NC}"
 }
 
 print_tip() {
     [[ $# -eq 0 ]] && return
     local message="$*"
-    print_echo "${WHITE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
+    print_echo "${WHITE}${ICON_ARROW}$(print_spaces 1)${message}${NC}"
 }
 
 # ******************************************************************************
@@ -834,7 +872,7 @@ print_menu_item() {
     local suffix=""
     if [[ -n "$icon_val" ]]; then
         case "$icon_val" in
-            star|default) suffix="${BOLD_YELLOW}${ICON_STAR:-★}${NC}" ;;
+            star|default) suffix="${BOLD_YELLOW}${ICON_STAR}${NC}" ;;
             hot)          suffix="${BOLD_RED}[HOT]${NC}" ;;
             new)          suffix="${BOLD_GREEN}[NEW]${NC}" ;;
             *)            suffix="${icon_val}" ;;

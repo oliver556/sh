@@ -36,7 +36,7 @@ dockter_agent_menu() {
   while true; do
         print_clear
 
-        print_box_header "${ICON_MAINTAIN}$(ui_spaces 1)DpockTer Agent 选择"
+        print_box_header "${ICON_MAINTAIN}$(print_spaces 1)DpockTer Agent 选择"
       
         print_line
         print_menu_item -r 1 -s 2  -p 0 -i 1 -m "智能安装 (自动检测)" -I star
@@ -56,7 +56,7 @@ dockter_agent_menu() {
 
         print_menu_go_level
 
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
         case "$choice" in
             1)

@@ -28,7 +28,7 @@ system_tune() {
     print_echo "9.  设置网络为${BOLD_YELLOW} IPv4 优先${NC}"
     print_echo "10. 安装基础工具${BOLD_YELLOW} docker wget sudo tar unzip socat btop nano vim${NC}"
 
-    if ! ui_confirm "一键保养吗？"; then
+    if ! read_confirm; then
         return 1
     fi
 

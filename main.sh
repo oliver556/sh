@@ -104,8 +104,8 @@ main() {
 
     while true; do
         print_clear
-        print_box_header "$(ui_spaces 1)▣$(ui_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
-        print_box_header_tip "$(ui_spaces 1)✦$(ui_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
+        print_box_header "$(print_spaces 1)▣$(print_spaces 1)一款全功能的 Linux 管理脚本！ v$VSK_VERSION"
+        print_box_header_tip "$(print_spaces 1)✦$(print_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
         print_line
         print_menu_item -i 1 -s 2 -m "系统工具" -I "$ICON_NAV" -T 2
         print_menu_item -i 2 -s 2 -m "基础工具" -I "$ICON_NAV" -T 2
@@ -120,8 +120,13 @@ main() {
         print_menu_item -i 0 -s 2 -m "退出程序"
         print_line -c "="  
 
-        # --- 交互逻辑 ---
-        choice=$(ui_read_choice)
+        # # --- 交互逻辑 ---
+        # choice=$(read_choice)
+        choice=$(read_choice)
+        # 2. 读取选择 (使用 read_choice)
+        # local choice
+        # # 限制只能输入 0 1 2 3 4，默认是 1
+        # read_choice choice -m "请输入功能编号"
 
         case "$choice" in
             1|2|3|4|8|9|99)

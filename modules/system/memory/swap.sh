@@ -227,11 +227,11 @@ swap_create_interactive() {
 
     local size
 
-    size=$(ui_read_choice --space 1 --prompt "请输入 Swap 大小（单位：MB，输入 0 表示关闭 Swap）")
+    size=$(read_choice -s 1 -m "请输入 Swap 大小（单位：MB，输入 0 表示关闭 Swap）")
 
     # 空输入
     if [[ -z "$size" ]]; then
-        print_error "$(ui_spaces 1)未输入任何内容，已取消"
+        print_error "$(print_spaces 1)未输入任何内容，已取消"
         return 1
     fi
 

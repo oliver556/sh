@@ -173,7 +173,6 @@ confirm_agreement() {
 	echo "用户许可协议: https://"
     echo "─────────────────────────────────────────────────────"
 
-    # 读取用户输入
     local choice
     read -rp "您是否同意以上条款？(y/n): " choice
     echo

@@ -240,7 +240,7 @@ reinstall_info_config() {
     print_warn "警告: 这将清除目标服务器上的所有数据！"
     print_warn "请务必记录好上述密码，以免重装后失联。"
 
-    if ! ui_confirm "重装系统？"; then
+    if ! read_confirm; then
         return 1
     fi
 

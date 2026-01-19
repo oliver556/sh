@@ -18,7 +18,7 @@ test_menu() {
 
         print_clear
 
-        print_box_header "${ICON_TEST}$(ui_spaces 1)测试脚本工具"
+        print_box_header "${ICON_TEST}$(print_spaces 1)测试脚本工具"
 
         print_line
         print_menu_item -r 1 -p 0 -i 1 -s 2 -m "IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${NC}"
@@ -39,7 +39,7 @@ test_menu() {
 
         print_menu_go_level
 
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
         case "$choice" in
             1)

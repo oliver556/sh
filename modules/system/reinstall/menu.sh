@@ -33,7 +33,7 @@ reinstall_menu() {
     while true; do
         print_clear
 
-        print_box_header "${ICON_GEAR}$(ui_spaces 1)一键重装系统"
+        print_box_header "${ICON_GEAR}$(print_spaces 1)一键重装系统"
         print_error "注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"
         print_echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
         print_line
@@ -41,9 +41,9 @@ reinstall_menu() {
         print_echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "
 
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)Debian 13"
+        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)Debian 13"
         print_menu_item -r 1 -p 16 -i 2 -m "Debian 12" -I star
-        print_menu_item -r 2 -p 0 -i 3 -m "$(ui_spaces 1)Debian 11"
+        print_menu_item -r 2 -p 0 -i 3 -m "$(print_spaces 1)Debian 11"
         print_menu_item -r 2 -p 16 -i 4 -m "Debian 10"
         print_menu_item_done
 
@@ -75,11 +75,9 @@ reinstall_menu() {
         print_menu_item -r 9 -p 5 -i 46 -m "Windows Server 2019"
         print_menu_item_done
 
-        # 返回主菜单提示
         print_menu_go_level
 
-        # 读取用户输入
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
         case "$choice" in
             1)

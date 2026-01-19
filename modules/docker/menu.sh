@@ -26,7 +26,6 @@ source "${BASE_DIR}/modules/docker/uninstall.sh"
 #   menu_install_docker
 # ------------------------------------------------------------------------------
 menu_install_docker() {
-    # 确保为 root 用户执行，不是则提示，重新加载当前菜单界面
     if ! check_root; then
         return
     fi
@@ -46,16 +45,15 @@ menu_install_docker() {
 #   menu_uninstall_docker
 # ------------------------------------------------------------------------------
 menu_uninstall_docker() {
-    print_clear
-
-    # 确保为 root 用户执行，不是则提示，重新加载当前菜单界面
     if ! check_root; then
         return
     fi
 
     print_box_info -s star -m "卸载前的最后确认..."
 
-    if ! ui_confirm " 注意: 确定卸载 Docker 环境吗？[包含: Docker 所有数据 (镜像, 容器, 卷)]"; then
+    print_warn -m " 注意: 卸载 Docker 环境 (包含: Docker 所有数据 [镜像, 容器, 卷])";
+
+    if ! read_confirm; then
         return 1
     fi
 
@@ -78,28 +76,28 @@ docker_menu() {
 
         print_clear
 
-        print_box_header "${ICON_DOCKER}$(ui_spaces 1)Docker 管理"
+        print_box_header "${ICON_DOCKER}$(print_spaces 1)Docker 管理"
 
         print_line
         print_echo "${BOLD_YELLOW}当前 Docker 环境: ${NC}$(get_docker_status_text)"
 
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)安装更新环境" -I star
+        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)安装更新环境" -I star
         print_menu_item_done
-        print_menu_item -r 2 -p 0 -i 2 -m "$(ui_spaces 1)${BOLD_GREY}查看全局状态${NC}"
-        print_menu_item_done
-
-        print_line
-        print_menu_item -r 3 -p 0 -i 3 -m "$(ui_spaces 1)${BOLD_GREY}容器管理${NC}"
-        print_menu_item -r 4 -p 0 -i 4 -m "$(ui_spaces 1)${BOLD_GREY}镜像管理${NC}"
-        print_menu_item -r 5 -p 0 -i 5 -m "$(ui_spaces 1)${BOLD_GREY}网络管理${NC}"
-        print_menu_item -r 6 -p 0 -i 6 -m "$(ui_spaces 1)${BOLD_GREY}卷管理${NC}"
+        print_menu_item -r 2 -p 0 -i 2 -m "$(print_spaces 1)${BOLD_GREY}查看全局状态${NC}"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 7 -p 0 -i 7 -m "$(ui_spaces 1)${BOLD_GREY}更换源${NC}"
+        print_menu_item -r 3 -p 0 -i 3 -m "$(print_spaces 1)${BOLD_GREY}容器管理${NC}"
+        print_menu_item -r 4 -p 0 -i 4 -m "$(print_spaces 1)${BOLD_GREY}镜像管理${NC}"
+        print_menu_item -r 5 -p 0 -i 5 -m "$(print_spaces 1)${BOLD_GREY}网络管理${NC}"
+        print_menu_item -r 6 -p 0 -i 6 -m "$(print_spaces 1)${BOLD_GREY}卷管理${NC}"
         print_menu_item_done
-        print_menu_item -r 8 -p 0 -i 8 -m "$(ui_spaces 1)${BOLD_GREY}编辑 daemon.json${NC}"
+
+        print_line
+        print_menu_item -r 7 -p 0 -i 7 -m "$(print_spaces 1)${BOLD_GREY}更换源${NC}"
+        print_menu_item_done
+        print_menu_item -r 8 -p 0 -i 8 -m "$(print_spaces 1)${BOLD_GREY}编辑 daemon.json${NC}"
         print_menu_item_done
 
         print_line
@@ -108,10 +106,8 @@ docker_menu() {
 
         print_menu_go_level
 
-        # 读取用户输入
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
-        # 根据用户输入执行不同操作
         case "$choice" in
             1)
                 print_clear
@@ -120,8 +116,9 @@ docker_menu() {
                 ;;
             20)
                 print_clear
-                menu_uninstall_docker
-                print_wait_enter
+                if menu_uninstall_docker; then
+                    print_wait_enter
+                fi
                 ;;
 
             99)

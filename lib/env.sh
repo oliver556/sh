@@ -111,8 +111,9 @@ LIBS=(
     "color.sh"           # 颜色定义
     # "ui.sh"              # UI 渲染 (依赖颜色定义)
     "print.sh"
+    "read.sh"
     "utils.sh"           # 全局通用工具 (最基础)
-    "interact.sh"        # 交互逻辑 (依赖 UI)
+    # "interact.sh"        # 交互逻辑 (依赖 UI)
     "check.sh"           # 环境检测 (依赖 UI 和 utils)
     "network.sh"         # 网络信息 & 统计
     "geo.sh"             # ISP / 地理位置

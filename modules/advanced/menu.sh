@@ -32,15 +32,15 @@
 advanced_menu() {
   while true; do
         print_clear
-        print_box_header "${ICON_MAINTAIN}$(ui_spaces 1)进阶工具"
+        print_box_header "${ICON_MAINTAIN}$(print_spaces 1)进阶工具"
       
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)DockTer Agent " -I star
+        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)DockTer Agent " -I star
         print_menu_item_done
 
         print_menu_go_level
 
-        choice=$(ui_read_choice)
+        choice=$(read_choice)
 
         case "$choice" in
             1)
