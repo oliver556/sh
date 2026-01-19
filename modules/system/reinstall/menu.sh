@@ -84,87 +84,87 @@ reinstall_menu() {
         case "$choice" in
             1)
                 if reinstall_logic_main "Debian 13"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             2)
                 if reinstall_logic_main "Debian 12"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             3)
                 if reinstall_logic_main "Debian 11"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             4)
                 if reinstall_logic_main "Debian 10"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             11)
                 if reinstall_logic_main "Ubuntu 24.04"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             12)
                 if reinstall_logic_main "Ubuntu 22.04"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             13)
                 if reinstall_logic_main "Ubuntu 20.04"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             14)
                 if reinstall_logic_main "Ubuntu 18.04"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             21)
                 if reinstall_logic_main "CentOS 10"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             22)
                 if reinstall_logic_main "CentOS 9"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             31)
                 if reinstall_logic_main "Alpine Linux"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             41)
                 if reinstall_logic_main "Windows 11"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             42)
                 if reinstall_logic_main "Windows 10"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             43)
                 if reinstall_logic_main "Windows 7"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             44)
                 if reinstall_logic_main "Windows Server 2025"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             45)
                 if reinstall_logic_main "Windows Server 2022"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             46)
                 if reinstall_logic_main "Windows Server 2019"; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
             ;;
             0)

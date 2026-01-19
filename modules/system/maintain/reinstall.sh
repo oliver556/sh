@@ -42,14 +42,14 @@ do_reinstall() {
     # 1. 使用 bash -s -- 传递参数给远程下载的脚本
     # 2. 传递 --skip-agreement 让 install.sh 识别并跳过确认环节
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-        ui blank
-        ui_box_success 强制重新安装完成！
+        print_blank
+        print_box_success -m "强制重新安装完成！"
         sleep 1
         # 10: 告诉父进程 (main.sh) 需要重启
         exit 10
     else
         ui_error "强制安装过程中出现异常"
-        ui_wait_enter
+        print_wait_enter
         exit 1
     fi
 }

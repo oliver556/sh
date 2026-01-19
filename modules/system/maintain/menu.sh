@@ -50,20 +50,20 @@ maintain_menu() {
 
         print_clear
 
-        ui print page_header "↻$(ui_spaces 1)VpsScriptKit 系统更新中心"
+        print_box_header "${ICON_UPDATE}$(ui_spaces 1)VpsScriptKit 系统更新中心"
 
         # --- 版本状态看板 ---
-        ui echo "${BOLD_CYAN}当前版本:${NC}  ${BOLD_CYAN}v${V_LOCAL}${NC}"
-        ui line
+        print_echo "${BOLD_CYAN}当前版本:${NC}  ${BOLD_CYAN}v${V_LOCAL}${NC}"
+        print_line
 
         # --- 操作选单 ---
-        ui_menu_item 1 0 1 "$(ui_spaces 1)检查并更新"
-        ui_menu_item 2 0 2 "$(ui_spaces 1)强制重安装"
-        ui_menu_item 3 0 3 "$(ui_spaces 1)卸载本脚本"
-        ui_menu_done
+        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)检查并更新"
+        print_menu_item -r 2 -p 0 -i 2 -m "$(ui_spaces 1)强制重安装"
+        print_menu_item -r 3 -p 0 -i 3 -m "$(ui_spaces 1)卸载本脚本"
+        print_menu_item_done
 
         # 返回主菜单提示
-        ui_go_level
+        print_menu_go_level
 
         # 读取用户输入
         choice=$(ui_read_choice)

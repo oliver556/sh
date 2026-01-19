@@ -83,39 +83,39 @@ system_memory_menu() {
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 1024
-                ui_wait_enter
+                print_wait_enter
                 ;;
 
             2)
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 2048
-                ui_wait_enter
+                print_wait_enter
                 ;;
             3)
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create 4096
-                ui_wait_enter
+                print_wait_enter
                 ;;
             4)
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_create_interactive
-                ui_wait_enter
+                print_wait_enter
                 ;;
             5)
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 if swap_disable; then
-                    ui_wait_enter
+                    print_wait_enter
                 fi
                 ;;
             6)
                 print_clear
                 source "${BASE_DIR}/modules/system/memory/swap.sh"
                 swap_remove
-                ui_wait_enter
+                print_wait_enter
                 ;;
             0)
                 return

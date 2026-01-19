@@ -51,5 +51,5 @@ system_tune() {
     ui_success "[OK] 10/10. 安装基础工具${BOLD_YELLOW} docker wget sudo tar unzip socat btop nano vim${NC}"
     sleep 1
 
-    ui_wait_enter
+    print_wait_enter
 }

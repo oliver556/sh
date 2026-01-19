@@ -118,7 +118,7 @@ basic_menu() {
         ui_menu_item 1 12 42 "卸载指定工具"
         ui_menu_done
 
-        ui_go_level
+        print_menu_go_level
 
         choice=$(ui_read_choice)
 
@@ -134,7 +134,7 @@ basic_menu() {
                     ui_box_success "curl 安装成功！"
                     curl --help
                 fi
-                ui_wait_enter
+                print_wait_enter
                 ;;
             2)
                 print_clear
@@ -148,7 +148,7 @@ basic_menu() {
                     wget --help
                 fi
                 
-                ui_wait_enter
+                print_wait_enter
                 ;;
             31)
                 print_clear
@@ -167,7 +167,7 @@ basic_menu() {
 
                 print_box_info --msg "全部安装" --status success
 
-                ui_wait_enter
+                print_wait_enter
                 ;;
             32)
                 print_clear
@@ -187,17 +187,17 @@ basic_menu() {
 
                 print_box_info --msg "全部卸载" --status success
 
-                ui_wait_enter
+                print_wait_enter
                 ;;
             41)
                 print_clear
                 _pdk_install_prompt
-                ui_wait_enter
+                print_wait_enter
                 ;;
             42)
                 print_clear
                 _pdk_remove_prompt
-                ui_wait_enter
+                print_wait_enter
                 ;;
             0)
                 return

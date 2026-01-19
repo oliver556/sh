@@ -158,7 +158,7 @@ change_ssh_port() {
                 return 0
             else
                 ui_error "SSH 服务重启失败，请手动检查 sshd"
-                ui_wait_enter
+                print_wait_enter
                 return 1
             fi
         else

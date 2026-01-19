@@ -65,7 +65,7 @@ check_root() {
     ui blank
     ui_tip "请切换到 'root' 用户来执行。"
     
-    ui_wait_enter
+    print_wait_enter
     
     return 1
 }
@@ -117,7 +117,7 @@ check_cmd() {
     if [ "$tip" = true ]; then
         ui_error "未检测到命令: $cmd"
         ui_tip   "请先安装该依赖后再继续"
-        ui_wait_enter
+        print_wait_enter
     fi
     return 1
 }

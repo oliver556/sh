@@ -40,7 +40,7 @@ advanced_menu() {
         ui_menu_item 1 0 1 "$(ui_spaces 1)DockTer Agent ▶"
         ui_menu_done
 
-        ui_go_level
+        print_menu_go_level
 
         choice=$(ui_read_choice)
 

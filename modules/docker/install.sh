@@ -25,7 +25,7 @@
 #   install_docker_logic
 # ------------------------------------------------------------------------------
 install_docker_logic() {
-  ui_box_info "开始安装 Docker 环境..." "bottom"
+  print_box_info -s star -m "安装 Docker 环境..."
 
   if get_supported_package_manager >/dev/null; then
         linuxmirrors_install_docker || {
@@ -54,12 +54,12 @@ install_docker_logic() {
 # ------------------------------------------------------------------------------
 start_and_enable_docker() {
     local action=${1:-start}
-    ui_box_info "开始启动并启用 Docker 服务..." "bottom"
-    
+    print_step "开始启动并启用 Docker 服务..."
+
     # 启动 Docker
     if command -v systemctl &>/dev/null; then
         if sudo systemctl "${action}" docker && sudo systemctl enable docker; then
-            ui_box_success "Docker 已成功启动并设置开机自启。" "top"
+            print_box_success -m "Docker 已成功启动并设置开机自启。"
         else
             ui_box_error "Docker 启动或启用失败！"
             return 1
@@ -67,8 +67,9 @@ start_and_enable_docker() {
     else
         # 老系统 fallback
         if sudo service docker start; then
-            ui_box_success "Docker 已成功启动 (service 方式)。" "top"
+            print_box_success -m "Docker 已成功启动 (service 方式)。"
         else
+            # TODO 改成 print
             ui_box_error "Docker 启动失败！"
             return 1
         fi
@@ -78,7 +79,7 @@ start_and_enable_docker() {
     if [ -f /etc/docker/daemon.json ]; then
         sudo systemctl daemon-reload 2>/dev/null || true
         sudo systemctl restart docker 2>/dev/null || sudo service docker restart 2>/dev/null
-        ui_box_success "Docker 服务已重载配置并重启。" "top"
+        pring_box_success -s finish -m "Docker 服务已重载配置并重启。"
     fi
 
     return 0
@@ -104,14 +105,14 @@ linuxmirrors_install_docker() {
     region=$(net_region)
 
     if [ "$region" = "Global" ]; then
-        log_info "网络环境检测: 国际互联 (Global)"
+        print_step "网络环境检测: 国际互联 (Global)"
     else
-        log_info "网络环境检测: 中国大陆 (CN)"
+        print_step "网络环境检测: 中国大陆 (CN)"
     fi
 
     local docker_script="https://linuxmirrors.cn/docker.sh"
 
-    log_info "正在下载并执行 LinuxMirrors Docker 安装脚本..."
+    print_step "正在下载并执行 LinuxMirrors Docker 安装脚本..."
 
     # 中国镜像
     if [ "$region" = "CN" ]; then
@@ -123,7 +124,7 @@ linuxmirrors_install_docker() {
             --install-latest true \
             --close-firewall false \
             --ignore-backup-tips; then
-            ui_error "Docker 安装脚本执行失败"
+            print_error "Docker 安装脚本执行失败"
             return 1
         fi
     else
@@ -136,7 +137,7 @@ linuxmirrors_install_docker() {
             --install-latest true \
             --close-firewall false \
             --ignore-backup-tips; then
-            ui_error "Docker 安装脚本执行失败"
+            print_error "Docker 安装脚本执行失败"
             return 1
         fi
     fi

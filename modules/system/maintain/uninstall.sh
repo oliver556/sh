@@ -44,18 +44,18 @@ do_uninstall() {
     fi
 
     print_clear
-    ui line_3
+    print_line -c "━"
     ui_warn "警告操作: 该操作将完全移除脚本文件及所有快捷命令。"
-    ui line_3
+    print_line -c "━"
 
     # 交互确认
     if ! ui_confirm "确认继续卸载？"; then
         return 1
     fi
 
-    ui blank
-    ui_tip "正在清理系统..."
-    ui blank
+    print_blank
+    print_step "正在清理系统..."
+    print_blank
 
     # 清理快捷命令
     for path in "${BIN_PATHS[@]}"; do
@@ -69,7 +69,7 @@ do_uninstall() {
         rm -rf "$BASE_DIR" 2>/dev/null || true
     fi
 
-    ui_box_success "VpsScriptKit 所有组件已彻底卸载完成，感谢使用！江湖有缘再见！！！"
+    print_box_success -m "VpsScriptKit 所有组件已彻底卸载完成，感谢使用！江湖有缘再见！！！"
     sleep 1
     print_clear
 

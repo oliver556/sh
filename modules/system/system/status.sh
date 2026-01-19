@@ -260,5 +260,5 @@ status_show_all() {
     status_show_tz_time_info
     status_show_run_time_info
 
-    ui_wait_enter
+    print_wait_enter
 }

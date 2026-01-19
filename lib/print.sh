@@ -51,6 +51,27 @@ print_exit() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: print_wait_enter
+# 功能:   流程中的临时暂停，“回车键“ 继续
+# 
+# 参数: 无
+# 
+# 返回值: 无
+# 
+# 示例:
+#   print_wait_enter
+# ------------------------------------------------------------------------------
+print_wait_enter() {
+    print_blank
+    print_echo "${BOLD_GREEN}执行完成${BOLD_WHITE}"
+    print_echo "${BOLD_WHITE}按回车键继续...${BOLD_WHITE}"
+    # 不带 -n，强制等待回车
+    # -s: 静默模式，不回显输入
+    # -r: 允许反斜杠
+    read -s -r
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: print_line
 # 功能:   打印一条横跨终端宽度的水平分割线，支持自定义填充字符、颜色及边缘装饰
 # 
@@ -266,15 +287,15 @@ print_tip() {
 # 状态反馈 (一般用于执行各种自动化时的内容输出做切割)
 # ******************************************************************************
 log_info() {
-    print_echo "${ON_GREEN}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
+    print_echo "${BOLD_GREEN}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 log_warn() {
-    print_echo "${ON_YELLOW}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
+    print_echo "${BOLD_YELLOW}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 log_error() {
-    print_echo "${ON_RED}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
+    print_echo "${BOLD_RED}${BOLD_WHITE} INFO ${NC} ${BOLD_WHITE}$1${NC}";
 }
 
 # ------------------------------------------------------------------------------
@@ -739,7 +760,7 @@ print_menu_item_done() {
 }
 
 # ------------------------------------------------------------------------------
-# 函数名: ui_go_level
+# 函数名: print_menu_go_level
 # 功能:   菜单层级跳转提示
 # 
 # 参数: 无
@@ -747,7 +768,7 @@ print_menu_item_done() {
 # 返回值: 无
 # 
 # 示例:
-#   ui_go_level
+#   print_menu_go_level
 # ------------------------------------------------------------------------------
 print_menu_go_level() {
     print_line -c "=" -C "$BOLD_CYAN"

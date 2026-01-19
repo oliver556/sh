@@ -53,7 +53,7 @@ dockter_agent_menu() {
         ui_menu_item 4 0 4 "$(ui_spaces 1)Docker 容器安装"
         ui_menu_done
 
-        ui_go_level
+        print_menu_go_level
 
         choice=$(ui_read_choice)
 
@@ -62,25 +62,25 @@ dockter_agent_menu() {
                 print_clear
                 # source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent.sh"
                 install_dockter_agent
-                ui_wait_enter
+                print_wait_enter
                 ;;
             2)
                 print_clear
                 # source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent_binary.sh"
                 install_dockter_agent_binary
-                ui_wait_enter
+                print_wait_enter
                 ;;
             3)
                 print_clear
                 # source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent_unraid.sh"
                 install_dockter_agent_unraid
-                ui_wait_enter
+                print_wait_enter
                 ;;
             4)
                 print_clear
                 # source "${BASE_DIR}/modules/advanced/dockter_agent/install_dockter_agent_docker.sh"
                 install_dockter_agent_docker
-                ui_wait_enter
+                print_wait_enter
                 ;;
             0)
                 return

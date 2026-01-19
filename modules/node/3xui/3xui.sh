@@ -28,7 +28,7 @@
 install_3x_ui() {
     print_clear
 
-    ui_info "正在准备安装伊朗版 3X-UI 面板一键脚本..."
+    print_info -m "正在准备安装伊朗版 3X-UI 面板一键脚本..."
     
 	exec bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 }

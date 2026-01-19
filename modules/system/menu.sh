@@ -81,25 +81,25 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/system/update.sh"
                 guard_system_update
-                ui_wait_enter
+                print_wait_enter
                 ;;
             3)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/system/clean.sh"
                 guard_system_clean
-                ui_wait_enter
+                print_wait_enter
                 ;;
             4)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/security/change_password.sh"
                 guard_change_password
-                ui_wait_enter
+                print_wait_enter
                 ;;
             7)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
                 guard_change_ssh_port
-                ui_wait_enter
+                print_wait_enter
                 ;;
             11)
                 # shellcheck disable=SC1091
@@ -111,7 +111,7 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/tuning/system_tune.sh"
                 system_tune
-                # ui_wait_enter
+                # print_wait_enter
                 ;;
             99)
                 # 重装系统

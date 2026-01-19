@@ -50,7 +50,7 @@ get_versions() {
     REMOTE_VER=$(curl -fsSL --connect-timeout 5 "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4 | xargs || echo "")
 
     if [[ -z "$REMOTE_VER" ]]; then
-        ui_error "无法获取远程版本信息，请检查网络连接。"
+        print_error "无法获取远程版本信息，请检查网络连接。"
         return 1
     fi
     
@@ -71,35 +71,36 @@ get_versions() {
 # ------------------------------------------------------------------------------
 do_update() {
     print_clear
-    ui_box_info "检查版本" "bottom"
+    print_box_info -m "检查版本" -p bottom
 
     # 获取并比对版本
     if ! get_versions; then
-        ui_wait_enter
+        print_wait_enter
         exit 1
     fi
 
     # 版本比对
     if [[ "$LOCAL_VER" == "$REMOTE_VER" ]] || [[ "v$LOCAL_VER" == "$REMOTE_VER" ]]; then
-        ui_box_success "当前已是最新版本" "($LOCAL_VER)" "top"
-        ui_wait_enter
+        print_box_success -m "当前已是最新版本" "($LOCAL_VER)"
+        print_wait_enter
         exit 0
     else
-        ui_tip "发现新版本"
+        print_step "发现新版本"
     fi
 
-    ui blank
-    ui_info "正在拉取最新代码..."
+    print_blank
+    print_info -m "正在拉取最新代码..."
     sleep 1
     
     # 直接调用远程的一键安装脚本，并传递跳过协议参数
     if curl -sL vsk.viplee.cc | bash -s -- --skip-agreement; then
-        ui_box_success "更新完成！" "top"
+        print_box_success -m "更新完成！"
         sleep 1
         exit 10
     else
+        # TODO
         ui_box_error "更新失败，请检查网络或稍后重试。" "top"
-        ui_wait_enter
+        print_wait_enter
         exit 1
     fi
 }

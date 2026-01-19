@@ -28,7 +28,7 @@
 install_x_ui() {
     print_clear
 
-    ui_info "正在准备安装伊朗版 3X-UI 面板一键脚本..."
+    print_info -m "正在准备安装伊朗版 3X-UI 面板一键脚本..."
     
 	exec bash <(curl -Ls https://raw.githubusercontent.com/oliver556/x-ui/main/install.sh)
 }
