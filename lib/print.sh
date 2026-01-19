@@ -29,6 +29,28 @@ print_clear() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: print_exit
+# 功能:   打印告别语并退出脚本
+# 
+# 参数: 无
+# 
+# 返回值: 排列好的结束语
+# 
+# 示例:
+#   print_exit
+# ------------------------------------------------------------------------------
+print_exit() {
+    print_clear
+    print_line
+    print_info -C "$BOLD_GREEN" -I "$ICON_EXIT" -m "感谢使用 VpsScriptKit"
+    print_info -C "$BOLD_CYAN" -I "$ICON_EXIT" -m "江湖有缘再见。"
+    print_line
+    sleep 1
+    print_clear
+    exit 0
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: print_line
 # 功能:   打印一条横跨终端宽度的水平分割线，支持自定义填充字符、颜色及边缘装饰
 # 
@@ -102,6 +124,7 @@ print_line() {
 #   -s | --spaces  (整数)  : 缩进层级，默认为 1 (也就是 ui_spaces 1) (可选)
 #   -m | --msg     (字符串): 消息内容文本 (可选)
 #   -C | --color   (变量)  : 文本颜色，需传入颜色变量如 "$RED"，默认为 "${BLUE}" (可选)
+#   -I | --icon    (字符串): 前缀图标/标签内容 (可选)
 #   $1             (字符串): (兜底) 若不使用 Flag，直接传入的内容将被视为消息文本
 # 
 # 返回值:
@@ -118,6 +141,7 @@ print_info() {
     local message=""
     local spaces=1  # 默认缩进为 1
     local color="${BLUE}" # 默认颜色
+    local icon="${ICON_INFO}"
 
 
     while [[ $# -gt 0 ]]; do
@@ -132,6 +156,10 @@ print_info() {
                 ;;
             -C|--color)
                 color="$2"
+                shift 2
+                ;;
+            -I|--icon)
+                icon="$2"
                 shift 2
                 ;;
             *)
@@ -152,7 +180,7 @@ print_info() {
     fi
 
     # 执行输出
-    print_echo "${color}${ICON_INFO}$(ui_spaces "$spaces")${message}${NC}"
+    print_echo "${color}${icon}$(ui_spaces "$spaces")${message}${NC}"
 }
 
 # ------------------------------------------------------------------------------
@@ -218,7 +246,7 @@ print_warn() {
 print_error() {
     [[ $# -eq 0 ]] && return
     local message="$*"
-    print_echo "${PURPLE}${ICON_FAIL}$(ui_spaces 1)${message}${NC}"
+    print_echo "${RED}${ICON_FAIL}$(ui_spaces 1)${message}${NC}"
 }
 
 # 步骤输出
@@ -226,6 +254,12 @@ print_step() {
     [[ $# -eq 0 ]] && return
     local message="$*"
     print_echo "${PURPLE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
+}
+
+print_tip() {
+    [[ $# -eq 0 ]] && return
+    local message="$*"
+    print_echo "${WHITE}${ICON_ARROW}$(ui_spaces 1)${message}${NC}"
 }
 
 # ******************************************************************************
@@ -263,6 +297,9 @@ log_error() {
 #   print_box_info -s ok -m "清理完成"              # 显示 [完成]
 #   print_box_info -m "这是一个普通通知盒子"        # 无标签，只有边框
 #   print_box_info -s error -m "操作失败" -C "$RED" # 红色盒子，显示 [Error]
+#
+#   print_box_info --status start --msg "清理系统"
+#   print_box_success --status finish --msg "清理系统"
 # ------------------------------------------------------------------------------
 print_box_info() {
     local status=""

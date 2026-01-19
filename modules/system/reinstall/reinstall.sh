@@ -27,13 +27,13 @@
 reinstall_finish_reboot() {
     local delay="${REBOOT_DELAY:-3}"
     
-    ui blank
-    ui line
+    print_blank
+    print_line
     ui_success "重装预处理已完成！"
     ui_info "系统将在 ${delay} 秒后自动重启并开始 DD..."
     ui_warn "提示: 重启后 SSH 将断开，请等待 15-30 分钟，期间请勿手动干预服务器。"
 
-    ui line
+    print_line
 
     # 使用数值循环执行倒计时
     for ((i=delay; i>0; i--)); do
@@ -69,11 +69,11 @@ reinstall_Leitbogioro() {
     local system_param="$1"
     local url="${GH_PROXY}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh"
     
-    ui_info "正在下载 [Leitbogioro] DD 脚本..."
+    print_step "正在下载 [Leitbogioro] DD 脚本..."
     wget --no-check-certificate -qO InstallNET.sh "$url" || curl -sLO "$url"
     chmod a+x InstallNET.sh
     
-    ui_info "正在启动安装脚本，请稍后..."
+    print_step "正在启动安装脚本，请稍后..."
     bash InstallNET.sh ${system_param}
     
     # 返回 InstallNET.sh 的执行状态码
@@ -98,11 +98,11 @@ reinstall_Bin456789() {
     local system_param="$1"
     local url="${GH_PROXY}raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh"
     
-    ui_info "正在下载 [Bin456789] DD 脚本..."
+    print_step "正在下载 [Bin456789] DD 脚本..."
     # 采用作者文档推荐的多路下载兼容方式，且由于使用 bash 运行，无需 chmod
     curl -sLO "$url" || wget -qO reinstall.sh "$url"
 
-    ui_info "正在启动安装脚本，请稍后..."
+    print_step "正在启动安装脚本，请稍后..."
     bash reinstall.sh ${system_param}
 
     # 返回 reinstall.sh 的执行状态码
@@ -127,17 +127,17 @@ run_mollylau_install() {
     local system_version_name="$1"
     local system_param="$2"
 
-    ui_reload "正在检查系统是否安装有必要环境..."
+    print_step "正在检查系统是否安装有必要环境..."
 
     # 确保 wget 环境就绪
     ensure_cmd wget || return 1
 
     sleep 1
 
-    ui echo "正在准备: ${BOLD_CYAN}[Leitbogioro] DD 脚本...${BOLD_LIGHT_WHITE}"
-    ui echo "目标系统: ${BOLD_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
+    print_step "正在准备: [Leitbogioro] DD 脚本..."
+    print_step "目标系统: ${system_version_name}" 
 
-    ui line
+    print_line
 
     sleep 1
     reinstall_Leitbogioro "${system_param}"
@@ -162,10 +162,10 @@ run_bin456789_install() {
     local system_version_name="$1"
     local system_param="$2"
 
-    ui echo "正在准备: ${BOLD_CYAN}[Bin456789] DD 脚本...${BOLD_LIGHT_WHITE}"
-    ui echo "目标系统: ${BOLD_CYAN}${system_version_name}${BOLD_LIGHT_WHITE}" 
+    print_step "正在准备: [Bin456789] DD 脚本..."
+    print_step "目标系统: ${system_version_name}"
 
-    ui line
+    print_line
 
     sleep 1
 
@@ -222,35 +222,33 @@ reinstall_info_config() {
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"; param="-alpine"
             ;;
         *)
-            ui_error "未找到该系统的重装预设配置: $name"
+            print_error "未找到该系统的重装预设配置: $name"
             return 1
             ;;
     esac
 
-    ui_box_info "请最后确认您的安装选项:"
-    ui line
-    ui_tip "系统版本: ${BOLD_RED}${name}${NC}"
-    ui_tip "初始用户: ${user}${NC}"
-    ui_tip "初始密码: ${pass}${NC}"
-    ui_tip "初始端口: ${port}${NC}"
-    ui line
+    print_box_info "请最后确认您的安装选项:"
+    print_line
+    print_tip "系统版本: ${BOLD_RED}${name}${NC}"
+    print_tip "初始用户: ${user}${NC}"
+    print_tip "初始密码: ${pass}${NC}"
+    print_tip "初始端口: ${port}${NC}"
+    print_line
 
-    ui blank
+    print_blank
 
-    ui_warn "警告: 这将清除目标服务器上的所有数据！"
-    ui_warn "请务必记录好上述密码，以免重装后失联。"
+    print_warn "警告: 这将清除目标服务器上的所有数据！"
+    print_warn "请务必记录好上述密码，以免重装后失联。"
 
     if ! ui_confirm "重装系统？"; then
         return 1
     fi
 
-    ui blank
+    print_blank
 
-    ui_info "${BOLD_LIGHT_GREEN}确认完毕，准备开始 DD！${BOLD_LIGHT_WHITE}"
+    print_box_info -C "$BOLD_GREEN" -m "确认完毕，准备开始 DD！"
 
-    ui line
-    ui echo "${BOLD_CYAN}马上开始重装系统${BOLD_LIGHT_WHITE}"
-    ui line
+    print_tip "马上开始重装系统"
 
     sleep 1
 

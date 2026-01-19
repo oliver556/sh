@@ -92,7 +92,7 @@ router_main() {
             fi
 			;;	
 		0)
-			ui_exit
+			print_exit
 			;;
         *)
             ui error "无效选项，请输入菜单中存在的数字"

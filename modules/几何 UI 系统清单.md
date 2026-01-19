@@ -30,7 +30,7 @@
 ui_info()    { ui echo "${BOLD_BLUE}●$(ui_spaces 1)$1${BOLD_WHITE}"; }
 ui_success() { ui echo "${BOLD_GREEN}✔$(ui_spaces 1)$1${BOLD_WHITE}"; }
 ui_tip()     { ui echo "${BOLD_YELLOW}✦$(ui_spaces 1)$1${BOLD_WHITE}"; }
-ui_exit()    { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
+print_exit() { ui echo "${BOLD_GREEN}■$(ui_spaces 1)$1${BOLD_WHITE}"; }
 
 # 带参数解析的输入函数 (默认 3 空格美感)
 # ui_input --prompt "请输入" --space 3 --default "Y"

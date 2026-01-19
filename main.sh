@@ -48,7 +48,7 @@ source "${BASE_DIR}/modules/system/maintain/menu.sh"
 #   _cleanup
 # ------------------------------------------------------------------------------
 _cleanup() {
-  ui_exit
+  print_exit
 }
 trap _cleanup SIGINT SIGTERM
 

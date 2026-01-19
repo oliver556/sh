@@ -54,7 +54,7 @@ swap_status() {
 
     percent=$(( used * 100 / total ))
 
-    ui_info "当前虚拟内存: $((used / 1024))M / $((total / 1024))M (${percent}%)"
+    print_info "当前虚拟内存: $((used / 1024))M / $((total / 1024))M (${percent}%)"
 }
 
 # ------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ _swap_check_env() {
 #   swap_create 2048
 # ------------------------------------------------------------------------------
 swap_create() {
-    ui_box_info "开始创建 Swap (虚拟内存)..." "bottom"
+    print_box_info --status start --msg "创建 Swap (虚拟内存)..."
 
     local size="$1"
 
@@ -108,7 +108,7 @@ swap_create() {
 
     # 若已存在 swapfile，先安全关闭
     if swapon --show | grep -q "^/swapfile"; then
-        ui_text "检测到已启用的 /swapfile，正在关闭..."
+        print_step "检测到已启用的 /swapfile，正在关闭..."
         swapoff /swapfile || {
             ui_error "关闭现有 swapfile 失败"
             return 1
@@ -117,11 +117,11 @@ swap_create() {
 
     # 删除旧 swapfile
     if [[ -f /swapfile ]]; then
-        ui_text "移除旧的 /swapfile"
+        print_step "移除旧的 /swapfile"
         rm -f /swapfile || return 1
     fi
 
-    ui_text "创建新的 /swapfile (${size}MB)"
+    print_step "创建新的 /swapfile (${size}MB)"
     fallocate -l "${size}M" /swapfile || return 1
     chmod 600 /swapfile
     mkswap /swapfile >/dev/null || return 1
@@ -133,14 +133,14 @@ swap_create() {
 
     # Alpine Linux 特殊处理
     if [[ -f /etc/alpine-release ]]; then
-        ui_text "检测到 Alpine Linux，配置 swap 自启脚本"
+        print_step "检测到 Alpine Linux，配置 swap 自启脚本"
         mkdir -p /etc/local.d
         echo "swapon /swapfile" > /etc/local.d/swap.start
         chmod +x /etc/local.d/swap.start
         rc-update add local >/dev/null 2>&1
     fi
 
-    ui_box_success "成功创建 Swap，已成功设置为 ${size}MB" "top"
+    print_box_success --status finish --msg "创建 Swap (虚拟内存)，已成功设置为 ${size}MB"
 }
 
 # ------------------------------------------------------------------------------
@@ -160,14 +160,14 @@ swap_create() {
 swap_remove() {
     _swap_check_env || return 1
 
-    ui_box_info "开始删除 Swap..." "bottom"
+    print_box_info --status start --msg "删除 Swap..."
 
     if ! [[ -f /swapfile ]]; then
-        ui_warn "/swapfile 不存在，无需移除"
+        print_warn "/swapfile 不存在，无需移除"
         return 0
     fi
 
-    ui_text "正在关闭并删除 /swapfile..."
+    print_step "正在关闭并删除 /swapfile..."
 
     if swapon --show | grep -q "^/swapfile"; then
         swapoff /swapfile || {
@@ -179,7 +179,7 @@ swap_remove() {
     rm -f /swapfile
     sed -i '/\/swapfile/d' /etc/fstab
 
-    ui_box_success "/swapfile 已成功移除" "all"
+    print_box_success --status finish --msg "删除 Swap"
 }
 
 # ------------------------------------------------------------------------------
@@ -205,14 +205,15 @@ swap_disable() {
         return 0
     fi
 
-    ui_box_info "开始关闭 Swap..."
+    print_box_info --status start --msg "关闭 Swap..."
 
-    ui_text "检测到已启用的 Swap，正在关闭..."
+    print_step "检测到已启用的 Swap，正在关闭..."
 
     if swapoff -a; then
-        ui_box_success "成功关闭 Swap（未删除 Swap 文件）" "top"
+        print_box_success --status finish --msg "关闭 Swap（未删除 Swap 文件）"
         return 0
     else
+        # TODO
         ui_box_error "关闭 Swap 失败" "all"
         return 1
     fi
@@ -223,7 +224,7 @@ swap_disable() {
 # 功能:   交互式创建 Swap（自定义大小，单位 MB）
 # ------------------------------------------------------------------------------
 swap_create_interactive() {
-    ui_box_info "自定义 Swap" "bottom"
+    print_box_info --msg "自定义 Swap"
 
     local size
 
@@ -231,13 +232,13 @@ swap_create_interactive() {
 
     # 空输入
     if [[ -z "$size" ]]; then
-        ui echo "${BOLD_YELLOW}▲$(ui_spaces 1)"未输入任何内容，已取消"${BOLD_WHITE}"
+        print_error "$(ui_spaces 1)未输入任何内容，已取消"
         return 1
     fi
 
     # 非数字
     if ! [[ "$size" =~ ^[0-9]+$ ]]; then
-        ui_error "请输入有效的数字"
+        print_error "请输入有效的数字"
         return 1
     fi
 
@@ -249,11 +250,11 @@ swap_create_interactive() {
 
     # 最小限制（可选）
     if [[ "$size" -lt 128 ]]; then
-        ui_warn "Swap 最小建议为 128MB"
+        print_warn "Swap 最小建议为 128MB"
         return 1
     fi
 
-    ui blank
+    print_blank
 
     swap_create "$size"
 }
@@ -294,5 +295,5 @@ swap_get_suggested_info() {
         reason="大内存，仅作安全缓冲"
     fi
 
-    echo "${suggest_size}M (${reason})"
+    print_echo "${suggest_size}M (${reason})"
 }

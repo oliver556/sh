@@ -33,7 +33,8 @@ VSK_VERSION=$(cat "${BASE_DIR}/version" 2>/dev/null || echo "Unknown")
 # -x: 代表 export (导出环境变量)
 
 # 引导图标
-declare -rx ICON_NAV="▶"               # 引导 (仍有下级菜单页)
+declare -rx ICON_NAV="▶"            # 引导
+declare -rx ICON_TRIANGLE="▲"       # 引导2
 declare -rx ICON_OK="✓"             # 成功 (成功提示)
 declare -rx ICON_FAIL="✗"           # 失败 (错误提示)
 declare -rx ICON_WARNING="⚠"        # 警告 (警告提示)
@@ -50,7 +51,7 @@ declare -rx ICON_HOME="▣"           # 首页
 declare -rx ICON_UPDATE="↻"         # 系统更新 
 declare -rx ICON_MAINTAIN="⚒"       # 系统工具
 declare -rx ICON_DOCKER="☵"         # Docker
-declare -rx ICON_SWAP="▤"           # Swap
+declare -rx ICON_SWAP="▥"           # Swap
 declare -rx ICON_NODE="⑆"           # 节点搭建
 declare -rx ICON_TEST="⧗"           # 测试脚本
 

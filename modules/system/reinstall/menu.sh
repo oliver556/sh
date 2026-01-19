@@ -33,52 +33,50 @@ reinstall_menu() {
     while true; do
         print_clear
 
-        ui print page_header "⚙$(ui_spaces 1)一键重装系统"
-        ui echo "${BOLD_RED}注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"
+        print_box_header "${ICON_GEAR}$(ui_spaces 1)一键重装系统"
+        print_error "注意: 重装系统有风险失联，不放心者慎用。重装预计花费15分钟，请提前备份数据。"
         ui echo "${GREY}感谢 Leitbogioro 大佬 和 Bin456789 大佬 的脚本支持！"
-        ui line
-        ui echo "${GREY}Leitbogioro 项目地址: https://github.com/leitbogioro/Tools"
-        ui echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "
+        print_line
+        print_echo "${GREY}Leitbogioro 项目地址: https://github.com/leitbogioro/Tools"
+        print_echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "
 
-        ui line
-        # --- 操作选单 ---
-        ui_menu_item 1 0 1 "$(ui_spaces 1)Debian 13"
-        ui_menu_item 1 16 2 "Debian 12 ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_done
-        ui_menu_item 1 0 3 " Debian 11"
-        ui_menu_item 1 16 4 "Debian 10"
-        ui_menu_done
+        print_line
+        print_menu_item -r 1 -p 0 -i 1 -m "$(ui_spaces 1)Debian 13"
+        print_menu_item -r 1 -p 16 -i 2 -m "Debian 12" -I star
+        print_menu_item -r 2 -p 0 -i 3 -m "$(ui_spaces 1)Debian 11"
+        print_menu_item -r 2 -p 16 -i 4 -m "Debian 10"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 2 0 11 "Ubuntu 24.04"
-        ui_menu_item 2 12 12 "Ubuntu 22.04 ${BOLD_YELLOW}★${BOLD_WHITE}"
-        ui_menu_done
-        ui_menu_item 2 0 13 "Ubuntu 20.04"
-        ui_menu_item 2 12 14 "Ubuntu 18.04"
-        ui_menu_done
+        print_line
+        print_menu_item -r 3 -p 0 -i 11 -m "Ubuntu 24.04"
+        print_menu_item -r 3 -p 12 -i 12 -m "Ubuntu 22.04" -I star
+        print_menu_item_done
+        print_menu_item -r 4 -p 0 -i 13 -m "Ubuntu 20.04"
+        print_menu_item -r 4 -p 12 -i 14 -m "Ubuntu 18.04"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 3 0 21 "CentOS 10"
-        ui_menu_item 3 15 22 "CentOS 9"
-        ui_menu_done
+        print_line
+        print_menu_item -r 5 -p 0 -i 21 -m "CentOS 10"
+        print_menu_item -r 5 -p 15 -i 22 -m "CentOS 9"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 4 0 31 "Alpine Linux"
-        ui_menu_done
+        print_line
+        print_menu_item -r 6 -p 0 -i 31 -m "Alpine Linux"
+        print_menu_item_done
 
-        ui line
-        ui_menu_item 5 0 41 "Windows 11"
-        ui_menu_item 5 14 42 "Windows 10"
-        ui_menu_done
-        ui_menu_item 5 0 43 "Windows 7"
-        ui_menu_item 5 15 44 "Windows Server 2025"
-        ui_menu_done
-        ui_menu_item 5 0 45 "Windows Server 2022"
-        ui_menu_item 5 5 46 "Windows Server 2019"
-        ui_menu_done
+        print_line
+        print_menu_item -r 7 -p 0 -i 41 -m "Windows 11"
+        print_menu_item -r 7 -p 14 -i 42 -m "Windows 10"
+        print_menu_item_done
+        print_menu_item -r 8 -p 0 -i 43 -m "Windows 7"
+        print_menu_item -r 8 -p 15 -i 44 -m "Windows Server 2025"
+        print_menu_item_done
+        print_menu_item -r 9 -p 0 -i 45 -m "Windows Server 2022"
+        print_menu_item -r 9 -p 5 -i 46 -m "Windows Server 2019"
+        print_menu_item_done
 
         # 返回主菜单提示
-        ui_go_level
+        print_menu_go_level
 
         # 读取用户输入
         choice=$(ui_read_choice)
