@@ -117,3 +117,105 @@ fix_dpkg() {
 refresh_hash() {
   hash -r 2>/dev/null
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: run_step
+# 功能:   执行命令并显示加载动画，完成后在同一行显示结果
+# 
+# 参数:
+#   -m | --message      (字符串): [必填] 提示信息 (例如: "正在备份")
+#   -s | --success-msg  (字符串): [可选] 成功时的后缀 (默认: "完成")
+#   -e | --error-msg    (字符串): [可选] 失败时的后缀 (默认: "失败")
+#   -- <命令>           (其余):   [必填] 要执行的具体命令
+# 
+# 示例:
+#   run_step -m "备份配置" -- cp /a /b
+#   run_step -m "测试连通性" -s "正常" -e "不通" -- ping -c 1 8.8.8.8
+# ------------------------------------------------------------------------------
+run_step() {
+    local message=""
+    local success_msg="完成"  # 默认成功文案
+    local error_msg="失败"    # 默认失败文案
+    local cmd=()
+
+    # 1. 解析参数
+    # 使用 while 循环解析，遇到 -- 则停止解析，后面的全部作为命令
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -m|--message)
+                message="$2"
+                shift 2
+                ;;
+            -s|--success-msg)
+                success_msg="$2"
+                shift 2
+                ;;
+            -e|--error-msg)
+                error_msg="$2"
+                shift 2
+                ;;
+            --) # 遇到 -- 停止解析，后面全是命令
+                shift 1
+                cmd=("$@")
+                break
+                ;;
+            *)
+                # 兼容旧写法: run_step "消息" cmd...
+                # 如果第一个参数不是 flag 且 cmd 为空，视为 message
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                    shift 1
+                    # 如果没有用 -- 分隔，剩下的所有参数视为命令
+                    if [[ $# -gt 0 ]]; then
+                        cmd=("$@")
+                        break
+                    fi
+                else
+                    # 已经有 message 了，视为命令的一部分 (这种情况比较少见，建议用 --)
+                    cmd=("$@")
+                    break
+                fi
+                ;;
+        esac
+    done
+
+    # 2. 定义转圈动画
+    local spin='-\|/'
+    local i=0
+    local delay=0.1
+
+    (
+        tput civis
+        while true; do
+            i=$(( (i+1) % 4 ))
+            # \r 回到行首
+            print_echo -ne "\r${BLUE}[${spin:$i:1}]${NC} ${message}..."
+            sleep "$delay"
+        done
+    ) &
+
+    # 稍微等一下让转圈先出来，避免闪烁
+    # (如果命令极快，可以去掉这个 sleep 或者设小一点)
+    # sleep 0.1 
+    
+    local spinner_pid=$!
+
+    # 3. 执行真正的命令
+    "${cmd[@]}" >/dev/null 2>&1
+    local exit_code=$?
+
+    # 4. 杀掉转圈进程
+    kill "$spinner_pid" >/dev/null 2>&1
+    wait "$spinner_pid" 2>/dev/null
+
+    # 5. 根据返回值显示最终结果
+    if [ $exit_code -eq 0 ]; then
+        print_echo -ne "\r${GREEN}[✔]${NC} ${message}... ${GREEN}${success_msg}${NC}     \n"
+        tput cnorm
+        return 0
+    else
+        print_echo -ne "\r${RED}[✘]${NC} ${message}... ${RED}${error_msg}${NC}     \n"
+        tput cnorm
+        return 1
+    fi
+}

@@ -49,23 +49,31 @@ net_get_isp() {
 #   net_get_geo
 # ------------------------------------------------------------------------------
 net_get_geo() {
-    local ipinfo
-    # 获取完整的 json 用于拆分
-    ipinfo=$(curl -s --max-time 2 https://ipinfo.io/json)
+    local ipinfo country city
     
-    if [[ -z "$ipinfo" ]]; then
-        print_echo "未获取到地理位置"
-        return
+    # 方案 1: 使用 ip-api.com (该接口无需 API Key，稳定性极高)
+    # 格式为: 国家代码,城市名
+    ipinfo=$(curl -s --max-time 3 "http://ip-api.com/line/?fields=countryCode,city")
+    
+    if [[ -n "$ipinfo" && $(echo "$ipinfo" | wc -l) -eq 2 ]]; then
+        # 结果转换为单行输出，例如: US Los Angeles
+        print_echo "$ipinfo" | tr '\n' ' ' | sed 's/ $//'
+        return 0
     fi
 
-    # 按照您提供的逻辑拆分
-    local country=$(print_echo "$ipinfo" | grep 'country' | awk -F': ' '{print $2}' | tr -d '",')
-    local city=$(print_echo "$ipinfo" | grep 'city' | awk -F': ' '{print $2}' | tr -d '",')
-
-    if [[ -n "$country" && -n "$city" ]]; then
-        # 输出格式：US Los Angeles
-        print_echo "${country} ${city}" | xargs
-    else
-        print_echo "未获取到地理位置"
+    # 方案 2: 使用 ipinfo.io (作为备选)
+    ipinfo=$(curl -s --max-time 3 https://ipinfo.io/json)
+    if [[ -n "$ipinfo" ]]; then
+        # 改进的正则提取，比传统的 awk 更能容错
+        country=$(print_echo "$ipinfo" | sed -n 's/.*"country": "\(.*\)".*/\1/p')
+        city=$(echo "$ipinfo" | sed -n 's/.*"city": "\(.*\)".*/\1/p')
+        
+        if [[ -n "$country" && -n "$city" ]]; then
+            print_echo "${country} ${city}"
+            return 0
+        fi
     fi
+
+    print_echo "未获取到地理位置"
+    return 1
 }

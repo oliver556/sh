@@ -30,15 +30,26 @@
 #   net_get_ipv4
 # ------------------------------------------------------------------------------
 net_get_ipv4() {
+    local apis=(
+        "https://ipinfo.io/ip"
+        "https://api64.ipify.org"
+        "https://4.icanhazip.com"
+        "https://ident.me"
+        "https://v4.ident.me"
+    )
     local ip
-    # 首选使用 https://ipinfo.io/ip，备选使用其他接口
-    ip=$(curl -s4 --max-time 2 https://ipinfo.io/ip || curl -s4 --max-time 2 https://api64.ipify.org || curl -s4 --max-time 2 https://4.icanhazip.com)
-    
-    if [[ -z "$ip" ]]; then
-        print_echo "未检测到公网 IPv4"
-    else
-        print_echo "$ip"
-    fi
+
+    for api in "${apis[@]}"; do
+        # 尝试获取 IP，过滤掉可能的 HTML 标签（万一 API 抽风返回了错误页）
+        ip=$(curl -s4f --max-time 2 "$api" | tr -d '[:space:]')
+        if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            print_echo "$ip"
+            return 0
+        fi
+    done
+
+    print_echo "未检测到公网 IPv4" >&2
+    return 1
 }
 
 # ------------------------------------------------------------------------------
@@ -56,15 +67,59 @@ net_get_ipv4() {
 #   net_get_ipv6
 # ------------------------------------------------------------------------------
 net_get_ipv6() {
+    local apis=(
+        "https://api64.ipify.org"
+        "https://6.icanhazip.com"
+        "https://ident.me"
+        "https://v6.ident.me"
+        "https://ip.sb"
+    )
     local ip
-    # 尝试通过支持 IPv6 的接口获取，并保留您提供的 grep ':' 逻辑进行校验
-    ip=$(curl -s6 --max-time 2 https://ipinfo.io/ip || curl -s6 --max-time 2 https://6.icanhazip.com || curl -s6 --max-time 2 https://4.icanhazip.com)
+
+    for api in "${apis[@]}"; do
+        # -s6: 强制使用 IPv6 连接
+        # -f: HTTP 错误时返回非零状态码
+        # --max-time 3: 稍微放宽到 3 秒，IPv6 握手有时略慢
+        ip=$(curl -s6f --max-time 3 "$api" | tr -d '[:space:]')
+        
+        # 校验逻辑：
+        # 1. 检查是否包含冒号 (:)
+        # 2. 排除本地链路地址 (fe80)
+        # 3. 排除内网地址 (fc00/fd00)
+        if [[ "$ip" == *":"* ]] && [[ ! "$ip" =~ ^(fe80|fc00|fd00) ]]; then
+            print_echo "$ip"
+            return 0
+        fi
+    done
+
+    print_echo "未检测到公网 IPv6" >&2
+    return 1
+}
+
+# 通用网络检测函数
+# 使用方法: get_public_ip 4 或 get_public_ip 6
+get_public_ip() {
+    local family="$1"
+    local apis
     
-    if [[ "$ip" == *":"* ]]; then
-        print_echo "$ip"
+    if [[ "$family" == "6" ]]; then
+        apis=("https://api64.ipify.org" "https://6.icanhazip.com" "https://v6.ident.me")
+        local curl_opt="-s6f"
     else
-        print_echo "未检测到公网 IPv6"
+        apis=("https://api64.ipify.org" "https://4.icanhazip.com" "https://v4.ident.me")
+        local curl_opt="-s4f"
     fi
+
+    for api in "${apis[@]}"; do
+        local ip
+        ip=$(curl $curl_opt --max-time 3 "$api" | tr -d '[:space:]')
+        if [[ "$family" == "6" ]] && [[ "$ip" == *":"* && ! "$ip" =~ ^(fe80|fc00|fd00) ]]; then
+            echo "$ip"; return 0
+        elif [[ "$family" == "4" ]] && [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "$ip"; return 0
+        fi
+    done
+    return 1
 }
 
 # ------------------------------------------------------------------------------

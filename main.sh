@@ -120,13 +120,7 @@ main() {
         print_menu_item -i 0 -s 2 -m "退出程序"
         print_line -c "="  
 
-        # # --- 交互逻辑 ---
-        # choice=$(read_choice)
         choice=$(read_choice)
-        # 2. 读取选择 (使用 read_choice)
-        # local choice
-        # # 限制只能输入 0 1 2 3 4，默认是 1
-        # read_choice choice -m "请输入功能编号"
 
         case "$choice" in
             1|2|3|4|8|9|99)

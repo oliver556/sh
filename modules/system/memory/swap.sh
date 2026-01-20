@@ -94,7 +94,7 @@ _swap_check_env() {
 #   swap_create 2048
 # ------------------------------------------------------------------------------
 swap_create() {
-    print_box_info --status start --msg "创建 Swap (虚拟内存)..."
+    print_box_info -s start -m "创建 Swap (虚拟内存)..."
 
     local size="$1"
 
@@ -160,7 +160,7 @@ swap_create() {
 swap_remove() {
     _swap_check_env || return 1
 
-    print_box_info --status start --msg "删除 Swap..."
+    print_box_info -s start -m "删除 Swap..."
 
     if ! [[ -f /swapfile ]]; then
         print_warn "/swapfile 不存在，无需移除"

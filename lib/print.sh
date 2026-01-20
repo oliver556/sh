@@ -913,18 +913,37 @@ print_menu_item() {
 # ------------------------------------------------------------------------------
 # 函数名: print_menu_item_done
 # 功能:   强制重置行状态 (通常用于菜单结束后) 与 print_menu_item 配套使用
-# 
-# 参数: 无
-# 
+#
+# 参数:
+#   -n | --no-newline | --compact  (开关): 不打印空行 (紧凑模式)
+#
 # 返回值: 
 #   1 - 全局变量：用于跟踪当前行 ID
 # 
 # 示例:
 #   print_menu_item_done
 # ------------------------------------------------------------------------------
+# shellcheck disable=SC2120
 print_menu_item_done() {
-    print_blank
-    G_LAST_MENU_ROW=-1
+    local print_blank_line=true
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n|--no-newline|--compact)
+                print_blank_line=false
+                shift 1
+                ;;
+            *)
+                shift 1
+                ;;
+        esac
+    done
+
+    if [[ "$print_blank_line" == "true" ]]; then
+        print_blank
+    fi
+
+    G_LAST_MENU_ROW="-1"
 }
 
 # ------------------------------------------------------------------------------

@@ -49,7 +49,7 @@ system_menu() {
         print_menu_item -r 2 -p 6 -i 6 -m "${BOLD_GREY}开放所有端口${NC}"
 
         print_menu_item -r 3 -p 0 -s 2 -i 7 -m "修改SSH端口"
-        print_menu_item -r 3 -p 7 -i 8 -m "${BOLD_GREY}优化DNS地址${NC}"
+        print_menu_item -r 3 -p 7 -i 8 -m "优化DNS地址"
         print_menu_item -r 3 -p 11 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
         print_menu_item_done
 
@@ -97,6 +97,11 @@ system_menu() {
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
                 guard_change_ssh_port
                 print_wait_enter
+                ;;
+            8)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/network/change_dns.sh"
+                guard_change_dns
                 ;;
             11)
                 # shellcheck disable=SC1091

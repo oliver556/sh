@@ -32,7 +32,7 @@ source "${BASE_DIR}/lib/guards/memory.sh"
 # ------------------------------------------------------------------------------
 status_show_system_info() {
     print_clear
-    print_box_info --msg "${ICON_GEAR}$(print_spaces 1)系统信息查询"
+    print_box_info -m "${ICON_GEAR}$(print_spaces 1)系统信息查询"
     print_line -c "-"
     print_key_value -k "主机名" -v "$_sys_get_hostname"
     print_key_value -k "系统版本" -v "$_get_os_pretty_name"
@@ -215,9 +215,11 @@ _get_sys_info() {
     _sys_get_disk_usage=$(sys_get_disk_usage)
 
     _net_get_isp=$(net_get_isp)
-    _net_get_ipv4=$(net_get_ipv4)
+    # _net_get_ipv4=$(net_get_ipv4)
+    # _net_get_ipv6=$(net_get_ipv6)
+    _net_get_ipv4=$(get_public_ip 4)
+    _net_get_ipv6=$(get_public_ip 6)
     # _net_get_private_ipv4=$(net_get_private_ipv4)
-    _net_get_ipv6=$(net_get_ipv6)
     # _net_get_private_ipv6=$(net_get_private_ipv6)
     # _net_get_dns=$(net_get_dns | tr '\n' ', ' | sed 's/, $//')
     _net_get_dns=$(net_get_dns | xargs | sed 's/ /, /g')
