@@ -81,7 +81,7 @@ change_ssh_port() {
 
         # 用户取消
         if [[ "$choice" -eq 0 ]]; then
-            print_info -m "取消修改 SSH 端口"
+            print_info -m "操作已取消"
             print_blank
             return 2
         fi

@@ -92,7 +92,6 @@ do_update() {
         print_step "发现新版本"
     fi
 
-    print_blank
     print_step -m "正在拉取最新代码..."
     sleep 1
     

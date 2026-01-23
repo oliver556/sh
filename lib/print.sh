@@ -743,7 +743,7 @@ print_box_header() {
 
 
     print_line -e "+" -c "=" -C "$color"
-    print_echo "$color" "# ${BOLD}" "$message" "${NC}"
+    print_echo "$color# ${BOLD}" "$message" "${NC}"
     print_line -e "+" -c "=" -C "$color"
 }
 

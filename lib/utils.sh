@@ -137,6 +137,7 @@ run_step() {
     local success_msg="完成"  # 默认成功文案
     local error_msg="失败"    # 默认失败文案
     local cmd=()
+    local sleep=1            # 默认时间 1 秒
 
     # 1. 解析参数
     # 使用 while 循环解析，遇到 -- 则停止解析，后面的全部作为命令
@@ -152,6 +153,10 @@ run_step() {
                 ;;
             -e|--error-msg)
                 error_msg="$2"
+                shift 2
+                ;;
+            -S|--sleep)
+                sleep="$2"
                 shift 2
                 ;;
             --) # 遇到 -- 停止解析，后面全是命令
@@ -203,6 +208,8 @@ run_step() {
     # 3. 执行真正的命令
     "${cmd[@]}" >/dev/null 2>&1
     local exit_code=$?
+
+    sleep "$sleep"
 
     # 4. 杀掉转圈进程
     kill "$spinner_pid" >/dev/null 2>&1
