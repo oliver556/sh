@@ -45,10 +45,10 @@
             print_menu_item_done
 
             print_line
-            print_menu_item -r 4 -p 0 -s 2 -i 6 -m "IP白名单"
-            print_menu_item -r 4 -p 16 -i 7 -m "IP黑名单"
+            print_menu_item -r 4 -p 0 -s 2 -i 6 -m "${BOLD_GREY}IP白名单${NC}"
+            print_menu_item -r 4 -p 16 -i 7 -m "${BOLD_GREY}IP黑名单${NC}"
             print_menu_item_done
-            print_menu_item -r 5 -p 0 -s 2 -i 8 -m "清除指定IP"
+            print_menu_item -r 5 -p 0 -s 2 -i 8 -m "${BOLD_GREY}清除指定IP${NC}"
             print_menu_item_done
 
             print_line
@@ -57,15 +57,15 @@
             print_menu_item_done
 
             print_line
-            print_menu_item -r 11 -p 0 -i 13 -m "启动DDOS防御"
-            print_menu_item -r 11 -p 11 -i 14 -m "关闭DDOS防御"
+            print_menu_item -r 11 -p 0 -i 13 -m "${BOLD_GREY}启动DDOS防御${NC}"
+            print_menu_item -r 11 -p 11 -i 14 -m "${BOLD_GREY}关闭DDOS防御${NC}"
             print_menu_item_done
 
             print_line
-            print_menu_item -r 12 -p 0 -i 15 -m "阻止指定国家IP"
-            print_menu_item -r 12 -p 9 -i 16 -m "仅允许指定国家IP"
+            print_menu_item -r 12 -p 0 -i 15 -m "${BOLD_GREY}阻止指定国家IP${NC}"
+            print_menu_item -r 12 -p 9 -i 16 -m "${BOLD_GREY}仅允许指定国家IP${NC}"
             print_menu_item_done
-            print_menu_item -r 13 -p 0 -i 17 -m "解除指定国家IP限制"
+            print_menu_item -r 13 -p 0 -i 17 -m "${BOLD_GREY}解除指定国家IP限制${NC}"
             print_menu_item_done
 
             print_menu_go_level
@@ -124,11 +124,14 @@
                     ;;
                 11)
                     # shellcheck disable=SC1091
-                    source "${BASE_DIR}/modules/system/memory/menu.sh"
-                    system_memory_menu
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    firewall_start_enable_ping
                     ;;
+
                 12)
-                    print_wait_enter
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    firewall_start_disable_ping
                     ;;
                 13)
                     print_wait_enter

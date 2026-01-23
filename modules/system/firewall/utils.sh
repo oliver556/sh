@@ -745,3 +745,157 @@ firewall_list_ports() {
             ;;
     esac
 }
+
+# ------------------------------------------------------------------------------
+# 函数名: firewall_enable_ping
+# 功能:   允许 ICMP (Ping) 流量
+#         适配 UFW (删除拒绝规则), Firewalld (移除阻塞), Iptables (添加允许规则)
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 成功
+# 
+# 示例:
+#   firewall_enable_ping
+# ------------------------------------------------------------------------------
+firewall_enable_ping() {
+    local backend
+    backend=$(_get_firewall_backend)
+    
+    case "$backend" in
+        ufw)
+            # UFW 默认允许 Ping (在 before.rules 中)，这里主要是为了移除用户可能设置过的 deny 规则
+            # 尝试移除 "deny proto icmp" 规则
+            ufw delete deny proto icmp from any to any >/dev/null 2>&1
+            # 也可以尝试移除针对 input 的 icmp 拒绝
+            ufw delete deny in proto icmp >/dev/null 2>&1
+            print_success "UFW: 已移除 ICMP 拒绝规则 (允许 Ping)"
+            ;;
+            
+        firewalld)
+            # 移除 echo-request 的阻塞
+            firewall-cmd --zone=public --remove-icmp-block=echo-request --permanent >/dev/null 2>&1
+            firewall-cmd --reload >/dev/null 2>&1
+            print_success "Firewalld: 已移除 ICMP 阻塞 (允许 Ping)"
+            ;;
+            
+        iptables)
+            # 1. 先清理旧的关于 ICMP 的 DROP 规则 (防止冲突)
+            iptables -D INPUT -p icmp --icmp-type 8 -j DROP 2>/dev/null
+            
+            # 2. 检查是否已有 ACCEPT，没有则添加
+            if ! iptables -C INPUT -p icmp --icmp-type 8 -j ACCEPT 2>/dev/null; then
+                iptables -I INPUT -p icmp --icmp-type 8 -j ACCEPT
+            fi
+            
+            # 持久化
+            _iptables_save_persistence
+            print_success "Iptables: 已添加 ICMP 允许规则"
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: firewall_disable_ping
+# 功能:   禁止 ICMP (Ping) 流量
+#         适配 UFW (添加拒绝规则), Firewalld (添加阻塞), Iptables (添加丢弃规则)
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 成功
+# 
+# 示例:
+#   firewall_disable_ping
+# ------------------------------------------------------------------------------
+firewall_disable_ping() {
+    local backend
+    backend=$(_get_firewall_backend)
+
+    case "$backend" in
+        ufw)
+            # 添加拒绝规则 (插入到最前，优先级最高)
+            ufw insert 1 deny proto icmp from any to any >/dev/null 2>&1
+            print_success "UFW: 已添加 ICMP 拒绝规则 (禁止 Ping)"
+            ;;
+            
+        firewalld)
+            # 添加 echo-request 的阻塞
+            firewall-cmd --zone=public --add-icmp-block=echo-request --permanent >/dev/null 2>&1
+            firewall-cmd --reload >/dev/null 2>&1
+            print_success "Firewalld: 已添加 ICMP 阻塞 (禁止 Ping)"
+            ;;
+            
+        iptables)
+            # 1. 先清理旧的 ACCEPT 规则
+            iptables -D INPUT -p icmp --icmp-type 8 -j ACCEPT 2>/dev/null
+            
+            # 2. 添加 DROP 规则 (插入到最前)
+            if ! iptables -C INPUT -p icmp --icmp-type 8 -j DROP 2>/dev/null; then
+                iptables -I INPUT -p icmp --icmp-type 8 -j DROP
+            fi
+            
+            # 持久化
+            _iptables_save_persistence
+            print_success "Iptables: 已添加 ICMP 丢弃规则"
+            ;;
+    esac
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: firewall_start_enable_ping
+# 功能:   启动允许 Ping 的流程 (UI 交互 wrapper)
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 成功
+# 
+# 示例:
+#   firewall_start_enable_ping
+# ------------------------------------------------------------------------------
+firewall_start_enable_ping() {
+    print_clear
+    print_box_info -m "允许 Ping (ICMP)"
+    
+    # 直接执行，无需太多确认，因为是安全操作
+    run_step -S 2 -m "正在移除 ICMP 限制..." firewall_enable_ping
+    
+    print_wait_enter
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: firewall_start_disable_ping
+# 功能:   启动禁止 Ping 的流程 (UI 交互 wrapper)
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   0 - 成功
+# 
+# 示例:
+#   firewall_start_disable_ping
+# ------------------------------------------------------------------------------
+firewall_start_disable_ping() {
+    print_clear
+    print_box_info -m "禁止 Ping (ICMP)"
+    print_echo "${YELLOW}提示: 禁止 Ping 可以让服务器隐身，但也会导致无法使用 Ping 工具检测服务器在线状态。${NC}"
+    print_blank
+
+    local confirm
+    confirm=$(read_choice -s 1 -m "是否确认禁止 Ping? [yes/no]")
+
+    if [[ "$confirm" != "yes" ]]; then
+        print_info -m "操作已取消"
+        return 0
+    fi
+
+    run_step -S 2 -m "正在配置 ICMP 拒绝规则..." firewall_disable_ping
+    
+    print_wait_enter
+}
