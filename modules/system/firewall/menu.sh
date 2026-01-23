@@ -62,10 +62,13 @@
             print_menu_item_done
 
             print_line
-            print_menu_item -r 12 -p 0 -i 15 -m "${BOLD_GREY}阻止指定国家IP${NC}"
-            print_menu_item -r 12 -p 9 -i 16 -m "${BOLD_GREY}仅允许指定国家IP${NC}"
+            print_menu_item -r 12 -p 0 -i 15 -m "[黑名单] 屏蔽指定国家"
+            print_menu_item -r 12 -p 2 -i 16 -m "[白名单] 仅许指定国家"
             print_menu_item_done
-            print_menu_item -r 13 -p 0 -i 17 -m "${BOLD_GREY}解除指定国家IP限制${NC}"
+            print_menu_item -r 13 -p 0 -i 17 -m "[黑名单] 解封指定国家"
+            print_menu_item -r 13 -p 2 -i 18 -m "[全  局] 清空所有规则"
+            print_menu_item_done
+            print_menu_item -r 14 -p 0 -i 19 -m "[全  局] 查看规则状态"
             print_menu_item_done
 
             print_menu_go_level
@@ -140,15 +143,38 @@
                     print_wait_enter
                     ;;
                 15)
-                    print_wait_enter
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    if firewall_start_block_country; then
+                        print_wait_enter
+                    fi
                     ;;
                 16)
-                    print_wait_enter
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    if firewall_start_allow_country; then
+                        print_wait_enter
+                    fi
                     ;;
                 17)
-                    print_wait_enter
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    if firewall_start_unblock_specific_country; then
+                        print_wait_enter
+                    fi
                     ;;
-
+                18)
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    if firewall_start_unblock_country; then
+                        print_wait_enter
+                    fi
+                    ;;
+                19)
+                    # shellcheck disable=SC1091
+                    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+                    firewall_start_list_country_rules
+                    ;;
                 0)
                     return
                     ;;
