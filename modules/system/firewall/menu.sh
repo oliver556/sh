@@ -33,6 +33,8 @@ firewall_menu() {
         print_clear
         
         print_box_header "${ICON_GEAR}$(print_spaces 1)高级防火墙管理 (Firewall Manager)"
+
+        # --- 第一组：端口基础 ---
         print_line
         print_menu_item -r 1 -p 0 -s 2 -i 1 -m "开放指定端口"
         print_menu_item -r 1 -p 12 -i 2 -m "关闭指定端口"
@@ -43,31 +45,38 @@ firewall_menu() {
         print_menu_item -r 3 -p 0 -s 2 -i 5 -m "查看当前开放端口"
         print_menu_item_done
 
+        # --- 第二组：Ping ---
         print_line
-        print_menu_item -r 4 -p 0 -s 2 -i 6 -m "${BOLD_GREY}IP白名单${NC}"
-        print_menu_item -r 4 -p 16 -i 7 -m "${BOLD_GREY}IP黑名单${NC}"
-        print_menu_item_done
-        print_menu_item -r 5 -p 0 -s 2 -i 8 -m "${BOLD_GREY}清除指定IP${NC}"
+        print_menu_item -r 7 -p 0 -s 2 -i 6 -m "允许PING"
+        print_menu_item -r 7 -p 16 -i 7 -m "禁止PING"
         print_menu_item_done
 
+        # --- 第三组：DDoS ---
         print_line
-        print_menu_item -r 6 -p 0 -i 11 -m "允许PING"
-        print_menu_item -r 6 -p 15 -i 12 -m "禁止PING"
+        print_menu_item -r 11 -p 0 -s 2 -i 8 -m "启动DDOS防御"
+        print_menu_item -r 11 -p 12 -i 9 -m "关闭DDOS防御"
         print_menu_item_done
 
+        # --- 第四组：指定 IP (11-15) ---
         print_line
-        print_menu_item -r 11 -p 0 -i 13 -m "${BOLD_GREY}启动DDOS防御${NC}"
-        print_menu_item -r 11 -p 11 -i 14 -m "${BOLD_GREY}关闭DDOS防御${NC}"
+        print_menu_item -r 4 -p 0 -i 11 -m "[黑名单] 封禁指定IP"
+        print_menu_item -r 4 -p 4 -i 12 -m "[白名单] 放行指定IP"
+        print_menu_item_done
+        print_menu_item -r 5 -p 0 -i 13 -m "[全  局] 解封指定IP"
+        print_menu_item -r 5 -p 4 -i 14 -m "[全  局] 清空所有IP"
+        print_menu_item_done
+        print_menu_item -r 6 -p 0 -i 15 -m "[全  局] 查看IP名单"
         print_menu_item_done
 
+        # --- 第五组：国家/GeoIP (21-25) ---
         print_line
-        print_menu_item -r 12 -p 0 -i 15 -m "[黑名单] 屏蔽指定国家"
-        print_menu_item -r 12 -p 2 -i 16 -m "[白名单] 仅许指定国家"
+        print_menu_item -r 12 -p 0 -i 21 -m "[黑名单] 屏蔽指定国家"
+        print_menu_item -r 12 -p 2 -i 22 -m "[白名单] 仅许指定国家"
         print_menu_item_done
-        print_menu_item -r 13 -p 0 -i 17 -m "[黑名单] 解封指定国家"
-        print_menu_item -r 13 -p 2 -i 18 -m "[全  局] 清空所有规则"
+        print_menu_item -r 13 -p 0 -i 23 -m "[黑名单] 解封指定国家"
+        print_menu_item -r 13 -p 2 -i 24 -m "[全  局] 清空所有规则"
         print_menu_item_done
-        print_menu_item -r 14 -p 0 -i 19 -m "[全  局] 查看规则状态"
+        print_menu_item -r 14 -p 0 -i 25 -m "[全  局] 查看规则状态"
         print_menu_item_done
 
         print_menu_go_level
@@ -75,8 +84,8 @@ firewall_menu() {
         choice=$(read_choice)
 
         case "$choice" in
-            1|2|3|4|5)
-                # 1-5 号菜单，加载端口管理脚本
+            # 1-9: 基础功能 (Port, Ping, DDoS) -> port.sh
+            1|2|3|4|5|6|7|8|9)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/firewall/port.sh"
                 
@@ -86,60 +95,47 @@ firewall_menu() {
                     3) firewall_start_open_all ; print_wait_enter;;
                     4) firewall_start_reset ; print_wait_enter;;
                     5) firewall_start_list ; print_wait_enter;;
+                    6) firewall_start_enable_ping; print_wait_enter ;;
+                    7) if firewall_start_disable_ping; then print_wait_enter; fi ;;
+                    8) if firewall_start_enable_ddos; then print_wait_enter; fi ;;
+                    9) if firewall_start_disable_ddos; then print_wait_enter; fi ;;
                 esac
                 ;;
 
-            6)
+            # 11-15: 指定 IP 管理 -> ip.sh
+            11|12|13|14|15)
                 # shellcheck disable=SC1091
-                # source "${BASE_DIR}/modules/system/security/change_password.sh"
-                print_wait_enter
+                source "${BASE_DIR}/modules/system/firewall/ip.sh"
+                
+                case "$choice" in
+                    11) if firewall_start_deny_ip; then print_wait_enter; fi ;;
+                    12) if firewall_start_allow_ip ; then print_wait_enter; fi ;;
+                    13) if firewall_start_remove_ip; then print_wait_enter; fi ;;
+                    14) if firewall_start_flush_ips; then print_wait_enter; fi ;;
+                    15) firewall_start_list_ips; print_wait_enter ;;
+                esac
                 ;;
-            7)
-                # shellcheck disable=SC1091
-                # source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
-                # guard_change_ssh_port
-                print_wait_enter
-                ;;
-            8)
-                # shellcheck disable=SC1091
-                # source "${BASE_DIR}/modules/system/network/change_dns.sh"
-                # guard_change_dns
-                print_wait_enter
-                ;;
-            11|12)
-                    # shellcheck disable=SC1091
-                    source "${BASE_DIR}/modules/system/firewall/port.sh"
-                    if [[ "$choice" == "11" ]]; then
-                        if firewall_start_enable_ping; then print_wait_enter; fi
-                    else
-                        if firewall_start_disable_ping; then print_wait_enter; fi
-                    fi
-                    ;;
-            13)
-                print_wait_enter
-                ;;
-            14)
-                print_wait_enter
-                ;;
-            15|16|17|18|19)
+
+            # 21-25: 国家 GeoIP 管理 -> geoip.sh
+            21|22|23|24|25)
                 # 国家 IP 管理 (GeoIP)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/firewall/geoip.sh"
                 
                 case "$choice" in
-                    15)
+                    21)
                         if firewall_start_block_country; then print_wait_enter; fi
                         ;;
-                    16)
+                    22)
                         if firewall_start_allow_country; then print_wait_enter; fi
                         ;;
-                    17)
+                    23)
                         if firewall_start_unblock_specific_country; then print_wait_enter; fi
                         ;;
-                    18)
+                    24)
                         if firewall_start_unblock_country; then print_wait_enter; fi
                         ;;
-                    19)
+                    25)
                         firewall_start_list_country_rules
                         print_wait_enter
                         ;;

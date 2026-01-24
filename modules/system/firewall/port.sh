@@ -5,6 +5,10 @@
 #
 # @文件路径: modules/system/firewall/port.sh
 # @功能描述: 端口开放/关闭、Ping 管理、防火墙重置、规则查看
+#
+# @作者: Jamison
+# @版本: 1.0.0
+# @创建日期: 2026-01-23
 # ==============================================================================
 
 # 引入底层依赖
@@ -141,7 +145,6 @@ firewall_open_port() {
         iptables) _iptables_save_persistence ;; # 只有纯 iptables 需要手动持久化
     esac
 }
-
 
 # ------------------------------------------------------------------------------
 # 函数名: firewall_close_port
@@ -369,7 +372,6 @@ firewall_enable_ping() {
             ;;
             
         firewalld)
-            # 移除 echo-request 的阻塞
             firewall-cmd --zone=public --remove-icmp-block=echo-request --permanent >/dev/null 2>&1
             firewall-cmd --reload >/dev/null 2>&1
             print_success "Firewalld: 已移除 ICMP 阻塞 (允许 Ping)"
@@ -552,7 +554,7 @@ firewall_list_ports() {
 
             # --- 4. 智能显示逻辑 ---
             if [[ -n "$rules_content" ]]; then
-                echo "$rules_content"
+                print_echo "$rules_content"
             else
                 if [[ "$in_policy" == "ACCEPT" ]]; then
                     # 虚拟行：数据列 SOURCE 保持 20 宽
@@ -743,6 +745,101 @@ firewall_start_list() {
     print_echo "2. RELATED/EST: 已建立的连接 (保持不断线)"
     print_echo "3. 0.0.0.0/0: 代表允许所有来源 IP"
 
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# 核心功能: DDoS 防御 (软件层限速)
+# ------------------------------------------------------------------------------
+firewall_enable_ddos() {
+    print_step "正在配置 DDoS 防御规则 (阈值: TCP 500/s, UDP 3000/s)..."
+    
+    # 1. 定义要添加的规则 (数组形式，方便循环处理)
+    # 格式: "链名|协议|参数|动作"
+    local rules=(
+        "DOCKER-USER|tcp|--syn -m limit --limit 500/s --limit-burst 100|ACCEPT"
+        "DOCKER-USER|tcp|--syn|DROP"
+        "DOCKER-USER|udp|-m limit --limit 3000/s|ACCEPT"
+        "DOCKER-USER|udp|DROP"
+        "INPUT|tcp|--syn -m limit --limit 500/s --limit-burst 100|ACCEPT"
+        "INPUT|tcp|--syn|DROP"
+        "INPUT|udp|-m limit --limit 3000/s|ACCEPT"
+        "INPUT|udp|DROP"
+    )
+
+    # 2. 确保 Docker 链存在 (防止非 Docker 环境报错)
+    iptables -N DOCKER-USER 2>/dev/null
+
+    # 3. 循环添加 (先清理旧的，再加新的，确保不重复)
+    for rule_str in "${rules[@]}"; do
+        local chain proto params target
+        IFS='|' read -r chain proto params target <<< "$rule_str"
+        
+        # 构建完整参数用于检测和删除
+        # 注意：这里不仅要删 ACCEPT，还要删 DROP，防止逻辑顺序错乱
+        
+        # 简单粗暴法：先试着删除该规则 (无论是否存在)
+        iptables -D "$chain" -p "$proto" $params -j "$target" 2>/dev/null
+        
+        # 添加规则
+        iptables -A "$chain" -p "$proto" $params -j "$target"
+    done
+
+    _iptables_save_persistence
+    print_success "DDoS 防御规则已启动！"
+}
+
+firewall_disable_ddos() {
+    print_step "正在移除 DDoS 防御规则..."
+
+    # 必须按顺序移除，跟启动时的定义一致
+    local rules=(
+        "DOCKER-USER|tcp|--syn -m limit --limit 500/s --limit-burst 100|ACCEPT"
+        "DOCKER-USER|tcp|--syn|DROP"
+        "DOCKER-USER|udp|-m limit --limit 3000/s|ACCEPT"
+        "DOCKER-USER|udp|DROP"
+        "INPUT|tcp|--syn -m limit --limit 500/s --limit-burst 100|ACCEPT"
+        "INPUT|tcp|--syn|DROP"
+        "INPUT|udp|-m limit --limit 3000/s|ACCEPT"
+        "INPUT|udp|DROP"
+    )
+
+    for rule_str in "${rules[@]}"; do
+        local chain proto params target
+        IFS='|' read -r chain proto params target <<< "$rule_str"
+        iptables -D "$chain" -p "$proto" $params -j "$target" 2>/dev/null
+    done
+
+    _iptables_save_persistence
+    print_success "DDoS 防御规则已关闭。"
+}
+
+# ------------------------------------------------------------------------------
+# UI 启动函数 (DDoS)
+# ------------------------------------------------------------------------------
+firewall_start_enable_ddos() {
+    print_clear; print_box_info -m "启动 DDoS 基础防御"
+    print_echo "${YELLOW}说明：此功能将在 INPUT 和 DOCKER-USER 链中添加速率限制规则。${NC}"
+    print_echo "阈值: TCP SYN < 500/s, UDP < 3000/s"
+    
+    if [[ $(read_choice -s 1 -m "确认启动? [yes/no]") != "yes" ]]; then
+        print_info -m "操作已取消"
+        return 0
+    fi
+    
+    run_step -S 2 -m "应用规则中..." firewall_enable_ddos
+    return 0
+}
+
+firewall_start_disable_ddos() {
+    print_clear; print_box_info -m "关闭 DDoS 基础防御"
+
+    if [[ $(read_choice -s 1 -m "确认关闭? [yes/no]") != "yes" ]]; then
+        print_info -m "操作已取消"
+        return 0
+    fi
+    
+    run_step -S 2 -m "移除规则中..." firewall_disable_ddos
     return 0
 }
 

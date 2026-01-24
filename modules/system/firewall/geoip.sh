@@ -5,6 +5,10 @@
 #
 # @文件路径: modules/system/firewall/geoip.sh
 # @功能描述: 基于 IPSet 的国家级黑/白名单拦截、规则查看
+#
+# @作者: Jamison
+# @版本: 1.0.0
+# @创建日期: 2026-01-23
 # ==============================================================================
 
 # 引入依赖
@@ -138,7 +142,7 @@ firewall_start_block_country() {
     print_clear
     print_box_info -m "阻止指定国家 IP (黑名单)"
     print_echo "请输入国家代码 (ISO 3166-1 alpha-2)，不区分大小写。"
-    print_echo "多个国家请用空格分隔，例如: CN RU JP"
+    print_echo "多个国家请用空格分隔，例如: CN RU JP（输入 0 退出）"
     
     local input
     input=$(read_choice -s 1 -m "请输入国家代码")
@@ -151,7 +155,6 @@ firewall_start_block_country() {
     local countries
     read -r -a countries <<< "$input"
     
-    # run_step -S 2 -m "正在配置国家防火墙..." firewall_block_countries "${countries[@]}"
     print_line
     firewall_block_countries "${countries[@]}"
 }
@@ -334,7 +337,7 @@ firewall_start_allow_country() {
     print_clear
     print_box_info -m "仅允许指定国家 IP (白名单)"
     print_echo "${RED}危险警告：此操作将屏蔽除指定国家外的全世界所有 IP！${NC}"
-    print_echo "一旦生效，非白名单 IP 将无法建立任何新连接 (包括 SSH)。"
+    print_echo "一旦生效，非白名单 IP 将无法建立任何新连接 (包括 SSH)（输入 0 退出）"
     print_blank
     
     local input
@@ -426,7 +429,7 @@ firewall_unblock_specific_country() {
 firewall_start_unblock_specific_country() {
     print_clear
     print_box_info -m "解除指定国家限制 (黑名单)"
-    print_echo "请输入要解封的国家代码 (如 CN US)，多个代码用空格分隔。"
+    print_echo "请输入要解封的国家代码 (如 CN US)，多个代码用空格分隔（输入 0 退出）"
     
     local input
     input=$(read_choice -s 1 -m "请输入国家代码")
@@ -625,6 +628,4 @@ firewall_start_list_country_rules() {
     print_box_info -m "当前国家 IP 限制预览"
     
     firewall_list_country_rules
-    
-    print_wait_enter
 }
