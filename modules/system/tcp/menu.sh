@@ -49,14 +49,14 @@ tcp_tuning_menu() {
         
         # 头部状态栏：简单显示是否已应用脚本优化
         if [[ -f "$SYSCTL_CUSTOM_FILE" ]]; then
-            print_echo "   优化状态: ${GREEN}已应用 (Custom Profile)${NC}"
+            print_echo "优化状态: ${GREEN}已应用 (Custom Profile)${NC}"
         else
-            print_echo "   优化状态: ${GRAY}系统默认 (Default)${NC}"
+            print_echo "优化状态: ${GRAY}系统默认 (Default)${NC}"
         fi
 
         print_line
 
-        print_menu_item -r 1 -p 0 -i 1 -s 2 -m "应用高性能配置"
+        print_menu_item -r 1 -p 0 -i 1 -s 2 -m "TCP 调优"
         print_menu_item -r 2 -p 0 -i 2 -s 2 -m "查看生效参数"
         print_menu_item -r 3 -p 0 -i 3 -s 2 -m "手动备份当前配置"
         print_menu_item -r 4 -p 0 -i 4 -s 2 -m "备份文件列表"
@@ -79,7 +79,7 @@ tcp_tuning_menu() {
                 return
                 ;;
             *)
-                print_error "无效选项"
+                print_error -m "无效选项，请重新输入"
                 sleep 1
                 ;;
         esac

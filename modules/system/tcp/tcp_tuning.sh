@@ -52,67 +52,196 @@ _perform_backup() {
         if [[ "$tag" == "manual" ]]; then
              print_success "备份已创建: ${filename}"
         else
-             # 自动备份静默执行，或者只打印一行小字
+             # 自动备份静默执行，只打印一行小字
              print_echo "${GRAY}   [系统] 已自动创建配置备份: ${filename}${NC}"
         fi
     fi
 }
 
-# ------------------------------------------------------------------------------
-# 逻辑 1: 应用高性能配置 (含自动备份 & BBR 检查)
-# ------------------------------------------------------------------------------
-apply_performance_tuning() {
-    print_clear
-    print_box_info -m "应用 TCP 高性能调优配置"
+# ==============================================================================
+# 辅助函数: 确保 Swap 容量 (兜底神器)
+# ==============================================================================
+_ensure_swap_capability() {
+    local target_swap_mb="$1" # 期望的 swap 大小，例如 1024
     
-    # --- 步骤 1: 强制自动备份 ---
-    print_step "正在执行安全备份..."
+    # 获取当前 Swap (MB)
+    local current_swap_kb
+    current_swap_kb=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+    local current_swap_mb=$((current_swap_kb / 1024))
+    
+    # 如果当前 Swap 足够大 (例如大于 900MB 就算达标)，直接返回
+    if (( current_swap_mb >= (target_swap_mb - 100) )); then
+        return 0
+    fi
+    
+    print_warn "当前模式需要至少 ${target_swap_mb}MB Swap 兜底 (当前: ${current_swap_mb}MB)"
+    print_step "正在调用 Swap 模块进行自动补全..."
+    
+    local swap_script="${BASE_DIR}/modules/system/memory/swap.sh"
+    if [[ -f "$swap_script" ]]; then
+        # shellcheck disable=SC1090
+        source "$swap_script"
+        # 调用 swap.sh 的 create 函数
+        swap_create "$target_swap_mb"
+    else
+        print_error "未找到 Swap 脚本，无法自动补全！存在 OOM 风险。"
+        print_echo "建议手动先去【基础工具】开启 Swap。"
+        sleep 3
+    fi
+}
+
+# ==============================================================================
+# 1. TCP 调优
+# ==============================================================================
+apply_performance_tuning() {
+    while true; do
+        print_clear
+        print_box_info -m "选择 TCP 调优模式"
+        
+        print_echo "${BOLD_CYAN}1. 暴力模式 (Force High Performance)${NC}"
+        print_echo "   - 适用: 你明确知道自己在做什么，或者追求极致速度。"
+        print_echo "   - 策略: 强制使用 64MB 大缓冲区 (Oracle标准)。"
+        print_echo "   - 保障: 脚本会自动检测并创建 Swap 以防止 OOM。"
+        print_line
+        
+        print_echo "${BOLD_CYAN}2. 智能激进模式 (Smart Aggressive)${NC}"
+        print_echo "   - 适用: 不确定 VPS 配置，希望系统自动判断最优解。"
+        print_echo "   - 策略: 根据内存动态调整。小内存给足(激进)，大内存拉满。"
+        print_echo "   - 保障: 自动平衡资源占用与网络性能。"
+        print_line
+        
+        local mode
+        mode=$(read_choice -m "请选择模式 [1/2]（输入 0 退出）" -s 2)
+        
+        case "$mode" in
+            1) _apply_profile_force_high ;;
+            2) _apply_profile_smart ;;
+            0)
+                return
+                ;;
+            *)
+                print_error -m "无效选项，请重新输入"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# ==============================================================================
+# 辅助: 写入系统级 Limit (ulimit/systemd)
+# 作用: 确保程序能打开足够多的文件句柄 (100万)
+# ==============================================================================
+_optimize_system_limits() {
+    print_step "正在解除系统最大文件打开数限制 (ulimit)..."
+    
+    # 1. 修改 limits.conf (对普通进程生效)
+    if grep -q "soft nofile" /etc/security/limits.conf; then
+        sed -i '/soft nofile/d' /etc/security/limits.conf
+        sed -i '/hard nofile/d' /etc/security/limits.conf
+    fi
+    echo "* soft nofile 1000000" >> /etc/security/limits.conf
+    echo "* hard nofile 1000000" >> /etc/security/limits.conf
+    echo "root soft nofile 1000000" >> /etc/security/limits.conf
+    echo "root hard nofile 1000000" >> /etc/security/limits.conf
+
+    # 2. 修改 systemd 全局配置 (对服务进程生效)
+    local sys_conf="/etc/systemd/system.conf"
+    local user_conf="/etc/systemd/user.conf"
+
+    for conf in "$sys_conf" "$user_conf"; do
+        if [[ -f "$conf" ]]; then
+            sed -i '/DefaultLimitNOFILE/d' "$conf"
+            echo "DefaultLimitNOFILE=1000000" >> "$conf"
+        fi
+    done
+    
+    # 3. 实时生效当前 Shell (防止报错)
+    ulimit -n 1000000 2>/dev/null || true
+}
+
+# ==============================================================================
+# 核心通用: 写入 Sysctl 配置文件 (接收动态参数)
+# ==============================================================================
+_write_sysctl_config() {
+    local p_name="$1"
+    local p_rmem="$2"      # TCP 读缓冲区
+    local p_wmem="$3"      # TCP 写缓冲区
+    local p_min_free="$4"  # 内存预留
+    local p_conntrack="$5" # 连接追踪数
+
+    # --- 1. 强制备份 ---
+    print_step "执行安全备份..."
     _perform_backup "auto"
     
-    # --- 步骤 2: BBR 支持检查 ---
+    # --- 2. 解锁系统 Limits ---
+    _optimize_system_limits
+    
+    # --- 3. BBR 检查 ---
     local enable_bbr=true
     if ! _check_kernel_support_bbr; then
-        print_warn "当前内核版本较低 (< 4.9)，不支持开启 BBR。"
-        print_echo "脚本将仅应用 TCP 缓冲区优化，跳过 BBR 设置。"
+        print_warn "内核不支持 BBR，仅优化 TCP 参数。"
         enable_bbr=false
-        sleep 2
     fi
 
-    print_step "正在写入优化配置文件..."
+    # --- 4. 预加载内核模块 ---
+    print_step "正在预加载内核模块..."
+    modprobe nf_conntrack 2>/dev/null || true
+    modprobe nf_conntrack_ipv4 2>/dev/null || true
+    modprobe nf_conntrack_ipv6 2>/dev/null || true
+
+    print_step "正在写入内核配置: $(echo -e "$p_name" | sed 's/\x1b\[[0-9;]*m//g')..."
     
-    # 开始构建文件内容
     cat > "$SYSCTL_CUSTOM_FILE" << EOF
 # ============================================================
-# VpsScriptKit TCP Tuning (Generated at $(date))
+# VpsScriptKit TCP Tuning
+# 策略: $(echo -e "$p_name" | sed 's/\x1b\[[0-9;]*m//g')
+# 时间: $(date)
 # ============================================================
+
+# --- 系统级打开文件数 (100万) ---
+fs.file-max = 1000000
+fs.inotify.max_user_instances = 8192
 
 # --- 系统稳定性 ---
 kernel.pid_max = 65535
-# OOM 时优先杀进程而非重启系统
 vm.panic_on_oom = 0
-vm.swappiness = 10
-# 预留 128MB 内存，保证 SSH 和关键服务存活
-vm.min_free_kbytes = 131072
+vm.swappiness = 20
+vm.min_free_kbytes = $p_min_free
 
-# --- TCP 缓冲区 (必须与 Oracle 对齐) ---
-net.core.rmem_max = 67108864
-net.core.wmem_max = 67108864
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
+# --- TCP 缓冲区 (动态: $((p_rmem/1024/1024)) MB) ---
+net.core.rmem_max = $p_rmem
+net.core.wmem_max = $p_wmem
+net.ipv4.tcp_rmem = 4096 87380 $p_rmem
+net.ipv4.tcp_wmem = 4096 65536 $p_wmem
 net.ipv4.tcp_window_scaling = 1
 
-# --- 低延迟核心参数 ---
-net.ipv4.tcp_notsent_lowat = 16384
+# --- 连接追踪与并发 (动态: $p_conntrack) ---
+# 防火墙连接表大小 (已移除过时的 ipv4.netfilter 参数)
+net.netfilter.nf_conntrack_max = $p_conntrack
+# 连接超时优化
+net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 30
+net.netfilter.nf_conntrack_tcp_timeout_time_wait = 30
+net.netfilter.nf_conntrack_tcp_timeout_close_wait = 15
+net.netfilter.nf_conntrack_tcp_timeout_established = 300
 
-# --- 转发与并发性能 ---
+# --- ARP 缓存 ---
+net.ipv4.neigh.default.gc_thresh1 = 512
+net.ipv4.neigh.default.gc_thresh2 = 2048
+net.ipv4.neigh.default.gc_thresh3 = 4096
+
+# --- 端口范围 (扩大) ---
+net.ipv4.ip_local_port_range = 10000 65535
+
+# --- 低延迟与转发 ---
+net.ipv4.tcp_notsent_lowat = 16384
 net.ipv4.ip_forward = 1
 net.core.netdev_max_backlog = 16384
 net.core.somaxconn = 16384
 net.ipv4.tcp_max_syn_backlog = 8192
 
-# --- 连接回收机制 ---
+# --- 连接回收 ---
 net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_max_tw_buckets = 32768
+net.ipv4.tcp_max_tw_buckets = 16384
 net.ipv4.tcp_fin_timeout = 30
 
 # --- 协议栈特性 ---
@@ -122,31 +251,106 @@ net.ipv4.tcp_sack = 1
 net.ipv4.tcp_dsack = 1
 EOF
 
-    # --- 步骤 3: 如果支持 BBR，追加配置并加载模块 ---
+    # --- 5. 追加拥塞控制 ---
     if [ "$enable_bbr" = true ]; then
         cat >> "$SYSCTL_CUSTOM_FILE" << EOF
 
-# --- 核心 BBR 拥塞控制 ---
+# --- BBR 拥塞控制 ---
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 EOF
-        # 尝试加载模块
         modprobe tcp_bbr >/dev/null 2>&1
+        echo "tcp_bbr" > /etc/modules-load.d/bbr.conf 2>/dev/null
+    else
+        cat >> "$SYSCTL_CUSTOM_FILE" << EOF
+
+# --- Cubic 拥塞控制 (Fallback) ---
+net.core.default_qdisc = fq_codel
+net.ipv4.tcp_congestion_control = cubic
+EOF
     fi
 
-    # --- 步骤 4: 应用参数 ---
-    print_step "正在重载内核参数..."
-    if sysctl -p "$SYSCTL_CUSTOM_FILE" >/dev/null 2>&1; then
-        print_success "高性能优化已生效！"
-        if [ "$enable_bbr" = true ]; then
-            print_echo "   拥塞控制: ${GREEN}BBR 已开启${NC}"
-        else
-            print_echo "   拥塞控制: ${YELLOW}未开启 (内核不支持)${NC}"
-        fi
+    # --- 6. 重新加载 (带错误捕获) ---
+    local apply_output
+    if apply_output=$(sysctl -p "$SYSCTL_CUSTOM_FILE" 2>&1); then
+        print_success "调优成功！"
+        echo -e "   当前策略: $p_name"
+        echo -e "   最大连接数(Conntrack): ${CYAN}$p_conntrack${NC}"
+        echo -e "   系统句柄(File-Max): ${CYAN}1,000,000${NC}"
     else
-        print_error "应用部分参数失败，请检查系统日志。"
+        print_error "应用失败！内核拒绝了部分参数。"
+        print_line
+        echo -e "${YELLOW}=== 错误详情 (Sysctl Error) ===${NC}"
+        # 只显示报错的行
+        echo "$apply_output" | grep "error" -A 1 || echo "$apply_output"
+        print_line
+        echo -e "${ICON_TIP} 提示: 这通常是因为 VPS 虚拟化架构限制 (如 OpenVZ/LXC) 或内核模块未加载。"
     fi
     print_wait_enter
+}
+
+# ------------------------------------------------------------------------------
+# 模式 A: 暴力模式 (Force High)
+# ------------------------------------------------------------------------------
+_apply_profile_force_high() {
+    print_clear
+    print_box_info -m "正在应用: 暴力高性能模式"
+    
+    # 暴力模式: 必须有 1G Swap
+    _ensure_swap_capability 1024
+    
+    # 参数定义
+    local tcp_rmem_max=67108864   # 64MB 缓冲
+    local tcp_wmem_max=67108864
+    local min_free_kb=65536       # 64MB 预留
+    local conntrack_max=1000000   # 100万连接追踪 (暴力拉满)
+    
+    local profile_name="${RED}暴力高性能 (Force High)${NC}"
+
+    # 传递 5 个参数
+    _write_sysctl_config "$profile_name" "$tcp_rmem_max" "$tcp_wmem_max" "$min_free_kb" "$conntrack_max"
+}
+
+# ------------------------------------------------------------------------------
+# 模式 B: 智能激进模式 (Smart Aggressive)
+# ------------------------------------------------------------------------------
+_apply_profile_smart() {
+    print_clear
+    print_box_info -m "正在应用: 智能激进模式"
+    
+    local mem_total_kb
+    mem_total_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    local mem_total_mb=$((mem_total_kb / 1024))
+    
+    local tcp_rmem_max tcp_wmem_max min_free_kb conntrack_max profile_name
+
+    # 判定逻辑 (分界线 900MB)
+    if (( mem_total_mb >= 900 )); then
+        # [大内存 > 900MB]
+        print_echo "检测到内存 > 900MB，启用高性能配置。"
+        _ensure_swap_capability 1024
+        
+        tcp_rmem_max=67108864  # 64MB
+        tcp_wmem_max=67108864
+        min_free_kb=131072     # 128MB 预留
+        conntrack_max=524288   # 52万连接 (比100万安全，省点内存)
+        
+        profile_name="${GREEN}🚀 智能高性能 (Smart High)${NC}"
+    else
+        # [小内存 < 900MB]
+        print_echo "检测到小内存，启用激进平衡配置。"
+        _ensure_swap_capability 1024
+        
+        tcp_rmem_max=16777216  # 16MB (足够跑满 G 口)
+        tcp_wmem_max=16777216
+        min_free_kb=65536      # 64MB 预留
+        conntrack_max=65536    # 6.5万连接 (小内存安全线，再大容易 OOM)
+        
+        profile_name="${YELLOW}⚡ 智能优化 (Smart Balanced)${NC}"
+    fi
+    
+    # 传递 5 个参数
+    _write_sysctl_config "$profile_name" "$tcp_rmem_max" "$tcp_wmem_max" "$min_free_kb" "$conntrack_max"
 }
 
 # ------------------------------------------------------------------------------
@@ -193,26 +397,152 @@ manual_backup_config() {
 }
 
 # ------------------------------------------------------------------------------
-# 逻辑 4: 查看生效参数 (BBR + 关键参数)
+# 逻辑 4: 查看生效参数 (支持颜色代码的完美对齐版)
 # ------------------------------------------------------------------------------
 view_tuning_status() {
     print_clear
-    print_box_header "当前网络参数状态"
     
+    # --- 1. 升级版对齐算法 (自动剥离颜色) ---
+    # 参数: $1=文本内容, $2=目标宽度
+    # 返回: 应该填充的空格字符串
+    get_pad() {
+        local text="$1"
+        local target_width="$2"
+        
+        # 剥离所有颜色代码，再计算长度
+        local clean_text
+        clean_text=$(echo -e "$text" | sed "s/\x1b\[[0-9;]*m//g")
+        
+        local char_len=${#clean_text}
+        local byte_len
+        byte_len=$(printf "%s" "$clean_text" | wc -c)
+        
+        # 视觉宽度 ≈ 字符数 + (字节数 - 字符数) / 2
+        local v_len=$(( char_len + (byte_len - char_len) / 2 ))
+        
+        local fill_len=$(( target_width - v_len ))
+        [[ $fill_len -lt 1 ]] && fill_len=1
+        
+        printf "%*s" "$fill_len" ""
+    }
+
+    # --- 2. 单位转换工具 ---
+    calc_mb() {
+        local val="$1"
+        local clean_val
+        clean_val=$(echo "$val" | tr -cd '0-9')
+        if [[ -n "$clean_val" && "$clean_val" -gt 1024 ]]; then
+            echo "$((clean_val / 1024 / 1024)) MB"
+        else
+            echo "$val"
+        fi
+    }
+    
+    calc_kb_mb() {
+        local val="$1"
+        local clean_val
+        clean_val=$(echo "$val" | tr -cd '0-9')
+        if [[ -n "$clean_val" && "$clean_val" -gt 1024 ]]; then
+            echo "$((clean_val / 1024)) MB"
+        else
+            echo "$val"
+        fi
+    }
+
+    get() {
+        local val
+        val=$(sysctl -n "$1" 2>/dev/null)
+        if [[ -z "$val" ]]; then echo "N/A"; else echo "$val"; fi
+    }
+
+    # --- 3. 准备数据 ---
     local cc
-    cc=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null)
-    print_echo "${BOLD_CYAN}拥塞控制 (Congestion):${NC} ${cc}"
+    cc=$(get net.ipv4.tcp_congestion_control)
+    local qdisc
+    qdisc=$(get net.core.default_qdisc)
+    local ip_fwd
+    ip_fwd=$(get net.ipv4.ip_forward)
+    local fastopen
+    fastopen=$(get net.ipv4.tcp_fastopen)
     
-    print_echo "${BOLD_CYAN}队列调度 (Qdisc):${NC} $(sysctl -n net.core.default_qdisc 2>/dev/null)"
-    print_echo "${BOLD_CYAN}IP 转发 (Forward):${NC} $(sysctl -n net.ipv4.ip_forward 2>/dev/null)"
-    print_echo "${BOLD_CYAN}发送缓冲区 (Wmem Max):${NC} $(sysctl -n net.core.wmem_max 2>/dev/null)"
+    local file_max
+    file_max=$(get fs.file-max)
+    local ct_max
+    ct_max=$(get net.netfilter.nf_conntrack_max)
+    local somax
+    somax=$(get net.core.somaxconn)
+    local port_range
+    port_range=$(get net.ipv4.ip_local_port_range)
     
-    print_line
-    if [[ "$cc" == "bbr" ]]; then
-        print_echo "${GREEN}✔ BBR 正在运行中${NC}"
+    local rmem
+    rmem=$(calc_mb "$(get net.core.rmem_max)")
+    local wmem
+    wmem=$(calc_mb "$(get net.core.wmem_max)")
+    local min_free
+    min_free=$(calc_kb_mb "$(get vm.min_free_kbytes)")
+    local swappiness
+    swappiness=$(get vm.swappiness)
+    
+    local reuse
+    reuse=$(get net.ipv4.tcp_tw_reuse)
+    local fin_to
+    fin_to=$(get net.ipv4.tcp_fin_timeout)
+    local sack
+    sack=$(get net.ipv4.tcp_sack)
+    local tw_buckets
+    tw_buckets=$(get net.ipv4.tcp_max_tw_buckets)
+
+    # --- 4. 渲染逻辑 ---
+    local L_W=16 
+    local V_W=20
+
+    print_row() {
+        local l1="$1" v1="$2" l2="$3" v2="$4"
+        
+        # 计算填充
+        local p1
+        p1=$(get_pad "$l1" $L_W)
+        local p2
+        p2=$(get_pad "$v1" $V_W)
+        local p3
+        p3=$(get_pad "$l2" $L_W)
+        
+        printf "   ${WHITE}%s${NC}%s${CYAN}%s${NC}%s   ${WHITE}%s${NC}%s${CYAN}%s${NC}\n" \
+            "$l1" "$p1" "$v1" "$p2" "$l2" "$p3" "$v2"
+    }
+
+    print_box_header "当前系统内核参数状态 (System Parameters)"
+    
+    # ▶ 核心控制
+    print_echo "${BOLD_YELLOW}${ICON_NAV} 核心控制 (Core & Congestion)${NC}"
+    print_row "拥塞控制:" "$cc" "队列调度:" "$qdisc"
+    print_row "IP转发:"   "$ip_fwd" "快速打开:" "$fastopen"
+    print_line -c "─" -C "${GRAY}"
+
+    # ▶ 容量限制
+    print_echo "${BOLD_YELLOW}${ICON_NAV} 容量限制 (Capacity & Limits)${NC}"
+    print_row "系统文件句柄:" "$file_max" "连接追踪上限:" "$ct_max"
+    print_row "监听队列:"     "$somax"    "本地端口范围:" "$port_range"
+    print_line -c "─" -C "${GRAY}"
+
+    # ▶ 内存与缓冲
+    print_echo "${BOLD_YELLOW}${ICON_NAV} 内存与缓冲 (Memory & Buffers)${NC}"
+    print_row "接收缓冲(Rmem):" "$rmem" "发送缓冲(Wmem):" "$wmem"
+    print_row "内存预留:"       "$min_free" "Swap积极性:"   "$swappiness"
+    print_line -c "─" -C "${GRAY}"
+
+    # ▶ 协议特性
+    print_echo "${BOLD_YELLOW}${ICON_NAV} 协议特性 (Features & Recycle)${NC}"
+    print_row "TimeWait重用:" "$reuse" "FIN超时时间:" "${fin_to}s"
+    print_row "SACK确认:"     "$sack"  "TW桶最大值:"  "$tw_buckets"
+    print_line -c "─" -C "${GRAY}"
+    
+    if [[ "$cc" == *bbr* ]]; then
+         print_echo "${GREEN}✔ BBR 拥塞控制正在运行中${NC}"
     else
-        print_echo "${YELLOW}✖ BBR 未运行${NC}"
+         print_echo "${RED}✖ BBR 未激活${NC} ${YELLOW}(当前使用: $cc)${NC}"
     fi
+
     print_wait_enter
 }
 
@@ -227,7 +557,6 @@ manage_backups() {
     print_line
     
     # 检查目录下是否有匹配 sysctl_ 的文件，避免 ls 报错
-    # 这里的 glob 会自动扩展，如果找不到文件，ls 会报错到 /dev/null
     if ! ls "$BACKUP_DIR"/sysctl_* 1> /dev/null 2>&1; then
         print_echo "${GRAY}   (暂无备份文件)${NC}"
     else
@@ -235,16 +564,9 @@ manage_backups() {
         printf "   ${BOLD_CYAN}%-45s %-10s %-20s${NC}\n" "文件名" "大小" "创建时间"
         
         # --- 2. 打印分割线 ---
-        print_echo "${GRAY}   -----------------------------------------------------------------------------${NC}"
+        print_line -c "-" -C "${GRAY}"
         
-        # --- 3. 打印数据 (优化版) ---
-        # 核心修改：直接列出目标文件 "$BACKUP_DIR"/sysctl_*
-        # awk 说明：$8=文件名(ls全路径需要处理), $5=大小, $6$7=时间
-        # 为了只显示文件名而不是全路径，awk 中使用了 split 或者是 basename 的逻辑，
-        # 但由于 ls -lh 输出的是纯文件名(不带路径)吗？取决于 ls 的行为。
-        # ls -lh 加上路径参数时，通常会输出全路径。
-        # 所以这里最稳妥的方式是先 cd 进去，或者用 awk 处理路径。
-        
+        # --- 3. 打印数据 ---
         (cd "$BACKUP_DIR" && ls -lh --time-style=long-iso sysctl_* 2>/dev/null) | \
         sort -r | head -n 10 | \
         awk '{printf "   %-42s %-8s %s %s\n", $8, $5, $6, $7}'
@@ -252,12 +574,7 @@ manage_backups() {
         print_line
         
         # --- 4. 底部提示 ---
-        # 场景 A: 不需要 # 号 (你现在的代码)
         print_box_header_tip "$(print_spaces 1)✦$(print_spaces 1)如需恢复特定备份，请使用 cat 命令覆盖 /etc/sysctl.conf"
-        
-        # 场景 B: 如果你想要 # 号，就写成: 
-        # print_box_header_tip -h " 这是一个带井号的提示"
-
         print_echo "   例如: cat .../文件名 > /etc/sysctl.conf && sysctl -p"
     fi
     
@@ -291,7 +608,6 @@ delete_backup() {
         # 获取纯文件名
         local filename
         filename=$(basename "$filepath")
-        # 显示格式: [1] sysctl_xxx.conf
         print_echo "   [${i}] ${filename}"
         ((i++))
     done
