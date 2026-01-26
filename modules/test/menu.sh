@@ -12,13 +12,15 @@
 #
 # @许可证:       MIT
 # ============================================================
+# shellcheck disable=SC1091
+source "${BASE_DIR}/modules/basic/tmux/tmux.sh"
 
 test_menu() {
     while true; do
 
         print_clear
 
-        print_box_header "${ICON_TEST}$(print_spaces 1)测试脚本工具"
+        print_box_header "${ICON_TEST}$(print_spaces 1)测试脚本合集 (Benchmark Suite)"
 
         print_line
         print_menu_item -r 1 -p 0 -i 1 -s 2 -m "IP 质量测试 ${BOLD_GREY}(https://github.com/xykt/IPQuality)${NC}"
@@ -44,42 +46,32 @@ test_menu() {
         case "$choice" in
             1)
                 print_clear
-                print_step "正在运行 IP 质量检测..."
-                print_blank
-                bash <(curl -sL https://Check.Place) -I
+                run_in_tmux_guard "IP 质量检测..." "bash <(curl -sL https://Check.Place) -I"
                 print_wait_enter
                 ;;
 
             2)
                 print_clear
-                print_step "正在运行 NetQuality 网络质量检测..."
-                print_blank
-                bash <(curl -sL https://Check.Place) -N
+                run_in_tmux_guard "NetQuality 网络质量检测..." "bash <(curl -sL https://Check.Place) -N"
                 print_wait_enter
                 ;;
 
             31)
                 print_clear
-                print_step "正在运行 bench 性能测试..."
-                print_blank
-                curl -Lso- bench.sh | bash
+                run_in_tmux_guard "bench 性能测试..." "curl -Lso- bench.sh | bash"
                 print_wait_enter
                 ;;
 
             32)
-                ul clear
-                print_step "正在运行 spiritysdx 融合怪测评..."
-                curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
-                print_blank
+                print_clear
+                local cmd="curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh"
+                run_in_tmux_guard "spiritysdx 融合怪测评..." "$cmd"
                 print_wait_enter
                 ;;
 
             91)
                 print_clear
-                # sudo apt-get install virt-what
-                bash <(curl -L https://run.NodeQuality.com)
-                print_blank
-
+                run_in_tmux_guard "Node Quality 综合脚本..." "bash <(curl -L https://run.NodeQuality.com)"
                 print_wait_enter
                 ;;
 

@@ -120,7 +120,7 @@ firewall_block_countries() {
             iptables -I INPUT 2 -m set --match-set "$set_name" src -j DROP
             print_success "已添加拦截规则: ${country^^} (Priority: 2)"
         else
-            print_info "规则已存在: ${country^^}"
+            print_info -m "规则已存在: ${country^^}"
         fi
     done
 
@@ -204,7 +204,7 @@ firewall_allow_countries_only() {
     fi
 
     if [[ -n "$current_ip" ]]; then
-        print_info "已自动识别当前管理 IP: ${BOLD_GREEN}${current_ip}${NC}"
+        print_info -m "已自动识别当前管理 IP: ${BOLD_GREEN}${current_ip}${NC}"
         trusted_ips+=("$current_ip")
     fi
 
@@ -317,7 +317,7 @@ firewall_allow_countries_only() {
 
     _iptables_save_persistence
     print_success "白名单严格模式已生效！"
-    print_info "逻辑已更新：流量 -> COUNTRY_GUARD 链 (特权IP? 国家白名单? 否则DROP) -> 允许 SSH"
+    print_info -m "逻辑已更新：流量 -> COUNTRY_GUARD 链 (特权IP? 国家白名单? 否则DROP) -> 允许 SSH"
 }
 
 # ------------------------------------------------------------------------------
@@ -398,7 +398,7 @@ firewall_unblock_specific_country() {
         # 先删规则
         if iptables -C INPUT -m set --match-set "$set_name" src -j DROP 2>/dev/null; then
             iptables -D INPUT -m set --match-set "$set_name" src -j DROP
-            print_info "已移除防火墙规则"
+            print_info -m "已移除防火墙规则"
         fi
 
         # 再销毁集合
@@ -536,7 +536,7 @@ firewall_list_country_rules() {
         return
     fi
 
-    print_info "正在扫描 IPSET 集合与 IPTABLES 规则..."
+    print_info -m "正在扫描 IPSET 集合与 IPTABLES 规则..."
     print_line
 
     # 1. 扫描黑名单集合 (以 block_ 开头)
@@ -615,7 +615,7 @@ firewall_list_country_rules() {
 
     # --- 兜底 ---
     if [[ "$found_any" -eq 0 ]]; then
-        print_info "当前没有配置任何基于国家的 IP 限制规则。"
+        print_info -m "当前没有配置任何基于国家的 IP 限制规则。"
     fi
 }
 

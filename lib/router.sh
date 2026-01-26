@@ -28,17 +28,21 @@ router_main() {
 
     case "$choice" in
         1)
-            # 系统工具模块
+            # 系统工具
+            # shellcheck disable=SC1091
             source "${BASE_DIR}/modules/system/menu.sh"
             system_menu
             ;;
         2)
-            # 基础工具模块
+            # 常用工具箱 (Tools Manager)  <-- 这里放 Tmux、Docker、Zsh 等需要“交互/管理”的
+            # shellcheck disable=SC1091
             source "${BASE_DIR}/modules/basic/menu.sh"
             basic_menu 
             ;;
         3)
+            # 软件安装中心(Software Installer) <-- 这里放 curl, wget, git, vim 的纯安装/卸载
             # 进阶工具模块
+            # shellcheck disable=SC1091
             source "${BASE_DIR}/modules/advanced/menu.sh"
             advanced_menu
             ;;

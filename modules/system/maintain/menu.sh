@@ -50,7 +50,7 @@ maintain_menu() {
 
         print_clear
 
-        print_box_header  "${ICON_UPDATE}$(print_spaces 1)VpsScriptKit 系统更新中心"
+        print_box_header  "${ICON_UPDATE}$(print_spaces 1)脚本更新中心 (Update Center)"
 
         # --- 版本状态看板 ---
         print_echo "${BOLD_CYAN}当前版本:${NC}  ${BOLD_CYAN}v${V_LOCAL}${NC}"

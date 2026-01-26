@@ -36,7 +36,7 @@ system_menu() {
 
         print_clear
         
-        print_box_header "${ICON_GEAR}$(print_spaces 1)系统工具"
+        print_box_header "${ICON_GEAR}$(print_spaces 1)系统工具 (System Utilities)"
         print_line
         print_menu_item -r 1 -p 0 -s 2 -i 1 -m "系统信息查询" -I star
         print_menu_item -r 1 -p 12 -i 2 -m "系统更新"

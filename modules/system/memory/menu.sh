@@ -14,6 +14,7 @@
 # ******************************************************************************
 # 引入依赖模块
 # ******************************************************************************
+# shellcheck disable=SC1091
 source "${BASE_DIR}/modules/system/memory/swap.sh"
 source "${BASE_DIR}/lib/system_mem.sh"
 
@@ -35,7 +36,7 @@ system_memory_menu() {
 
         print_clear
         
-        print_box_info --msg "${ICON_SWAP}$(print_spaces 1)内存 / Swap 管理"
+        print_box_info --msg "${ICON_SWAP}$(print_spaces 1)内存 / Swap 管理 (Memory & Swap Manager)"
 
         swap_status
 

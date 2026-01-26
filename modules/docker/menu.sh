@@ -76,7 +76,7 @@ docker_menu() {
 
         print_clear
 
-        print_box_header "${ICON_DOCKER}$(print_spaces 1)Docker 管理"
+        print_box_header "${ICON_DOCKER}$(print_spaces 1)Docker 管理 (Docker Manager)"
 
         print_line
         print_echo "${BOLD_YELLOW}当前 Docker 环境: ${NC}$(get_docker_status_text)"

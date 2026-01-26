@@ -115,7 +115,7 @@ main() {
         print_menu_item -i 8 -s 2 -m "测试脚本合集" -I "$ICON_NAV" -T 2
         print_menu_item -i 9 -s 2 -m "节点搭建脚本" -I "$ICON_NAV" -T 2
         print_line
-        print_menu_item -i 99 -s 1 -m "脚本自管理" -I "$ICON_NAV" -T 2
+        print_menu_item -i 99 -s 1 -m "工具箱设置" -I "$ICON_NAV" -T 2
         print_line -c "="  
         print_menu_item -i 0 -s 2 -m "退出程序"
         print_line -c "="  
