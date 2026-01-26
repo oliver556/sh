@@ -36,7 +36,7 @@ system_memory_menu() {
 
         print_clear
         
-        print_box_info --msg "${ICON_SWAP}$(print_spaces 1)内存 / Swap 管理 (Memory & Swap Manager)"
+        print_box_info --msg "${ICON_GEAR}$(print_spaces 1)内存 / Swap 管理 (Memory & Swap Manager)"
 
         swap_status
 

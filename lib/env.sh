@@ -67,7 +67,7 @@ declare -rx ICON_TEST="⧗"           # 测试脚本
 #     declare -rx PURPLE=$(tput setaf 5)    # 紫色 (强调/特殊)
 #     declare -rx CYAN=$(tput setaf 6)      # 青色 (调试/路径)
 #     declare -rx WHITE=$(tput setaf 7)     # 白色 (正文)
-#     declare -rx GREY=$(tput setaf 8)     # 灰色 (正文)
+#     declare -rx GRAY=$(tput setaf 8)     # 灰色 (正文)
 
 #     declare -rx BOLD=$(tput bold)         # 加粗 (用于标题/重点)
 #     declare -rx DIM=$(tput dim)           # 暗淡 (用于次要信息/注释)
@@ -80,7 +80,7 @@ declare -rx ICON_TEST="⧗"           # 测试脚本
 #     declare -rx BOLD_BLUE="${BOLD}${BLUE}"
 #     declare -rx BOLD_CYAN="${BOLD}${CYAN}"
 #     declare -rx BOLD_WHITE="${BOLD}${WHITE}"
-#     declare -rx BOLD_GREY="${BOLD}${GREY}"
+#     declare -rx BOLD_GREY="${BOLD}${GRAY}"
 # }
 
 # ******************************************************************************

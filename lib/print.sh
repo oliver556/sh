@@ -763,10 +763,23 @@ print_box_header() {
 #   print_box_header_tip "注意：此操作不可逆"
 # ------------------------------------------------------------------------------
 print_box_header_tip() {
-    local tip
-    tip="$1"
+    local show_hash=false
 
-    print_echo "${BOLD_YELLOW}# ${tip}${NC}"
+    # 1. 检查第一个参数是不是开关
+    if [[ "$1" == "-h" || "$1" == "--hash" ]]; then
+        show_hash=true
+        shift 1
+    fi
+
+    # 2. 获取剩余所有参数作为提示语
+    local tip="$*" 
+
+    # 3. 输出
+    if [[ "$show_hash" == "true" ]]; then
+        print_echo "${BOLD_YELLOW}# ${tip}${NC}"
+    else
+        print_echo "${BOLD_YELLOW}${tip}${NC}"
+    fi
 }
 
 # ******************************************************************************

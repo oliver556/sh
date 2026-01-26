@@ -107,7 +107,7 @@ main() {
     while true; do
         print_clear
         print_box_header "▣$(print_spaces 1)Linux 脚本工具箱！ v$VSK_VERSION"
-        print_box_header_tip "$(print_spaces 1)✦$(print_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
+        print_box_header_tip -h "$(print_spaces 1)✦$(print_spaces 1)命令行输入${GREEN} v ${YELLOW}可快速启动脚本"
         print_line
         print_menu_item -i 1 -s 2 -m "系统工具" -I "$ICON_NAV" -T 2
         print_menu_item -i 2 -s 2 -m "基础工具" -I "$ICON_NAV" -T 2

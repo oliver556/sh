@@ -51,6 +51,7 @@ system_menu() {
         print_menu_item -r 7 -p 0 -s 2 -i 7 -m "修改SSH端口"
         print_menu_item -r 7 -p 14 -i 8 -m "优化DNS地址"
         print_menu_item -r 9 -p 0 -s 2 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
+        print_menu_item -r 9 -p 2 -i 10 -m "TCP调优" -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_line
@@ -109,6 +110,11 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_dns.sh"
                 guard_change_dns
+                ;;
+            10)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/tcp/menu.sh"
+                tcp_tuning_menu
                 ;;
             11)
                 # shellcheck disable=SC1091
