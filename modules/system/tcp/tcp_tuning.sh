@@ -20,7 +20,7 @@ BACKUP_DIR="/root/vpsscriptkit_backups/sysctl"
 _check_kernel_support_bbr() {
     # 检查内核版本是否 >= 4.9
     local kernel_version
-    kernel_version=$(uname -r | cut -d. -f1,2) # 获取 5.15 这种格式
+    kernel_version=$(uname -r | cut -d. -f1,2)
     local major
     major=$(echo "$kernel_version" | cut -d. -f1)
     local minor
@@ -114,8 +114,16 @@ apply_performance_tuning() {
         mode=$(read_choice -m "请选择模式 [1/2]（输入 0 退出）" -s 2)
         
         case "$mode" in
-            1) _apply_profile_force_high ;;
-            2) _apply_profile_smart ;;
+            1) 
+                if _apply_profile_force_high; then
+                    return
+                fi
+                ;;
+            2)
+                if _apply_profile_smart; then
+                    return
+                fi
+            ;;
             0)
                 return
                 ;;
@@ -139,10 +147,13 @@ _optimize_system_limits() {
         sed -i '/soft nofile/d' /etc/security/limits.conf
         sed -i '/hard nofile/d' /etc/security/limits.conf
     fi
-    echo "* soft nofile 1000000" >> /etc/security/limits.conf
-    echo "* hard nofile 1000000" >> /etc/security/limits.conf
-    echo "root soft nofile 1000000" >> /etc/security/limits.conf
-    echo "root hard nofile 1000000" >> /etc/security/limits.conf
+
+    {
+        echo "* soft nofile 1000000"
+        echo "* hard nofile 1000000"
+        echo "root soft nofile 1000000"
+        echo "root hard nofile 1000000"
+    } >> /etc/security/limits.conf
 
     # 2. 修改 systemd 全局配置 (对服务进程生效)
     local sys_conf="/etc/systemd/system.conf"
@@ -189,12 +200,12 @@ _write_sysctl_config() {
     modprobe nf_conntrack_ipv4 2>/dev/null || true
     modprobe nf_conntrack_ipv6 2>/dev/null || true
 
-    print_step "正在写入内核配置: $(echo -e "$p_name" | sed 's/\x1b\[[0-9;]*m//g')..."
+    print_step "正在写入内核配置: $(print_echo "$p_name" | sed 's/\x1b\[[0-9;]*m//g')..."
     
     cat > "$SYSCTL_CUSTOM_FILE" << EOF
 # ============================================================
 # VpsScriptKit TCP Tuning
-# 策略: $(echo -e "$p_name" | sed 's/\x1b\[[0-9;]*m//g')
+# 策略: $(print_echo "$p_name" | sed 's/\x1b\[[0-9;]*m//g')
 # 时间: $(date)
 # ============================================================
 
@@ -270,21 +281,23 @@ net.ipv4.tcp_congestion_control = cubic
 EOF
     fi
 
-    # --- 6. 重新加载 (带错误捕获) ---
+    # --- 6. 重新加载 ---
     local apply_output
     if apply_output=$(sysctl -p "$SYSCTL_CUSTOM_FILE" 2>&1); then
         print_success "调优成功！"
-        echo -e "   当前策略: $p_name"
-        echo -e "   最大连接数(Conntrack): ${CYAN}$p_conntrack${NC}"
-        echo -e "   系统句柄(File-Max): ${CYAN}1,000,000${NC}"
+        print_echo "   当前策略: $p_name"
+        print_echo "   最大连接数(Conntrack): ${CYAN}$p_conntrack${NC}"
+        print_echo "   系统句柄(File-Max): ${CYAN}1,000,000${NC}"
+        print_wait_enter
+        return 0
     else
         print_error "应用失败！内核拒绝了部分参数。"
         print_line
-        echo -e "${YELLOW}=== 错误详情 (Sysctl Error) ===${NC}"
+        print_echo "${YELLOW}=== 错误详情 (Sysctl Error) ===${NC}"
         # 只显示报错的行
         echo "$apply_output" | grep "error" -A 1 || echo "$apply_output"
         print_line
-        echo -e "${ICON_TIP} 提示: 这通常是因为 VPS 虚拟化架构限制 (如 OpenVZ/LXC) 或内核模块未加载。"
+        print_echo "${ICON_TIP} 提示: 这通常是因为 VPS 虚拟化架构限制 (如 OpenVZ/LXC) 或内核模块未加载。"
     fi
     print_wait_enter
 }
@@ -411,7 +424,7 @@ view_tuning_status() {
         
         # 剥离所有颜色代码，再计算长度
         local clean_text
-        clean_text=$(echo -e "$text" | sed "s/\x1b\[[0-9;]*m//g")
+        clean_text=$(print_echo "$text" | sed "s/\x1b\[[0-9;]*m//g")
         
         local char_len=${#clean_text}
         local byte_len

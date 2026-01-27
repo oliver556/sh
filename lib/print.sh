@@ -913,7 +913,6 @@ print_menu_item() {
 
     # 6. 最终拼接输出
     # 结构: [编号][间隔][文本][文本填充][图标]
-    # 注意：text_padding_str 放在文本和图标中间
     local final_content="${BOLD_CYAN}${index}.${NC}${spacer}${text}${text_padding_str}${suffix}${NC}"
 
     if [[ -n "$row_id" ]] && [[ "$force_newline" == "false" ]]; then

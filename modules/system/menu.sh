@@ -42,25 +42,32 @@ system_menu() {
         print_menu_item -r 1 -p 12 -i 2 -m "系统更新"
         print_menu_item -r 2 -p 0 -s 2 -i 3 -m "系统清理"
         print_menu_item -r 2 -p 17 -i 4 -m "修改登录密码"
-        print_menu_item_done
+        # print_menu_item_done
 
-        print_line
+        # print_line
         print_menu_item -r 3 -p 0 -s 2 -i 5 -m "${BOLD_GREY}开启ROOT密码登录${NC}"
-        print_menu_item -r 3 -p 9 -i 6 -m "高级防火墙管理"
+        print_menu_item -r 3 -p 9 -i 6 -m "高级防火墙管理" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 7 -p 0 -s 2 -i 7 -m "修改SSH端口"
-        print_menu_item -r 7 -p 14 -i 8 -m "优化DNS地址"
+        print_menu_item -r 7 -p 14 -i 8 -m "优化DNS地址" -I "${ICON_NAV}" -T 2
         print_menu_item -r 9 -p 0 -s 2 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
-        print_menu_item -r 9 -p 2 -i 10 -m "TCP调优" -I "${ICON_NAV}" -T 2
+        print_menu_item_done
+        
+        print_line
+        print_menu_item -r 11 -p 0 -i 11 -m "虚拟内存管理" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 13 -p 0 -i 13 -m "内核与拥塞控制" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 13 -p 10 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_line
-        print_menu_item -r 11 -p 0 -i 11 -m "修改虚拟内存" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" -T 2 -I star
+        print_menu_item -r 31 -p 9 -i 32 -m "命令收藏夹" -T 2 -I star
+        
         print_menu_item_done
 
         print_line
-        print_menu_item -r 98 -p 0 -i 98 -m "一条龙系统调优"
-        print_menu_item -r 99 -p 0 -i 99 -m "一键重装系统"  -I "${ICON_NAV}" -T 2
+        print_menu_item -r 98 -p 0 -i 98 -m "一条龙系统调优" -T 2 -I star
+        print_menu_item -r 99 -p 0 -i 99 -m "一键重装系统" -T 2 -I star
         print_menu_item_done
 
         print_menu_go_level
@@ -111,7 +118,12 @@ system_menu() {
                 source "${BASE_DIR}/modules/system/network/change_dns.sh"
                 guard_change_dns
                 ;;
-            10)
+            13)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/kernel/menu.sh"
+                kernel_menu
+                ;;
+            14)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/tcp/menu.sh"
                 tcp_tuning_menu
