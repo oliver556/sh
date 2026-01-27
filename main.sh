@@ -41,7 +41,8 @@ trap 'error_handler $LINENO' ERR
 # 函数名: _cleanup
 # 功能:  捕捉错误的退出
 # 
-# 参数: 无
+# 参数:
+#   无
 # 
 # 返回值:
 #   0 - 错误时的信息提示
@@ -58,7 +59,8 @@ trap _cleanup SIGINT SIGTERM
 # 函数名: assert_bash_version
 # 功能:  Bash 版本检查
 # 
-# 参数: 无
+# 参数:
+#   无
 # 
 # 返回值:
 #   0 - 错误时的信息提示

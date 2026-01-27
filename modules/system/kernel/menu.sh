@@ -74,7 +74,7 @@ kernel_menu() {
         choice=$(read_choice)
 
         case "$choice" in
-            1) enable_bbrv3_smart ;;
+            1) if enable_bbrv3_smart; then print_wait_enter; fi ;;
             2) disable_bbrv3_smart ;;
             3)
                 # Teddysun (秋水逸冰) - 经典，兼容性好，支持 BBRPlus

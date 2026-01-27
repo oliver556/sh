@@ -374,6 +374,8 @@ modify_dns_task() {
 #   1 - 权限不足
 # ------------------------------------------------------------------------------
 guard_change_dns() {
+    print_clear
+    
     if ! check_root; then
         return 1
     fi

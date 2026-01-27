@@ -138,7 +138,7 @@ read_confirm() {
             return 1
             ;;
         *)
-            print_echo "操作已取消..."
+            print_info -m "操作已取消..."
             sleep 1
             return 1
             ;;

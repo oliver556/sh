@@ -39,7 +39,8 @@ check_supported_os() {
 # 函数名: check_root
 # 功能:   检查是否为 root（带提示）
 # 
-# 参数: 无
+# # 参数:
+#   无
 # 
 # 返回值:
 #   0 - 通过（root 用户）

@@ -60,14 +60,14 @@ system_menu() {
         print_menu_item_done
 
         print_line
-        print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" -T 2 -I star
-        print_menu_item -r 31 -p 10 -i 32 -m "命令收藏夹" -T 2 -I star
+        print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" "${ICON_NAV}" -T 2 -I star
+        print_menu_item -r 31 -p 8 -i 32 -m "命令收藏夹" -T 2 -I star
         
         print_menu_item_done
 
         print_line
-        print_menu_item -r 98 -p 0 -i 98 -m "一条龙系统调优" -T 2 -I star
-        print_menu_item -r 99 -p 0 -i 99 -m "一键重装系统" -T 2 -I star
+        print_menu_item -r 98 -p 0 -i 98 -m "一条龙系统调优" "${ICON_NAV}" -T 2 -I star
+        print_menu_item -r 99 -p 0 -i 99 -m "一键重装系统" "${ICON_NAV}" -T 2 -I star
         print_menu_item_done
 
         print_menu_go_level
@@ -110,7 +110,7 @@ system_menu() {
             7)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
-                guard_change_ssh_port
+                change_ssh_port
                 print_wait_enter
                 ;;
             8)

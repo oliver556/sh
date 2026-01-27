@@ -149,6 +149,8 @@ get_kernel_info() {
 # [新增] 智能逻辑: 一键开启 BBRv3
 # ==============================================================================
 enable_bbrv3_smart() {
+    print_clear
+    print_box_info -s start -m "BBRv3 加速"
     local arch
     arch=$(uname -m)
 
@@ -201,7 +203,7 @@ EOF
         print_success "BBRv3 已成功开启！"
         print_echo "   拥塞控制: ${GREEN}$(sysctl -n net.ipv4.tcp_congestion_control)${NC}"
         print_echo "   队列调度: ${GREEN}$(sysctl -n net.core.default_qdisc)${NC}"
-        print_wait_enter
+        print_box_success -s finish -m "BBRv3 加速"
     else
         # 2. 不是 XanMod，提示安装
         print_warn "当前内核 ($current_kernel) 不支持原生 BBRv3。"
@@ -258,5 +260,4 @@ disable_bbrv3_smart() {
     
     sysctl -p >/dev/null 2>&1
     print_success "BBR 配置已移除 (保留了当前内核)。"
-    print_wait_enter
 }

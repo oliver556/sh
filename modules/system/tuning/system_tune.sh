@@ -34,20 +34,51 @@ system_tune() {
 
     print_clear
 
-    print_box_info -m "开始一条龙调优..."
+    print_box_info -s start -m "一条龙调优..."
 
     # do something
-    print_success "[OK] 1/10.  更新系统到最新"
-    print_success "[OK] 2/10.  清理系统垃圾文件"
-    print_success "[OK] 3/10.  设置虚拟内存 ${BOLD_YELLOW} 1G ${NC}"
-    print_success "[OK] 4/10.  设置 SSH 端口号为${BOLD_YELLOW} 5566 ${NC}"
-    print_success "[OK] 5/10.  开放所有端口"
-    print_success "[OK] 6/10.  开启${BOLD_YELLOW} BBR ${BOLD_GREEN}加速"
-    print_success "[OK] 7/10.  设置时区到${BOLD_YELLOW}上海${NC}"
-    print_success "[OK] 8/10.  自动优化${BOLD_YELLOW} DNS ${BOLD_GREEN}地址"
-    print_success "[OK] 9/10.  设置网络为${BOLD_YELLOW} IPv4 优先${NC}"
-    print_success "[OK] 10/10. 安装基础工具${BOLD_YELLOW} docker wget sudo tar unzip socat btop nano vim${NC}"
-    sleep 1
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/system/clean.sh"
+    run_step -S 2 -m "1.  更新系统到最新" -- guard_system_clean
+
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/system/update.sh"
+    run_step -S 2 -m "2.  清理系统垃圾文件" -- guard_system_update
+
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/memory/swap.sh"
+    run_step -S 2 -m "3.  设置虚拟内存 ${BOLD_YELLOW} 1G ${NC}" -- swap_create 1024
+
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
+    run_step -S 2 -m "4.  设置 SSH 端口号为${BOLD_YELLOW} 5566 ${NC}" -- set_ssh_port 5566
+
+    # shellcheck disable=SC1091
+    # source "${BASE_DIR}/modules/system/"
+    # run_step -S 2 -m "5.  开放所有端口" 函数名
+    
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/kernel/kernel_manager.sh"
+    run_step -S 2 -m "6.  开启${BOLD_YELLOW} BBR ${BOLD_GREEN}加速" -- enable_bbrv3_smart
+    # enable_bbrv3_smart
+
+    # shellcheck disable=SC1091
+    # source "${BASE_DIR}/modules/system/"
+    # run_step -S 2 -m "7.  设置时区到${BOLD_YELLOW}上海${NC}" -- 函数名
+    
+    # shellcheck disable=SC1091
+    source "${BASE_DIR}/modules/system/network/change_dns.sh"
+    run_step -S 2 -m "8.  自动优化${BOLD_YELLOW} DNS ${BOLD_GREEN}地址" -- modify_dns_task -d "global"
+
+    # shellcheck disable=SC1091
+    # source "${BASE_DIR}/modules/system/"
+    # run_step -S 2 -m "9.  设置网络为${BOLD_YELLOW} IPv4 优先${NC}" -- 函数名
+
+    # shellcheck disable=SC1091
+    # source "${BASE_DIR}/modules/system/"
+    # run_step -S 2 -m "10.  安装基础工具${BOLD_YELLOW} docker wget sudo tar unzip socat btop nano vim${NC}" -- 函数名
+
+    print_box_success -s finish -m "一条龙调优"
 
     print_wait_enter
 }
