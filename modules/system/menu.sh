@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# VpsScriptKit - 系统工具模块入口
+# VpsScriptKit - 系统工具模块 - 入口
 #
 # @文件路径: modules/system/menu.sh
-# @功能描述: 系统工具子菜单
+# @功能描述: 系统工具 - 子菜单
 #
 # @作者: Jamison
 # @版本: 0.1.0
@@ -61,7 +61,7 @@ system_menu() {
 
         print_line
         print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" -T 2 -I star
-        print_menu_item -r 31 -p 9 -i 32 -m "命令收藏夹" -T 2 -I star
+        print_menu_item -r 31 -p 10 -i 32 -m "命令收藏夹" -T 2 -I star
         
         print_menu_item_done
 
@@ -132,6 +132,16 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/memory/menu.sh"
                 system_memory_menu
+                ;;
+            31)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/terminal/terminal_tuning.sh"
+                terminal_tuning_menu
+                ;;
+            32)
+                print_clear
+                bash <(curl -l -s https://raw.githubusercontent.com/byJoey/cmdbox/refs/heads/main/install.sh)
+                terminal_tuning_menu
                 ;;
             98)
                 print_clear
