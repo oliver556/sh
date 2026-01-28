@@ -278,15 +278,23 @@ get_latest_release_url() {
         error_exit "GitHub API 返回错误，可能触发限速或仓库不存在"
     fi
 
-    # 使用 grep -o 精确提取 url 字段 .tar.gz 文件的下载链接
-    # 逻辑：先提取 "browser_download_url": "..." 这一段，再提取链接
+    # 1. grep -o ... : 提取包含下载链接的行
+    # 2. grep "\.tar\.gz" : 必须包含 tar.gz
+    # 3. grep -v "sha256" : 【关键】排除掉 .sha256 文件！
+    # 4. cut ... : 提取链接
+    # 5. head -n 1 : 【双重保险】万一还有漏网之鱼，只取第一个，确保 curl 不会崩
     local TARBALL_URL
-    TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep -o '"browser_download_url": *"[^"]*"' | grep "\.tar\.gz" | cut -d '"' -f 4)
+    TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" \
+        | grep -o '"browser_download_url": *"[^"]*"' \
+        | grep "\.tar\.gz" \
+        | grep -v "sha256" \
+        | grep -v "md5" \
+        | cut -d '"' -f 4 \
+        | head -n 1)
 
-    # 双重检查
+    # 兜底：如果 API 结构异常（比如单行 JSON），尝试直接匹配 url
     if [ -z "$TARBALL_URL" ]; then
-        # 尝试备选方案：直接匹配 https 开头的 .tar.gz 链接
-        TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep -o 'https://[^"]*\.tar\.gz' | head -n 1)
+        TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep -o 'https://[^"]*\.tar\.gz' | grep -v "sha256" | head -n 1)
     fi
 
     # 检查是否成功获取到 URL
