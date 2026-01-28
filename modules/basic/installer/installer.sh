@@ -57,7 +57,7 @@ _draw_software_status() {
 
     # 2. 定义双列布局参数
     local L_W=12  # 左侧标签宽度
-    local V_W=21  # 左侧数值预留宽度
+    local V_W=9   # 左侧数值预留宽度
     local PAD=0   # 整体左缩进
 
     local apps=("${APPS_LIST[@]}")

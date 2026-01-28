@@ -278,13 +278,20 @@ get_latest_release_url() {
         error_exit "GitHub API 返回错误，可能触发限速或仓库不存在"
     fi
 
-    # 从返回的 JSON 中解析出 .tar.gz 文件的下载链接
+    # 使用 grep -o 精确提取 url 字段 .tar.gz 文件的下载链接
+    # 逻辑：先提取 "browser_download_url": "..." 这一段，再提取链接
     local TARBALL_URL
-    TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep "browser_download_url" | grep "\.tar\.gz\"" | cut -d '"' -f 4)
+    TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep -o '"browser_download_url": *"[^"]*"' | grep "\.tar\.gz" | cut -d '"' -f 4)
+
+    # 双重检查
+    if [ -z "$TARBALL_URL" ]; then
+        # 尝试备选方案：直接匹配 https 开头的 .tar.gz 链接
+        TARBALL_URL=$(echo "$LATEST_RELEASE_JSON" | grep -o 'https://[^"]*\.tar\.gz' | head -n 1)
+    fi
 
     # 检查是否成功获取到 URL
     if [ -z "$TARBALL_URL" ]; then
-        error_exit "无法找到最新的发行版下载链接！请检查仓库 Release 页面。"
+        error_exit "无法解析最新版本下载链接，请检查 Release 发布文件。"
     fi
 
     # 将找到的 URL 作为函数的唯一标准输出
