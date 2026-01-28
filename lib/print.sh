@@ -785,10 +785,13 @@ print_box_header_tip() {
 }
 
 # ******************************************************************************
-# 全局变量：用于跟踪当前行 ID
-# 提供: print_menu_item、print_menu_item_done 使用
+# 全局变量
+# 使用 :- 写法：如果变量未定义，则设为 -1
 # ******************************************************************************
-G_LAST_MENU_ROW="-1"
+# 用于跟踪当前行 ID
+: "${G_LAST_MENU_ROW:=-1}"
+# 记录上一行的行号，用于网格布局自动换行
+: "${G_LAST_STATUS_ROW:=-1}" 
 
 # ------------------------------------------------------------------------------
 # 函数名: print_menu_item
@@ -858,7 +861,6 @@ print_menu_item() {
     done
 
     # 1. [网格模式] 自动换行前置逻辑
-    # 只有指定了 row_id 时，才进行行状态检查
     if [[ -n "$row_id" ]]; then
         if [[ "$row_id" != "$G_LAST_MENU_ROW" ]]; then
             [[ "$G_LAST_MENU_ROW" != "-1" ]] && echo ""
@@ -886,11 +888,10 @@ print_menu_item() {
     local text_padding_str=""
     
     if [[ "$text_target_width" -gt 0 ]]; then
-        # 策略A：启用对齐 (计算中文字宽)
-        local char_len=${#text}
-        local byte_len=$(printf "%s" "$text" | wc -c)
-        # 视觉宽度 ≈ 字符数 + (字节数 - 字符数) / 2
-        local v_len=$(( char_len + (byte_len - char_len) / 2 ))
+        # 策略A：启用对齐 (使用 _get_visual_len 极速计算)
+        # 直接复用之前定义的全局高效函数，移除旧的 wc -c 管道操作
+        local v_len
+        v_len=$(_get_visual_len "$text")
         
         local fill_len
         (( fill_len = text_target_width - v_len ))
@@ -953,11 +954,172 @@ print_menu_item_done() {
         esac
     done
 
+    # === 智能逻辑开始 ===
+
+    # 场景 A: 结束网格模式 (Grid Mode)
+    # 上一个输出是 echo -n，光标在行尾。
+    if [[ "$G_LAST_MENU_ROW" != "-1" ]]; then
+        # 1. 物理换行：必须执行，否则会和分割线粘在一起 (修复 image_dc7bbd.png)
+        print_blank 
+        
+        # 2. 状态重置
+        G_LAST_MENU_ROW="-1"
+        
+        # 3. 【关键策略】不再打印额外的空行！
+        # 对于网格菜单(如 go_level)，"闭合行"产生的这一个回车，视觉上已经起到了
+        # 分隔作用。如果再打印，就会出现双空行 (修复 image_dc6d31.png)。
+        # 我们直接 return，维持"老版本"的视觉兼容性。
+        return
+    fi
+
+    # 场景 B: 结束列表模式 (List Mode)
+    # 上一个输出本来就是 echo，光标已经在下一行行首。
+    # 这里只需要根据参数决定是否加个"装饰性空行"。
     if [[ "$print_blank_line" == "true" ]]; then
         print_blank
     fi
 
     G_LAST_MENU_ROW="-1"
+}
+
+# ------------------------------------------------------------------------------
+# 内部工具: 极速计算视觉宽度 (纯 Bash 实现，0 外部调用)
+# ------------------------------------------------------------------------------
+_get_visual_len() {
+    local text="$1"
+    
+    # 1. [纯Bash] 剥离颜色代码 (移除所有 \e[...m 格式)
+    local clean="${text//$'\e'\[[0-9;]*m/}"
+
+    # 2. [纯Bash优化] 检测是否为纯 ASCII
+    # 原理: 利用 Bash 内置替换，将所有标准 ASCII 打印字符(空格到波浪号)临时删掉
+    # 如果删完之后字符串变为空了，说明原字符串全是 ASCII，不需要动用 wc 计算
+    # 这种写法比 regex [[:ascii:]] 兼容性好得多，且速度极快
+    local non_ascii="${clean//[ -~]/}"
+    
+    if [[ -z "$non_ascii" ]]; then
+        echo "${#clean}"
+        return
+    fi
+
+    # 3. [混合字符计算] 只有含中文时才走这一步
+    # 计算公式: 字符数 + (字节数 - 字符数) / 2
+    # 使用 wc -c <<< string 是为了兼容性，但它是这里唯一的外部调用
+    local char_len=${#clean}
+    local byte_len
+    byte_len=$(wc -c <<< "$clean") # <<< 会多加一个换行符
+    (( byte_len -= 1 ))
+    
+    echo $(( char_len + (byte_len - char_len) / 2 ))
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: print_status_item
+# 功能:   通用的“标签-值”对齐渲染函数 (支持双列/多列布局)
+#
+# 原理:   Label(Pad) + Value(Pad)
+#
+# 参数:
+#   -l | --label    (字符串): 左侧标签文本 (如 "拥塞控制:")
+#   -v | --value    (字符串): 右侧数值文本 (如 "bbr")
+#   -r | --row      (字符串): 行标识符。用于控制换行 (同 print_menu_item)
+#   -w | --width    (整数)  : [标签] 的对齐宽度 (视觉长度)
+#   -W | --val-width(整数)  : [数值] 的对齐宽度 (视觉长度)。
+#                             注意：仅当该项后面还有下一列时才需要设置此值，
+#                             用于把第二列顶到正确的位置。最后一列通常不需要设这个。
+#   -p | --padding  (整数)  : 左侧整体缩进空格数
+#   -s | --suffix   (整数)  : 标签和值之间的最小间距 (默认0，靠对齐控制)
+#
+# 示例:
+#   # 第一列 (设置 -W 为 20，给右边留空)
+#   print_status_item -r 1 -l "Curl" -v "已安装" -w 12 -W 20
+#   # 第二列 (不设置 -W)
+#   print_status_item -r 1 -l "Wget" -v "未安装" -w 12
+#   # 结束本行
+#   print_menu_item_done
+# ------------------------------------------------------------------------------
+print_status_item() {
+    local label=""
+    local value=""
+    local row_id=""
+    local label_width=0
+    local value_width=0
+    local padding=0
+    local suffix_space=0 
+    local reset_state=false 
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --reset)        reset_state=true; shift 1 ;;
+            -l|--label)     label="$2"; shift 2 ;;
+            -v|--value)     value="$2"; shift 2 ;;
+            -r|--row)       row_id="$2"; shift 2 ;;
+            -w|--width)     label_width="$2"; shift 2 ;;
+            -W|--val-width) value_width="$2"; shift 2 ;;
+            -p|--padding)   padding="$2"; shift 2 ;;
+            -s|--suffix)    suffix_space="$2"; shift 2 ;;
+            *) shift 1 ;;
+        esac
+    done
+
+    # 状态重置
+    if [[ "$reset_state" == "true" ]]; then
+        G_LAST_STATUS_ROW="-1"
+    fi
+
+    # 自动换行逻辑
+    if [[ -n "$row_id" ]]; then
+        if [[ "$row_id" != "$G_LAST_STATUS_ROW" ]]; then
+            [[ "$G_LAST_STATUS_ROW" != "-1" ]] && echo ""
+            G_LAST_STATUS_ROW="$row_id"
+        fi
+    fi
+
+    # 渲染左侧缩进
+    [[ "$padding" -gt 0 ]] && printf "%*s" "$padding" ""
+
+    # --- 只在需要时计算宽度 ---
+    # 1. 计算 [标签] 填充
+    local label_pad_str=""
+    if [[ "$label_width" -gt 0 ]]; then
+        local l_v_len
+        l_v_len=$(_get_visual_len "$label")
+        local l_fill_len=$(( label_width - l_v_len ))
+        [[ $l_fill_len -lt 0 ]] && l_fill_len=0
+        printf -v label_pad_str '%*s' "$l_fill_len" ''
+    fi
+
+    # 2. 计算 [数值] 填充
+    local value_pad_str=""
+    if [[ "$value_width" -gt 0 ]]; then
+        local v_v_len
+        v_v_len=$(_get_visual_len "$value")
+        local v_fill_len=$(( value_width - v_v_len ))
+        [[ $v_fill_len -lt 0 ]] && v_fill_len=0
+        printf -v value_pad_str '%*s' "$v_fill_len" ''
+    fi
+
+    # 3. 额外间距
+    local suffix_str=""
+    [[ "$suffix_space" -gt 0 ]] && printf -v suffix_str '%*s' "$suffix_space" ''
+
+    # 4. 最终输出
+    # 标签用白色，值保留原色
+    print_echo -n "${WHITE}${label}${NC}${label_pad_str}${suffix_str}${value}${value_pad_str}"
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: print_status_done
+# 功能:   结束一组状态条目的渲染
+#         1. 打印必要的换行符（结束最后一行）
+#         2. 重置状态栏的行计数器全局变量
+# ------------------------------------------------------------------------------
+print_status_done() {
+    # 1. 物理换行：因为 status_item 是 echo -n，必须显式结束这一行
+    echo 
+    
+    # 2. 逻辑重置：把行号计数器归位，防止下一次调用时状态混乱
+    G_LAST_STATUS_ROW="-1"
 }
 
 # ------------------------------------------------------------------------------

@@ -111,8 +111,9 @@ tmux_ssh_persistent_ui() {
     print_echo "当前状态: ${current_status}"
     print_line
 
-    print_menu_item -r 1 -p 0 -i 1 -m "开启常驻模式"
+    print_menu_item -r 1 -p 0 -s 2 -i 1 -m "开启常驻模式"
     print_menu_item -r 1 -p 12 -i 2 -m "关闭常驻模式"
+    print_menu_item_done
     print_menu_go_level
     
     local choice

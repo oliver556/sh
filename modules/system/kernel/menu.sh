@@ -77,11 +77,13 @@ kernel_menu() {
             1) if enable_bbrv3_smart; then print_wait_enter; fi ;;
             2) disable_bbrv3_smart ;;
             3)
+                print_clear
                 # Teddysun (秋水逸冰) - 经典，兼容性好，支持 BBRPlus
                 wget -N --no-check-certificate "https://github.000060000.xyz/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
                 print_wait_enter
                 ;;
             4)
+                print_clear
                 # ylx2016 (TCPX) - 支持很多暴力内核
                 wget --no-check-certificate -O tcpx.sh "https://github.000060000.xyz/tcpx.sh" && chmod +x tcpx.sh && ./tcpx.sh
                 print_wait_enter

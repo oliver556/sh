@@ -49,6 +49,7 @@ basic_menu() {
 
         case "$choice" in
             1)
+                # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/basic/installer/installer.sh"
                 install_menu                
                 ;;

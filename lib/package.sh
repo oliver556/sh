@@ -241,10 +241,22 @@ pkg_install() {
     local pkg
     for pkg in "$@"; do
         if ! command -v "$pkg" &>/dev/null; then
+            print_box_info -s start -m "安装 $pkg..."
             print_step -m "正在安装 $pkg ..."
-            _pkg_exec install "$pkg" || return 1
+            if _pkg_exec install "$pkg"; then
+                print_box_success -s finish -m "$pkg 安装！"
+            else
+                return 1
+            fi
         else
-            print_info "$pkg 已存在，跳过"
+            if [[ "$pkg" == 'tmux' ]]; then
+                print_box_info -m  "$pkg 已安装，跳过安装"
+                print_echo "当前版本: $(tmux -V)"
+            else
+                print_box_info -m  "$pkg 已安装，跳过安装"
+                print_info -m "输入 $pkg -h 可查看该包的使用帮助"
+                # $pkg -h
+            fi
         fi
     done
 }
@@ -255,8 +267,21 @@ pkg_install() {
 # ------------------------------------------------------------------------------
 pkg_remove() {
     [[ $# -eq 0 ]] && { print_error -m "未提供包名"; return 1; }
-    print_step -m "正在卸载软件包: $*"
-    _pkg_exec remove "$@"
+    
+    local pkg
+    for pkg in "$@"; do
+        if command -v "$pkg" &>/dev/null; then
+            print_step -m "正在卸载 $pkg ..."
+            if _pkg_exec remove "$pkg"; then
+                print_box_success -s finish -m "$pkg 卸载成功！"
+            else
+                print_error -m "$pkg 卸载失败"
+                return 1
+            fi
+        else
+            print_box_info -m "$pkg 未安装，跳过卸载"
+        fi
+    done
 }
 
 # ------------------------------------------------------------------------------
@@ -265,7 +290,13 @@ pkg_remove() {
 # ------------------------------------------------------------------------------
 pkg_update() {
     print_step -m "正在更新软件源..."
-    _pkg_exec update
+    
+    if _pkg_exec update; then
+        print_box_success -s finish -m "软件源更新成功！"
+    else
+        print_error -m "软件源更新失败"
+        return 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -274,5 +305,11 @@ pkg_update() {
 # ------------------------------------------------------------------------------
 pkg_clean() {
     print_step -m "正在清理系统包缓存..."
-    _pkg_exec clean
+    
+    if _pkg_exec clean; then
+        print_box_success -s finish -m "系统缓存清理完成！"
+    else
+        print_error -m "清理失败"
+        return 1
+    fi
 }

@@ -28,7 +28,7 @@
 set_ssh_port() {
     local target_port="$1"
 
-    # 1. 参数校验
+    # 参数校验
     if [[ ! "$target_port" =~ ^[0-9]+$ ]]; then
         print_error "端口号必须是数字: $target_port"
         return 1
@@ -39,7 +39,6 @@ set_ssh_port() {
         return 1
     fi
 
-    # 2. 核心修改逻辑
     print_step "正在修改 SSH 配置文件..."
     
     # 确保 sshd_config 存在
@@ -54,7 +53,7 @@ set_ssh_port() {
     # 替换端口号
     sed -i "s/^Port .*/Port $target_port/" /etc/ssh/sshd_config
 
-    # 3. 重启服务
+    # 重启服务
     print_step "正在重启 SSH 服务..."
     if systemctl restart sshd 2>/dev/null || service ssh restart 2>/dev/null; then
         print_success "SSH 端口已成功修改为: ${BOLD_GREEN}$target_port${NC}"

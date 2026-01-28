@@ -34,13 +34,12 @@ router_main() {
             system_menu
             ;;
         2)
-            # 常用工具箱 (Tools Manager)  <-- 这里放 Tmux、Docker、Zsh 等需要“交互/管理”的
+            # 常用工具箱 (Tools Manager)
             # shellcheck disable=SC1091
             source "${BASE_DIR}/modules/basic/menu.sh"
             basic_menu 
             ;;
         3)
-            # 软件安装中心(Software Installer) <-- 这里放 curl, wget, git, vim 的纯安装/卸载
             # 进阶工具模块
             # shellcheck disable=SC1091
             source "${BASE_DIR}/modules/advanced/menu.sh"

@@ -415,31 +415,7 @@ manual_backup_config() {
 view_tuning_status() {
     print_clear
     
-    # --- 1. 升级版对齐算法 (自动剥离颜色) ---
-    # 参数: $1=文本内容, $2=目标宽度
-    # 返回: 应该填充的空格字符串
-    get_pad() {
-        local text="$1"
-        local target_width="$2"
-        
-        # 剥离所有颜色代码，再计算长度
-        local clean_text
-        clean_text=$(print_echo "$text" | sed "s/\x1b\[[0-9;]*m//g")
-        
-        local char_len=${#clean_text}
-        local byte_len
-        byte_len=$(printf "%s" "$clean_text" | wc -c)
-        
-        # 视觉宽度 ≈ 字符数 + (字节数 - 字符数) / 2
-        local v_len=$(( char_len + (byte_len - char_len) / 2 ))
-        
-        local fill_len=$(( target_width - v_len ))
-        [[ $fill_len -lt 1 ]] && fill_len=1
-        
-        printf "%*s" "$fill_len" ""
-    }
-
-    # --- 2. 单位转换工具 ---
+    # --- 单位转换工具 ---
     calc_mb() {
         local val="$1"
         local clean_val
@@ -468,7 +444,7 @@ view_tuning_status() {
         if [[ -z "$val" ]]; then echo "N/A"; else echo "$val"; fi
     }
 
-    # --- 3. 准备数据 ---
+    # --- 准备数据 ---
     local cc
     cc=$(get net.ipv4.tcp_congestion_control)
     local qdisc
@@ -505,51 +481,62 @@ view_tuning_status() {
     local tw_buckets
     tw_buckets=$(get net.ipv4.tcp_max_tw_buckets)
 
-    # --- 4. 渲染逻辑 ---
-    local L_W=16 
-    local V_W=20
-
-    print_row() {
-        local l1="$1" v1="$2" l2="$3" v2="$4"
-        
-        # 计算填充
-        local p1
-        p1=$(get_pad "$l1" $L_W)
-        local p2
-        p2=$(get_pad "$v1" $V_W)
-        local p3
-        p3=$(get_pad "$l2" $L_W)
-        
-        printf "   ${WHITE}%s${NC}%s${CYAN}%s${NC}%s   ${WHITE}%s${NC}%s${CYAN}%s${NC}\n" \
-            "$l1" "$p1" "$v1" "$p2" "$l2" "$p3" "$v2"
-    }
+    # --- 渲染配置 ---
+    local L_W=16   # 标签宽度
+    local V_W=20   # 左侧数值预留宽度 (挤开右侧列)
+    local PAD=0    # 左侧缩进 (对应原本的 print_row 里的空格)
 
     print_box_header "当前系统内核参数状态 (System Parameters)"
     
     # ▶ 核心控制
     print_echo "${BOLD_YELLOW}${ICON_NAV} 核心控制 (Core & Congestion)${NC}"
-    print_row "拥塞控制:" "$cc" "队列调度:" "$qdisc"
-    print_row "IP转发:"   "$ip_fwd" "快速打开:" "$fastopen"
+    # Row 0
+    print_status_item -r 0 -p "$PAD" -l "拥塞控制:" -v "${CYAN}${cc}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 0 -l "队列调度:" -v "${CYAN}${qdisc}${NC}" -w "$L_W"
+    # Row 1
+    print_status_item -r 1 -p "$PAD" -l "IP转发:" -v "${CYAN}${ip_fwd}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 1 -l "快速打开:" -v "${CYAN}${fastopen}${NC}" -w "$L_W"
+    # 结束块
+    print_status_done
     print_line -c "─" -C "${GRAY}"
 
     # ▶ 容量限制
     print_echo "${BOLD_YELLOW}${ICON_NAV} 容量限制 (Capacity & Limits)${NC}"
-    print_row "系统文件句柄:" "$file_max" "连接追踪上限:" "$ct_max"
-    print_row "监听队列:"     "$somax"    "本地端口范围:" "$port_range"
+    # Row 0 (重置行号从0开始，视觉上更清晰)
+    print_status_item -r 0 -p "$PAD" -l "系统文件句柄:" -v "${CYAN}${file_max}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 0 -l "连接追踪上限:" -v "${CYAN}${ct_max}${NC}" -w "$L_W"
+    # Row 1
+    print_status_item -r 1 -p "$PAD" -l "监听队列:" -v "${CYAN}${somax}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 1 -l "本地端口范围:" -v "${CYAN}${port_range}${NC}" -w "$L_W"
+    # 结束块
+    print_status_done
     print_line -c "─" -C "${GRAY}"
 
     # ▶ 内存与缓冲
     print_echo "${BOLD_YELLOW}${ICON_NAV} 内存与缓冲 (Memory & Buffers)${NC}"
-    print_row "接收缓冲(Rmem):" "$rmem" "发送缓冲(Wmem):" "$wmem"
-    print_row "内存预留:"       "$min_free" "Swap积极性:"   "$swappiness"
+    # Row 0
+    print_status_item -r 0 -p "$PAD" -l "接收缓冲(Rmem):" -v "${CYAN}${rmem}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 0 -l "发送缓冲(Wmem):" -v "${CYAN}${wmem}${NC}" -w "$L_W"
+    # Row 1
+    print_status_item -r 1 -p "$PAD" -l "内存预留:" -v "${CYAN}${min_free}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 1 -l "Swap积极性:" -v "${CYAN}${swappiness}${NC}" -w "$L_W"
+    # 结束块
+    print_status_done
     print_line -c "─" -C "${GRAY}"
 
     # ▶ 协议特性
     print_echo "${BOLD_YELLOW}${ICON_NAV} 协议特性 (Features & Recycle)${NC}"
-    print_row "TimeWait重用:" "$reuse" "FIN超时时间:" "${fin_to}s"
-    print_row "SACK确认:"     "$sack"  "TW桶最大值:"  "$tw_buckets"
+    # Row 0
+    print_status_item -r 0 -p "$PAD" -l "TimeWait重用:" -v "${CYAN}${reuse}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 0 -l "FIN超时时间:" -v "${CYAN}${fin_to}s${NC}" -w "$L_W"
+    # Row 1
+    print_status_item -r 1 -p "$PAD" -l "SACK确认:" -v "${CYAN}${sack}${NC}" -w "$L_W" -W "$V_W"
+    print_status_item -r 1 -l "TW桶最大值:" -v "${CYAN}${tw_buckets}${NC}" -w "$L_W"
+    # 结束块
+    print_status_done
     print_line -c "─" -C "${GRAY}"
-    
+
+    # 底部状态检查
     if [[ "$cc" == *bbr* ]]; then
          print_echo "${GREEN}✔ BBR 拥塞控制正在运行中${NC}"
     else

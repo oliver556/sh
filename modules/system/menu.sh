@@ -51,17 +51,18 @@ system_menu() {
         print_menu_item -r 7 -p 0 -s 2 -i 7 -m "修改SSH端口"
         print_menu_item -r 7 -p 14 -i 8 -m "优化DNS地址" -I "${ICON_NAV}" -T 2
         print_menu_item -r 9 -p 0 -s 2 -i 9 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
+        print_menu_item -r 9 -p 2 -i 10 -m "系统时区调整" -I "${ICON_NAV}" -T 2
         print_menu_item_done
         
         print_line
         print_menu_item -r 11 -p 0 -i 11 -m "虚拟内存管理" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 0 -i 13 -m "内核与拥塞控制" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 13 -p 10 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 13 -p 9 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_line
         print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" "${ICON_NAV}" -T 2 -I star
-        print_menu_item -r 31 -p 8 -i 32 -m "命令收藏夹" -T 2 -I star
+        print_menu_item -r 31 -p 7 -i 32 -m "命令收藏夹" -T 2 -I star
         
         print_menu_item_done
 
