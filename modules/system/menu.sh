@@ -120,15 +120,10 @@ system_menu() {
                 source "${BASE_DIR}/modules/system/network/change_dns.sh"
                 guard_change_dns
                 ;;
-            13)
+            10)
                 # shellcheck disable=SC1091
-                source "${BASE_DIR}/modules/system/kernel/menu.sh"
-                kernel_menu
-                ;;
-            14)
-                # shellcheck disable=SC1091
-                source "${BASE_DIR}/modules/system/tcp/menu.sh"
-                tcp_tuning_menu
+                source "${BASE_DIR}/modules/system/timezone/timezone.sh"
+                timezone_menu
                 ;;
             11)
                 # shellcheck disable=SC1091
@@ -139,6 +134,16 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/memory/menu.sh"
                 system_memory_menu
+                ;;
+            13)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/kernel/menu.sh"
+                kernel_menu
+                ;;
+            14)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/tcp/menu.sh"
+                tcp_tuning_menu
                 ;;
             31)
                 # shellcheck disable=SC1091
