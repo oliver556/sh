@@ -61,7 +61,7 @@ system_menu() {
         print_menu_item -r 13 -p 9 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
         print_menu_item -r 15 -p 0 -i 15 -m "修改主机名" -I "${ICON_NAV}"
         print_menu_item -r 15 -p 13 -i 16 -m "${BOLD_GREY}用户管理${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 17 -p 0 -i 17 -m "${BOLD_GREY}切换优先ipv4/ipv6${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 17 -p 0 -i 17 -m "切换优先ipv4/ipv6" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         print_menu_item -r 17 -p 6 -i 18 -m "${BOLD_GREY}开放所有端口"
         print_menu_item -r 19 -p 0 -i 19 -m "${BOLD_GREY}SSH防御程序 (fail2ban)${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         print_menu_item_done
@@ -120,7 +120,6 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
                 change_ssh_port
-                print_wait_enter
                 ;;
             8)
                 # shellcheck disable=SC1091
@@ -156,6 +155,11 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/network/change_hostname.sh"
                 change_hostname
+                ;;
+            17)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/network/ipv_priority.sh"
+                ipv_priority_menu
                 ;;
             31)
                 # shellcheck disable=SC1091

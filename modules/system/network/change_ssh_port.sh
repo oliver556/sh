@@ -115,7 +115,6 @@ change_ssh_port() {
         fi
 
         if [[ "$choice" -eq 0 ]]; then
-            print_info -m "操作已取消"
             print_blank
             return 2
         fi

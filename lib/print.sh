@@ -747,6 +747,98 @@ print_box_error() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: print_box_error
+# 功能:   打印一个红色主题的“成功”状态盒子，包含红色上下边框和成功图标(√)
+#         常用于脚本执行结束后的最终成功提示
+# 
+# 参数:
+#   -s | --status  (字符串): 状态标识，如 ok/finish (显示绿色[完成])，默认为空 (可选)
+#   -m | --msg     (字符串): 消息内容文本
+#   -p | --padding (字符串): 上下留白控制，支持 top, bottom, both, all (默认为空)
+#   $1             (字符串): (兜底) 若不使用 Flag，直接传入的内容将被视为消息文本
+# 
+# 返回值:
+#   0 - 成功打印
+# 
+# 示例:
+#   print_box_error "部署失败"                    # 只有消息和边框
+#   print_box_error -s ok -m "系统清理失败"       # 显示 [完成] 标签
+#   print_box_error -s finish -p both "所有任务结束" 
+# ------------------------------------------------------------------------------
+print_box_warn() {
+    local status=""
+    local message=""
+    local padding=""
+
+    # $# 表示剩余参数的个数，只要还有参数就继续循环
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -s|--status)
+                status="$2"
+                shift 2 # 吃掉 "--status" 和 "具体的状体值"，指针向后移两位
+                ;;
+            -m|--msg|--message)
+                message="$2"
+                shift 2
+                ;;
+            -p|--padding)
+                padding="$2"
+                shift 2
+                ;;
+            *)
+                # 兜底逻辑：如果有没加 --前缀的参数，默认追加到消息里
+                if [[ -z "$message" ]]; then
+                    message="$1"
+                else
+                    message="$message $1"
+                fi
+                shift 1
+                ;;
+        esac
+    done
+
+    # 处理状态标签格式 (start -> [Start])
+    local label=""
+    if [[ -n "$status" ]]; then
+        case "$status" in
+            start|begin)
+                label="${BOLD}[开始]${NC}"
+                ;;
+            success|finish|ok)
+                label="${BOLD}[完成]${NC}"
+                ;;
+            *)
+                # 自动首字母大写
+                local first_char
+                first_char=$(echo "${status:0:1}" | tr '[:lower:]' '[:upper:]')
+                label="${BOLD}[${first_char}${status:1}]${NC}"
+                ;;
+        esac
+    fi
+
+    # 拼接最终显示的文本 (如果 status 为空，前面就没有空格)
+    local final_text=""
+    if [[ -n "$label" ]]; then
+        final_text="$label $message"
+    else
+        final_text="$message"
+    fi
+
+    # UI 渲染逻辑
+    if [[ "$padding" == "top" || "$padding" == "both" || "$padding" == "all" ]]; then
+        print_blank
+    fi
+
+    print_line -C "$BOLD_YELLOW"
+    print_warn -m "$final_text"
+    print_line -C "$BOLD_YELLOW"
+
+    if [[ "$padding" == "bottom" || "$padding" == "both" || "$padding" == "all" ]]; then
+        print_blank
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: print_box_header
 # 功能:   打印带有装饰性边框（两端加号，中间等号）的主菜单标题
 #         通常用于脚本运行的最开始，或者大模块的分割

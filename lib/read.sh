@@ -111,36 +111,48 @@ read_choice() {
 }
 
 read_confirm() {
-    local prompt="${1:-确认继续？(y|n)}"
-
-    print_blank
-
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -m|--message) prompt="$2"; shift 2 ;;
+    # 1. 参数解析
+    local prompt="${1:-确认继续？(y/n/0=退出)}"
+    
+    # 如果第一个参数不是 -m 开头，且不为空，说明直接传了提示语
+    # 为了避免 shift 导致后续逻辑混乱，这里简单处理一下参数
+    local args=("$@")
+    local idx=0
+    while [[ $idx -lt $# ]]; do
+        case "${args[$idx]}" in
+            -m|--message)
+                prompt="${args[$((idx+1))]}"
+                ((idx+=2))
+                ;;
             *)
-                # 兼容直接传参 read_input "提示内容" "默认值"
-                if [[ -z "$prompt" ]]; then
-                    prompt="$1"
+                if [[ $idx -eq 0 && "${args[$idx]}" != -* ]]; then
+                    prompt="${args[$idx]}"
                 fi
-                shift 1
+                ((idx++))
                 ;;
         esac
     done
 
-    answer=$(read_choice -s 1 -m "$prompt")
+    print_blank
 
-    case "$answer" in
-        y|yes|Y)
-            return 0
-            ;;
-        n|no|N)
-            return 1
-            ;;
-        *)
-            print_info -m "操作已取消..."
-            sleep 1
-            return 1
-            ;;
-    esac
+    # 2. 循环直到获得有效输入
+    while true; do
+        local display_prompt="$prompt"
+        local answer
+
+        answer=$(read_choice -s 1 -m "$display_prompt")
+
+        case "$answer" in
+            y|yes|Y) return 0 ;;
+            n|no|N)  return 1 ;;
+            0)       return 1 ;;
+            # 0)       print_info -m "操作已取消"; return 1 ;;
+            *)
+                print_error -m "无效选项，请重新输入"
+                sleep 1
+                tput cuu 2
+                tput ed
+                ;;
+        esac
+    done
 }
