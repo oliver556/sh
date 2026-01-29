@@ -62,6 +62,10 @@ maintain_menu() {
         print_menu_item -r 3 -p 0 -i 3 -m "$(print_spaces 1)卸载本脚本"
         print_menu_item_done
 
+        print_line
+        print_menu_item -r 66 -p 0 -i 66 -m "${BOLD_GREY}v 命令高级用法${NC}" -I star
+        print_menu_item_done
+
         print_menu_go_level
 
         choice=$(read_choice)

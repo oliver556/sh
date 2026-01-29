@@ -60,17 +60,23 @@ system_menu() {
         print_menu_item -r 13 -p 0 -i 13 -m "内核与拥塞控制" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 9 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
         print_menu_item -r 15 -p 0 -i 15 -m "修改主机名" -I "${ICON_NAV}"
+        print_menu_item -r 15 -p 13 -i 16 -m "${BOLD_GREY}用户管理${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 17 -p 0 -i 17 -m "${BOLD_GREY}切换优先ipv4/ipv6${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 17 -p 6 -i 18 -m "${BOLD_GREY}开放所有端口"
+        print_menu_item -r 19 -p 0 -i 19 -m "${BOLD_GREY}SSH防御程序 (fail2ban)${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         print_menu_item_done
 
         print_line
-        print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" "${ICON_NAV}" -T 2 -I star
-        print_menu_item -r 31 -p 7 -i 32 -m "命令收藏夹" -T 2 -I star
+        print_menu_item -r 31 -p 0 -i 31 -m "命令行美化工具" "${ICON_NAV}"
+        print_menu_item -r 31 -p 8 -i 32 -m "命令收藏夹"
+        print_menu_item -r 33 -p 0 -i 33 -m "${BOLD_GREY}设置系统回收站${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 33 -p 9 -i 34 -m "${BOLD_GREY}命令行历史记录${NC}"
         
         print_menu_item_done
 
         print_line
         print_menu_item -r 98 -p 0 -i 98 -m "一条龙系统调优" "${ICON_NAV}" -T 2 -I star
-        print_menu_item -r 99 -p 0 -i 99 -m "一键重装系统" "${ICON_NAV}" -T 2 -I star
+        print_menu_item -r 98 -p 7 -i 99 -m "一键重装系统" "${ICON_NAV}" -T 2 -I star
         print_menu_item_done
 
         print_menu_go_level
