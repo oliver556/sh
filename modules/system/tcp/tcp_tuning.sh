@@ -574,7 +574,7 @@ manage_backups() {
         print_line
         
         # --- 4. 底部提示 ---
-        print_box_header_tip "$(print_spaces 1)✦$(print_spaces 1)如需恢复特定备份，请使用 cat 命令覆盖 /etc/sysctl.conf"
+        print_box_header_tip "$(print_spaces 1)${ICON_TIP}$(print_spaces 1)如需恢复特定备份，请使用 cat 命令覆盖 /etc/sysctl.conf"
         print_echo "   例如: cat .../文件名 > /etc/sysctl.conf && sysctl -p"
     fi
     

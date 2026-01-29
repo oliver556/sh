@@ -96,13 +96,14 @@ change_ssh_port() {
 
     while true; do
         print_clear
+        print_box_header "修改SSH端口"
         # 获取当前 SSH 端口用于展示
         local current_port
         current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+        print_echo "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
 
         print_box_info -s start -m "修改 SSH 端口"
-        print_info -m "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
-        print_echo "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
+        print_info -m "端口号范围: 1 到 65535 之间的数字（输入 0 退出）"
 
         local choice
         choice=$(read_choice -s 1 -m "请输入新的 SSH 端口")

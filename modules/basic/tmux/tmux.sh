@@ -327,7 +327,7 @@ tmux_ui_menu() {
         print_clear
         print_box_header "${ICON_GEAR}$(print_spaces 1)Tmux 终端复用管理 (Tmux Manager)"
         print_line
-        print_box_header_tip "$(print_spaces 1)✦$(print_spaces 1)进入会话后使用 Ctrl+b 再单独按 d，退出当前会话！"
+        print_box_header_tip "$(print_spaces 1)${ICON_TIP}$(print_spaces 1)进入会话后使用 Ctrl+b 再单独按 d，退出当前会话！"
         print_line
         
         print_echo "${BOLD_CYAN}当前运行中的会话列表:${NC}"

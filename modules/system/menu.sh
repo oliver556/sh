@@ -59,6 +59,7 @@ system_menu() {
         print_menu_item -r 10 -p 9 -i 12 -m "虚拟内存管理" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 0 -i 13 -m "内核与拥塞控制" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 9 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 15 -p 0 -i 15 -m "修改主机名" -I "${ICON_NAV}"
         print_menu_item_done
 
         print_line
@@ -144,6 +145,11 @@ system_menu() {
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/tcp/menu.sh"
                 tcp_tuning_menu
+                ;;
+            15)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/network/change_hostname.sh"
+                change_hostname
                 ;;
             31)
                 # shellcheck disable=SC1091
