@@ -48,11 +48,11 @@ _draw_time_status() {
     # 使用状态栏组件渲染
     # 第一行: 时区 和 UTC时间
     print_status_item -l "当前时区:" -v "${GREEN}${current_tz}${NC}" -w 12 -W 24
-    print_status_item -l "UTC时间:" -v "${GRAY}${utc_time}${NC}" -w 10
+    print_status_item -l "UTC时间:" -v "${WHITE}${utc_time}${NC}" -w 10
     print_status_done
     
     # 第二行: 本地时间
-    print_status_item -l "本地时间:" -v "${BOLD_CYAN}${current_time}${NC}" -w 12
+    print_status_item -l "本机时间:" -v "${BOLD_CYAN}${current_time}${NC}" -w 12
     print_status_done
 }
 
@@ -184,7 +184,8 @@ timezone_menu() {
             6) set_timezone "Asia/Kolkata" ;;
             7) set_timezone "Asia/Dubai" ;;
             9) set_timezone "Asia/Bangkok" ;;
-            # 澳洲 (原菜单ID 8)
+
+            # 澳洲
             8) set_timezone "Australia/Sydney" ;;
             
             # 欧洲

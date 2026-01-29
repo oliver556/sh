@@ -33,6 +33,7 @@
     declare -rx BOLD_GREEN="${BOLD}${GREEN}"   # 加粗绿色 (成功/通过)
     declare -rx BOLD_YELLOW="${BOLD}${YELLOW}" # 加粗黄色 (警告/注意)
     declare -rx BOLD_BLUE="${BOLD}${BLUE}"     # 加粗蓝色 (信息/普通)
+    declare -rx BOLD_PURPLE="${BOLD}${PURPLE}" # 加粗紫色 (实际显示为亮粉色)
     declare -rx BOLD_CYAN="${BOLD}${CYAN}"     # 加粗青色 (调试/路径)
     declare -rx BOLD_WHITE="${BOLD}${WHITE}"   # 加粗白色 (正文)
     declare -rx BOLD_GREY="${BOLD}${GRAY}"     # 加粗灰色 (正文)

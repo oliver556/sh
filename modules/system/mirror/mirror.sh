@@ -14,25 +14,35 @@
 # 函数名: _draw_mirror_status
 # 功能:   检测并绘制当前系统源状态
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 函数名: _draw_mirror_status
+# 功能:   检测并绘制当前系统源状态 + 备份状态
+# ------------------------------------------------------------------------------
 _draw_mirror_status() {
     local source_file=""
     local current_mirror="${GRAY}未知 / 检测失败${NC}"
     local check_content=""
+    
+    # 备份检测变量
+    local bak_file=""
+    local bak_status="${GRAY}无备份${NC}"
 
-    # 1. 确定配置文件路径
+    # 1. 确定配置文件路径 & 备份文件路径
     if [[ -f "/etc/apt/sources.list" ]]; then
         source_file="/etc/apt/sources.list"
-        # 读取非注释的第一行有效配置
+        bak_file="/etc/apt/sources.list.vsk.bak"
         check_content=$(grep -vE "^#|^$" "$source_file" | head -n 5)
     elif [[ -d "/etc/yum.repos.d" ]]; then
-        # CentOS/RedHat 扫描目录下的 .repo 文件
+        # CentOS/RedHat
         check_content=$(grep -r "baseurl" /etc/yum.repos.d 2>/dev/null | head -n 5)
+        bak_file="/etc/yum.repos.d.vsk.bak.tar.gz"
     elif [[ -f "/etc/apk/repositories" ]]; then
         source_file="/etc/apk/repositories"
+        bak_file="/etc/apk/repositories.vsk.bak"
         check_content=$(cat "$source_file")
     fi
 
-    # 2. 匹配关键字 (优先级：内网/厂商源 > 官方源)
+    # 2. 匹配当前源关键字
     if [[ -n "$check_content" ]]; then
         if echo "$check_content" | grep -q "aliyun.com"; then
             current_mirror="${GREEN}阿里云 (Aliyun)${NC}"
@@ -51,7 +61,6 @@ _draw_mirror_status() {
         elif echo "$check_content" | grep -qE "debian.org|ubuntu.com|centos.org|fedoraproject.org|alpinelinux.org"; then
             current_mirror="${YELLOW}官方源 (Official)${NC}"
         else
-            # 提取域名作为兜底显示
             local domain
             domain=$(echo "$check_content" | grep -oE 'https?://[^/]+' | head -n 1 | cut -d/ -f3)
             if [[ -n "$domain" ]]; then
@@ -60,9 +69,23 @@ _draw_mirror_status() {
         fi
     fi
 
-    # 3. 绘制状态栏
-    # -w 12 是标签宽度，根据你的 "中国大陆 (默认)" 长度视觉调整的
-    print_status_item -l "当前系统源:" -v "${current_mirror}" -w 14
+    # 3. 检测备份文件状态
+    if [[ -f "$bak_file" ]]; then
+        local bak_time
+        # 兼容 Linux/Mac 的文件修改时间获取
+        if date --version >/dev/null 2>&1; then
+            # Linux (GNU date)
+            bak_time=$(date -r "$bak_file" "+%Y-%m-%d %H:%M")
+        else
+            # Mac/BSD
+            bak_time=$(date -r "$bak_file" "+%Y-%m-%d %H:%M")
+        fi
+        bak_status="${GREEN}已备份 (${bak_time})${NC}"
+    fi
+
+    # 4. 绘制状态栏 (双行显示)
+    print_status_item -l "当前系统源:" -v "${current_mirror}" -w 14 -W 28
+    print_status_item -l "配置备份:" -v "${bak_status}" -w 10
     print_status_done
 }
 
@@ -126,13 +149,118 @@ run_linuxmirrors() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: backup_source
+# 功能:   备份当前系统源配置文件
+# ------------------------------------------------------------------------------
+backup_source() {
+    print_clear
+    print_box_info -m "正在备份当前系统源配置..." -s start
+
+    local success=false
+
+    # Debian/Ubuntu
+    if [[ -f "/etc/apt/sources.list" ]]; then
+        print_step -m "检测到 Apt 源 (Debian/Ubuntu)"
+        cp "/etc/apt/sources.list" "/etc/apt/sources.list.vsk.bak"
+        # 同时也备份 sources.list.d 目录，防止有残留
+        if [[ -d "/etc/apt/sources.list.d" ]]; then
+            tar -czf "/etc/apt/sources.list.d.vsk.bak.tar.gz" -C /etc/apt sources.list.d
+        fi
+        success=true
+    
+    # CentOS/RedHat/Fedora
+    elif [[ -d "/etc/yum.repos.d" ]]; then
+        print_step -m "检测到 Yum/Dnf 源 (CentOS/RHEL)"
+        # 打包整个目录，最稳妥
+        tar -czf "/etc/yum.repos.d.vsk.bak.tar.gz" -C /etc yum.repos.d
+        success=true
+    
+    # Alpine
+    elif [[ -f "/etc/apk/repositories" ]]; then
+        print_step -m "检测到 Apk 源 (Alpine)"
+        cp "/etc/apk/repositories" "/etc/apk/repositories.vsk.bak"
+        success=true
+    fi
+
+    if [[ "$success" == "true" ]]; then
+        print_box_success -m "备份成功！文件后缀已标记为 .vsk.bak"
+    else
+        print_box_error -m "未找到支持的源配置文件，备份失败。"
+    fi
+    print_wait_enter
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: restore_source
+# 功能:   还原之前备份的系统源配置
+# ------------------------------------------------------------------------------
+restore_source() {
+    print_clear
+    print_box_info -m "正在还原系统源配置..." -s start
+
+    local success=false
+    local update_cmd=""
+
+    # Debian/Ubuntu
+    if [[ -f "/etc/apt/sources.list.vsk.bak" ]]; then
+        print_step -m "发现 Apt 源备份，正在还原..."
+        cp -f "/etc/apt/sources.list.vsk.bak" "/etc/apt/sources.list"
+        
+        # 还原 sources.list.d (如果有)
+        if [[ -f "/etc/apt/sources.list.d.vsk.bak.tar.gz" ]]; then
+            rm -rf /etc/apt/sources.list.d/*
+            tar -xzf "/etc/apt/sources.list.d.vsk.bak.tar.gz" -C /etc/apt
+        fi
+        
+        update_cmd="apt-get update"
+        success=true
+
+    # CentOS/RedHat/Fedora
+    elif [[ -f "/etc/yum.repos.d.vsk.bak.tar.gz" ]]; then
+        print_step -m "发现 Yum/Dnf 源备份，正在还原..."
+        # 清空当前目录，防止新旧混用
+        rm -rf /etc/yum.repos.d/*
+        # 解压还原
+        tar -xzf "/etc/yum.repos.d.vsk.bak.tar.gz" -C /etc
+        
+        if command -v dnf &>/dev/null; then
+            update_cmd="dnf makecache"
+        else
+            update_cmd="yum makecache"
+        fi
+        success=true
+
+    # Alpine
+    elif [[ -f "/etc/apk/repositories.vsk.bak" ]]; then
+        print_step -m "发现 Apk 源备份，正在还原..."
+        cp -f "/etc/apk/repositories.vsk.bak" "/etc/apk/repositories"
+        update_cmd="apk update"
+        success=true
+    else
+        print_box_error -m "未找到 VSK 备份文件 (.vsk.bak)，无法还原。"
+        print_wait_enter
+        return
+    fi
+
+    if [[ "$success" == "true" ]]; then
+        print_step -m "配置还原成功，正在刷新缓存..."
+        print_line
+        # 执行更新命令，让还原生效
+        eval "$update_cmd"
+        print_line
+        print_box_success -m "源配置已恢复到备份状态！"
+    fi
+    print_wait_enter
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: mirror_menu
 # 功能:   换源中心主菜单
 # ------------------------------------------------------------------------------
 mirror_menu() {
     while true; do
         print_clear
-        print_box_header "系统更新源配置 (LinuxMirrors)"
+        print_box_header "切换系统更新源 (LinuxMirrors)"
         print_box_header_tip "基于 LinuxMirrors 开源项目"
         print_line
         _draw_mirror_status
@@ -143,6 +271,10 @@ mirror_menu() {
         print_line
         print_menu_item -p 0 -i 4 -s 2 -m "智能切换更新源"
 
+        print_line
+        print_menu_item -p 0 -i 5 -s 2 -m "备份当前源配置"
+        print_menu_item -p 0 -i 6 -s 2 -m "恢复源配置备份"
+
         print_menu_go_level
 
         choice=$(read_choice)
@@ -152,6 +284,8 @@ mirror_menu() {
             2) run_linuxmirrors "edu" ;;
             3) run_linuxmirrors "abroad" ;;
             4) run_linuxmirrors "smart" ;;
+            5) backup_source ;;
+            6) restore_source ;;
             0) return ;;
             *) print_error -m "无效选项" ;;
         esac

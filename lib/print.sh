@@ -435,7 +435,7 @@ print_step() {
     fi
 
     # 执行输出
-    print_echo "${PURPLE}${ICON_ARROW}$(print_spaces "$spaces")${message}${NC}"
+    print_echo "${BOLD_BLUE}${ICON_ARROW}$(print_spaces "$spaces")${message}${NC}"
 }
 
 print_tip() {
