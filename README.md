@@ -4,7 +4,7 @@
 
 ### vps 一键脚本工具 的支持列表:
 
-> `Debian`、 `Ubuntu`、`CentOS`、`Alpine`、`Fedora`、`Rocky-linux`、`Amazom-linux`、`Oracle-linux`
+> `Debian 9+`、 `Ubuntu 18.04+`、`CentOS9+`、`Alpine`
 
 ### 一键脚本
 

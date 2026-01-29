@@ -22,12 +22,6 @@ _check_tmux_installed() {
     fi
     print_box_info -m "检测到系统未安装 Tmux，正在为您安装..."
     pkg_install tmux
-    if ! command -v tmux &> /dev/null; then
-        print_error "Tmux 安装失败，请检查包管理器设置。"
-        print_wait_enter
-        return 1
-    fi
-    print_box_success -m "Tmux 安装成功！"
     sleep 1
     return 0
 }

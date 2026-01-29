@@ -254,7 +254,7 @@ pkg_install() {
                 print_echo "当前版本: $(tmux -V)"
             else
                 print_box_info -m  "$pkg 已安装，跳过安装"
-                print_info -m "输入 $pkg -h 可查看该包的使用帮助"
+                # print_info -m "输入 $pkg -h 可查看该包的使用帮助"
                 # $pkg -h
             fi
         fi

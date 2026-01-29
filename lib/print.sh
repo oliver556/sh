@@ -152,11 +152,54 @@ print_line() {
         esac
     done
 
-    # 获取屏幕宽度
-    local width
-    width=$(tput cols 2>/dev/null || echo 80)
+    # # 获取屏幕宽度
+    # local width
+    # width=$(tput cols 2>/dev/null || echo 80)
+    
 
-    # 如果指定了边缘符号 (比如 +)，中间的线就要变短 2 格
+    # # 如果指定了边缘符号 (比如 +)，中间的线就要变短 2 格
+    # if [[ -n "$edge" ]]; then
+    #     (( width = width - 2 ))
+    # fi
+
+    # local line_str
+    # printf -v line_str "%*s" "$width" ""
+    # line_str="${line_str// /$char}"
+    
+    # # 颜色 + 左边缘 + 中间线 + 右边缘 + 结束颜色
+    # print_echo "${color}${edge}${line_str}${edge}${NC}"
+
+    # 获取屏幕宽度
+    local width=""
+
+    # 1. [最优先] 尝试 stty size (macOS/BSD 救星)
+    # 说明: stty 直接查询终端驱动层，通常是最准的。
+    # 关键: 必须加上 < /dev/tty，强制它去读终端设备，否则在脚本中容易拿不到值。
+    if command -v stty &>/dev/null; then
+        width=$(stty size < /dev/tty 2>/dev/null | awk '{print $2}')
+    fi
+
+    # 2. [次选] 尝试 tput (Linux 标准)
+    # 只有当 stty 没获取到有效值(空或0)时，才给 tput 机会
+    if [[ -z "$width" || "$width" -le 0 ]]; then
+        if command -v tput &>/dev/null; then
+            width=$(tput cols 2>/dev/null)
+        fi
+    fi
+
+    # 3. [备选] 尝试 Shell 环境变量
+    if [[ -z "$width" || "$width" -le 0 ]]; then
+        width="${COLUMNS:-}"
+    fi
+
+    # 4. [兜底] 实在没办法了，只能默认 80
+    if [[ -z "$width" || "$width" -le 0 ]]; then
+        width=80
+    fi
+
+    # ==========================================================================
+
+    # ... (后面的 edge 处理和 printf 输出保持不变) ...
     if [[ -n "$edge" ]]; then
         (( width = width - 2 ))
     fi
@@ -165,7 +208,6 @@ print_line() {
     printf -v line_str "%*s" "$width" ""
     line_str="${line_str// /$char}"
     
-    # 颜色 + 左边缘 + 中间线 + 右边缘 + 结束颜色
     print_echo "${color}${edge}${line_str}${edge}${NC}"
 }
 
@@ -988,26 +1030,30 @@ print_menu_item_done() {
 _get_visual_len() {
     local text="$1"
     
-    # 1. [纯Bash] 剥离颜色代码 (移除所有 \e[...m 格式)
-    local clean="${text//$'\e'\[[0-9;]*m/}"
+    # 1. 开启 extglob 以支持 *([0-9;]) 这种精准匹配模式
+    # 如果不开启，普通的 * 是贪婪的，会把 "\e[31m文字\e[0m" 整个吞掉，导致长度计算为0
+    local extglob_was_set=0
+    if shopt -q extglob; then extglob_was_set=1; else shopt -s extglob; fi
 
-    # 2. [纯Bash优化] 检测是否为纯 ASCII
-    # 原理: 利用 Bash 内置替换，将所有标准 ASCII 打印字符(空格到波浪号)临时删掉
-    # 如果删完之后字符串变为空了，说明原字符串全是 ASCII，不需要动用 wc 计算
-    # 这种写法比 regex [[:ascii:]] 兼容性好得多，且速度极快
-    local non_ascii="${clean//[ -~]/}"
+    # 2. [纯Bash] 剥离颜色代码
+    # *([0-9;]) 表示：只匹配数字和分号，不匹配其他字符(如文字)
+    local clean="${text//$'\e'\[*([0-9;])m/}"
     
+    # 恢复环境 (如果之前没开)
+    if [[ $extglob_was_set -eq 0 ]]; then shopt -u extglob; fi
+
+    # 3. [极速通道] 纯 ASCII 直接返回长度 (优化性能)
+    # 利用 Bash 替换删除所有可见 ASCII 字符，如果空了说明全是 ASCII
+    local non_ascii="${clean//[ -~]/}"
     if [[ -z "$non_ascii" ]]; then
         echo "${#clean}"
         return
     fi
 
-    # 3. [混合字符计算] 只有含中文时才走这一步
-    # 计算公式: 字符数 + (字节数 - 字符数) / 2
-    # 使用 wc -c <<< string 是为了兼容性，但它是这里唯一的外部调用
+    # 4. [中文混合] 计算宽字符
     local char_len=${#clean}
     local byte_len
-    byte_len=$(wc -c <<< "$clean") # <<< 会多加一个换行符
+    byte_len=$(wc -c <<< "$clean")
     (( byte_len -= 1 ))
     
     echo $(( char_len + (byte_len - char_len) / 2 ))
@@ -1104,7 +1150,6 @@ print_status_item() {
     [[ "$suffix_space" -gt 0 ]] && printf -v suffix_str '%*s' "$suffix_space" ''
 
     # 4. 最终输出
-    # 标签用白色，值保留原色
     print_echo -n "${WHITE}${label}${NC}${label_pad_str}${suffix_str}${value}${value_pad_str}"
 }
 
@@ -1116,7 +1161,7 @@ print_status_item() {
 # ------------------------------------------------------------------------------
 print_status_done() {
     # 1. 物理换行：因为 status_item 是 echo -n，必须显式结束这一行
-    echo 
+    print_blank
     
     # 2. 逻辑重置：把行号计数器归位，防止下一次调用时状态混乱
     G_LAST_STATUS_ROW="-1"
@@ -1204,7 +1249,7 @@ print_key_value() {
         esac
     done
 
-    # 视觉宽度计算 (核心逻辑)
+    # 视觉宽度计算
     # 目标：解决中文字符占位宽，但 wc -c 计算字节多的问题
     # 算法：视觉宽度 ≈ 字符数 + (总字节数 - 字符数) / 2
     local char_len=${#key}

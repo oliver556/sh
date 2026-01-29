@@ -20,21 +20,15 @@ source "${BASE_DIR}/lib/package.sh"
 # 定义本模块管理的软件列表
 APPS_LIST=(
     # --- 基础下载与连接 ---
-    "curl"
-    "wget"
-    "sudo"
-    "socat"
+   "curl" "wget" "sudo" "socat"
     # --- 生产力与解压 ---
-    "git"
-    "tmux"
-    "tar"
-    "unzip"
+    "git" "tmux" "tar" "unzip"
      # --- 编辑器 ---
-    "vim"
-    "nano"
+    "vim" "nano"
     # --- 监控与管理 ---
-    "btop"
-    "ncdu"
+    "btop" "ncdu"
+    # --- 运行环境 ---
+    "python3" "nodejs"
 )
 
 # ------------------------------------------------------------------------------
@@ -57,7 +51,7 @@ _draw_software_status() {
 
     # 2. 定义双列布局参数
     local L_W=12  # 左侧标签宽度
-    local V_W=9   # 左侧数值预留宽度
+    local V_W=20  # 左侧数值预留宽度
     local PAD=0   # 整体左缩进
 
     local apps=("${APPS_LIST[@]}")
@@ -92,6 +86,84 @@ _draw_software_status() {
     done
     
     print_status_done
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: install_env_python
+# 功能:   智能安装 Python 全家桶 (解释器+Pip+Venv)
+# ------------------------------------------------------------------------------
+install_env_python() {
+    print_clear
+    print_box_info -m "正在部署 Python 全家桶..." -s start
+    
+    # 1. 安装 Python3 本体
+    pkg_install python3
+    
+    # 2. 智能安装 Pip
+    if ! command -v pip3 &>/dev/null; then
+        pkg_install python3-pip
+    else
+        print_box_info -m "python3-pip (pip3) 已安装，跳过"
+    fi
+
+    # 3. 智能安装 Venv (针对 Debian/Ubuntu)
+    if command -v apt &>/dev/null; then
+        if ! python3 -c "import venv" &>/dev/null; then
+            pkg_install python3-venv
+        else
+            print_box_info -m "python3-venv 模块已存在，跳过"
+        fi
+    fi
+    
+    # 4. 展示详细版本信息
+    print_blank
+    print_line -c "-"
+    
+    local py_ver
+    py_ver=$(python3 --version 2>&1 | awk '{print $2}')
+    print_key_value -k "Python3" -v "$py_ver"
+    
+    if command -v pip3 &>/dev/null; then
+        local pip_ver
+        pip_ver=$(pip3 --version 2>&1 | awk '{print $2}')
+        print_key_value -k "Pip3" -v "$pip_ver"
+    fi
+    
+    local venv_status="${RED}未安装${NC}"
+    if python3 -c "import venv" &>/dev/null; then venv_status="${GREEN}可用${NC}"; fi
+    print_key_value -k "Venv模块" -v "$venv_status"
+
+    print_line -c "-"
+    print_box_success -m "Python 环境部署完成" -s finish
+    print_wait_enter
+}
+
+# ------------------------------------------------------------------------------
+# 函数名: install_env_nodejs
+# 功能:   安装 Node.js 和 NPM
+# ------------------------------------------------------------------------------
+install_env_nodejs() {
+    print_clear
+    print_box_info -m "正在部署 Node.js 环境..." -s start
+    
+    # 1. 安装本体和包管理器
+    pkg_install nodejs npm
+
+    # 2. 展示详细版本信息
+    print_blank
+    print_line -c "-"
+    
+    if command -v node &>/dev/null; then
+        print_key_value -k "Node" -v "$(node -v 2>/dev/null)"
+    fi
+    
+    if command -v npm &>/dev/null; then
+        print_key_value -k "Npm" -v "$(npm -v 2>/dev/null)"
+    fi
+    
+    print_line -c "-"
+    print_box_success -m "Node.js 环境部署完成" -s finish
+    print_wait_enter
 }
 
 # ------------------------------------------------------------------------------
@@ -163,38 +235,33 @@ install_menu() {
         _draw_software_status
 
         print_line
-        print_step -m "基础下载与连接"
         print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)curl  下载工具" -I star
-        print_menu_item -r 1 -p 9 -i 2 -m "$(print_spaces 1)wget  下载工具" -I star
+        print_menu_item -r 1 -p 8 -i 2 -m "$(print_spaces 1)wget  下载工具" -I star
         print_menu_item -r 2 -p 0 -i 3 -m "$(print_spaces 1)sudo  超级管理权限工具"
-        print_menu_item -r 2 -p 2 -i 4 -m "$(print_spaces 1)socat 通信连接工具"
+        print_menu_item -r 2 -p 1 -i 4 -m "$(print_spaces 1)socat 通信连接工具"
         print_menu_item_done
 
         print_line
-        print_step -m  "生产力与解压"
         print_menu_item -r 3 -p 0 -i 5 -m "$(print_spaces 1)git   版本控制系统"
-        print_menu_item -r 3 -p 6 -i 6 -m "$(print_spaces 1)tmux  终端复用管理"
+        print_menu_item -r 3 -p 5 -i 6 -m "$(print_spaces 1)tmux  终端复用管理"
         print_menu_item -r 4 -p 0 -i 7 -m "$(print_spaces 1)tar   GZ压缩解压工具"
-        print_menu_item -r 4 -p 4 -i 8 -m "$(print_spaces 1)unzip ZIP压缩解压工具"
+        print_menu_item -r 4 -p 3 -i 8 -m "$(print_spaces 1)unzip ZIP压缩解压工具"
         print_menu_item_done
 
         print_line
-        print_step -m  "编辑器"
         print_menu_item -r 5 -p 0 -i 9 -m "$(print_spaces 1)vim   文本编辑器"
-        print_menu_item -r 5 -p 7 -i 10 -m "$(print_spaces 1)nano  文本编辑器"
+        print_menu_item -r 5 -p 7 -i 10 -m "nano  文本编辑器"
         print_menu_item_done
         
         print_line
-        print_step -m  "监控与管理"
-        print_menu_item -r 6 -p 0 -i 11 -m "$(print_spaces 1)btop 现代化监控工具"
-        print_menu_item -r 6 -p 3 -i 12 -m "$(print_spaces 1)ncdu  磁盘占用查看工具"
+        print_menu_item -r 6 -p 0 -i 11 -m "btop  现代化监控工具" -I star
+        print_menu_item -r 6 -p 2 -i 12 -m "ncdu  磁盘占用查看工具"
         print_menu_item_done
 
-        # print_line
-        # print_step -m  "系统环境"
-        # print_menu_item -r 51 -p 0 -i 51 -m "$(print_spaces 1)Python"
-        # print_menu_item -r 51 -p 16 -i 52 -m "$(print_spaces 1)Nodejs"
-        # print_menu_item_done
+        print_line
+        print_menu_item -r 21 -p 0 -i 21 -m "Python"
+        print_menu_item -r 21 -p 17 -i 22 -m "Nodejs"
+        print_menu_item_done
  
         print_line
         print_menu_item -r 31 -p 0 -i 31 -m "全部安装"
@@ -272,6 +339,12 @@ install_menu() {
                 print_clear
                 pkg_install ncdu
                 print_wait_enter
+                ;;
+            21)
+                install_env_python
+                ;;
+            22)
+                install_env_nodejs
                 ;;
             31)
                 print_clear

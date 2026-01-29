@@ -55,7 +55,8 @@ system_menu() {
         print_menu_item_done
         
         print_line
-        print_menu_item -r 11 -p 0 -i 11 -m "虚拟内存管理" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 10 -p 0 -i 11 -m "切换系统更新源" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 10 -p 9 -i 12 -m "虚拟内存管理" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 0 -i 13 -m "内核与拥塞控制" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 9 -i 14 -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
         print_menu_item_done
@@ -130,6 +131,11 @@ system_menu() {
                 tcp_tuning_menu
                 ;;
             11)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/mirror/mirror.sh"
+                mirror_menu
+                ;;    
+            12)
                 # shellcheck disable=SC1091
                 source "${BASE_DIR}/modules/system/memory/menu.sh"
                 system_memory_menu
