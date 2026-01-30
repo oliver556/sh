@@ -74,7 +74,7 @@ reinstall_Leitbogioro() {
     chmod a+x InstallNET.sh
     
     print_step "正在启动安装脚本，请稍后..."
-    bash InstallNET.sh ${system_param}
+    bash InstallNET.sh "${system_param}"
     
     # 返回 InstallNET.sh 的执行状态码
     return $?
@@ -103,7 +103,7 @@ reinstall_Bin456789() {
     curl -sLO "$url" || wget -qO reinstall.sh "$url"
 
     print_step "正在启动安装脚本，请稍后..."
-    bash reinstall.sh ${system_param}
+    bash reinstall.sh "${system_param}"
 
     # 返回 reinstall.sh 的执行状态码
     return $?
@@ -121,6 +121,7 @@ reinstall_Bin456789() {
 #   无
 # 
 # 示例:
+
 #   run_mollylau_install "Debian 12" "debian 12"
 # ------------------------------------------------------------------------------
 run_mollylau_install() {
@@ -128,20 +129,32 @@ run_mollylau_install() {
     local system_param="$2"
 
     print_step "正在检查系统是否安装有必要环境..."
-
-    # 确保 wget 环境就绪
+    # 检查必要环境 (wget)
     ensure_cmd wget || return 1
-
-    sleep 1
 
     print_step "正在准备: [Leitbogioro] DD 脚本..."
     print_step "目标系统: ${system_version_name}" 
-
     print_line
-
     sleep 1
+
+    # 执行安装脚本
     reinstall_Leitbogioro "${system_param}"
-    reinstall_finish_reboot
+
+    # 获取执行结果
+    local ret_code=$?
+
+    # 智能判断
+    if [[ $ret_code -eq 0 ]]; then
+        # 成功: DD 脚本跑完了，返回了 0 (成功)，但它自己没触发重启 (或者被我们捕获了)
+        print_success "DD 脚本预处理完成！"
+        reinstall_finish_reboot
+    else
+        # 失败: 抛出错误信息
+        print_error "DD 脚本执行失败 (错误码: $ret_code)！"
+        print_error "请检查上方报错信息 (通常是网络问题或缺少依赖)。"
+        print_error "系统未做任何更改，未重启。"
+        return 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -162,15 +175,34 @@ run_bin456789_install() {
     local system_version_name="$1"
     local system_param="$2"
 
+    print_step "正在检查系统是否安装有必要环境..."
+    # 检查必要环境 (curl)
+    ensure_cmd curl || return 1
+
     print_step "正在准备: [Bin456789] DD 脚本..."
     print_step "目标系统: ${system_version_name}"
-
     print_line
-
     sleep 1
 
+    # 执行安装脚本
     reinstall_Bin456789 "${system_param}"
-    reinstall_finish_reboot
+
+    # 获取执行结果
+    local ret_code=$?
+
+
+    # 智能判断
+    if [[ $ret_code -eq 0 ]]; then
+        # 成功: DD 脚本跑完了，返回了 0 (成功)，但它自己没触发重启 (或者被我们捕获了)
+        print_success "DD 脚本预处理完成！"
+        reinstall_finish_reboot
+    else
+        # 5. 失败处理：报错并停止，防止误重启回旧系统
+        print_error "DD 脚本执行失败 (错误码: $ret_code)！"
+        print_error "请检查上方报错信息 (通常是网络问题或缺少依赖)。"
+        print_error "系统未做任何更改，未重启。"
+        return 1
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -200,26 +232,34 @@ reinstall_info_config() {
     case "$name" in
         "Debian 13"|"CentOS 10"|"CentOS 9")
             user="root"; pass="123@@@"; port="22"; func="run_bin456789_install"
-            local os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-            local ver_num=$(echo "$name" | awk '{print $2}')
-            param="${os_low} ${ver_num}"
+            local os_low
+            os_low=$(print_echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            local ver_num
+            ver_num=$(print_echo "$name" | awk '{print $2}')
+            param="${os_low} ${ver_num} --password ${pass} --ssh-port ${port}"
             ;;
         "Debian 12"|"Debian 11"|"Debian 10"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"
-            local os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-            local ver_num=$(echo "$name" | awk '{print $2}')
-            param="-${os_low} ${ver_num}"
+            local os_low
+            os_low=$(print_echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            local ver_num
+            ver_num=$(print_echo "$name" | awk '{print $2}')
+            param="-${os_low} ${ver_num} -pwd ${pass} -port ${port}"
             ;;
         "Windows"*)
             user="Administrator"; pass="Teddysun.com"; port="3389"; func="run_mollylau_install"
             if [[ "$name" == *"Server"* ]]; then
-                param="-windows $(echo "$name" | awk '{print $NF}') -lang cn"
+                # param="-windows $(print_echo "$name" | awk '{print $NF}') -lang cn"
+                local win_ver
+                win_ver=$(print_echo "$name" | awk '{print $NF}')
+                param="-windows ${win_ver} -lang cn -pwd ${pass}"
             else
                 param="-windows ${name#Windows } -lang cn"
             fi
             ;;
         "Alpine Linux")
-            user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"; param="-alpine"
+            user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install";
+            param="-alpine -pwd ${pass} -port ${port}"
             ;;
         *)
             print_error "未找到该系统的重装预设配置: $name"
@@ -235,16 +275,12 @@ reinstall_info_config() {
     print_tip "初始端口: ${port}${NC}"
     print_line
 
-    print_blank
-
     print_warn "警告: 这将清除目标服务器上的所有数据！"
     print_warn "请务必记录好上述密码，以免重装后失联。"
 
     if ! read_confirm; then
         return 1
     fi
-
-    print_blank
 
     print_box_info -C "$BOLD_GREEN" -m "确认完毕，准备开始 DD！"
 

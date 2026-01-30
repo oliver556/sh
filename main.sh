@@ -89,6 +89,88 @@ assert_bash_version() {
 }
 
 assert_bash_version
+
+bash_help(){
+    source "${BASE_DIR}/modules/system/maintain/help.sh"
+    # ==============================================================================
+    # 命令行参数解析 (CLI Argument Parser)
+    # ==============================================================================
+    # 如果传入了参数 ($# > 0)，则进入命令行模式；否则进入交互菜单模式
+    if [[ $# -gt 0 ]]; then
+        case "$1" in
+            # --- 帮助与版本 ---
+            -h|--help)
+                v_help "${2:-}"
+                exit 0
+                ;;
+            -v|--version)
+                echo "v${VSK_VERSION:-0.1.0}"
+                exit 0
+                ;;
+            -u|--update)
+                update_script # 假设你有更新函数
+                exit 0
+                ;;
+            
+            # --- 软件管理映射 ---
+            i|install|add)
+                shift 1 # 移除第一个参数 (install)，保留后面的包名
+                if [[ -z "$1" ]]; then
+                    print_error "请指定要安装的软件包名"
+                    exit 1
+                fi
+                pkg_install "$@" # 直接调用 package.sh 里的安装函数
+                exit 0
+                ;;
+            rm|remove|uninstall)
+                shift 1
+                if [[ -z "$1" ]]; then
+                    print_error "请指定要卸载的软件包名"
+                    exit 1
+                fi
+                pkg_remove "$@"
+                exit 0
+                ;;
+            
+            # --- 系统功能映射 ---
+            # swap)
+            #     # 例如: v swap 2048
+            #     if [[ -n "$2" ]]; then
+            #         set_swap "$2"
+            #     else
+            #         print_error "请指定 Swap 大小 (MB)"
+            #     fi
+            #     exit 0
+            #     ;;
+            # ssl)
+            #     # 如果后面还有参数，可以再细分，这里简单映射到菜单或函数
+            #     ssl_menu 
+            #     exit 0
+            #     ;;
+            
+            # # --- Docker 映射 ---
+            # docker)
+            #     shift 1
+            #     case "$1" in
+            #         install)   docker_install_logic ;; # 需确保有此非交互函数
+            #         uninstall) docker_remove_logic ;;
+            #         *)         print_error "未知 Docker 指令. 试用: v docker install" ;;
+            #     esac
+            #     exit 0
+            #     ;;
+
+            # --- 未知参数 ---
+            *)
+                print_error "未知命令: $1"
+                print_info "输入 'v -h' 查看帮助信息"
+                exit 1
+                ;;
+        esac
+    fi
+}
+
+bash_help "$@"
+
 # ------------------------------------------------------------------------------
 # 函数名: 脚本主菜单
 # 功能:   提供脚本主菜单导航页
@@ -166,20 +248,3 @@ main() {
 
 # 启动主函数
 main "$@"
-
-# # ******************************************************************************
-# # 3. 命令行参数预处理
-# # ******************************************************************************
-# # 处理通过 bin/v 传入的参数，例如：v --update 或 v --version
-# case "${1:-}" in
-#     --update|-u)
-#         if [[ -f "${BASE_DIR}/update.sh" ]]; then
-#             bash "${BASE_DIR}/update.sh"
-#             exit 0
-#         fi
-#         ;;
-#     --version|-v)
-#         echo "VpsScriptKit Version: $VSK_VERSION"
-#         exit 0
-#     ;;
-# esac

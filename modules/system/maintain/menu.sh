@@ -93,6 +93,12 @@ maintain_menu() {
                     sleep 1
                 fi
                 ;;
+            66)
+                # shellcheck disable=SC1091
+                source "${BASE_DIR}/modules/system/maintain/help.sh"
+                v_help
+                print_wait_enter
+                ;;
             0)
                 return
                 ;;
