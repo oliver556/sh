@@ -63,7 +63,7 @@ maintain_menu() {
         print_menu_item_done
 
         print_line
-        print_menu_item -r 66 -p 0 -i 66 -m "${BOLD_GREY}v 命令高级用法${NC}" -I star
+        print_menu_item -r 66 -p 0 -i 66 -m "v 命令高级用法" -I star
         print_menu_item_done
 
         print_menu_go_level

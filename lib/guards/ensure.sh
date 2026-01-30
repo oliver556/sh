@@ -60,16 +60,33 @@ install_cmd() {
     local cmd="$1"
     local pkg="${2:-$1}"
 
+    local SUDO_CMD=""
+
+    # 1. 如果当前用户 ID 不是 0 (不是 root)，则命令前必须加 sudo
+    if [ "$(id -u)" -ne 0 ]; then
+        SUDO_CMD="sudo"
+    fi
+
     # 已安装直接返回
     has_cmd "$cmd" && return 0
 
     if is_debian_like; then
-        sudo apt-get update -qq
-        sudo apt-get install -y "$pkg" || return 1
-    # elif is_rhel; then
-    #     sudo yum install -y "$cmd" || return 1
-    # elif is_alpine; then
-    #     sudo apk add --no-cache "$cmd" || return 1
+        # 2. 这里的指令变成 $SUDO_CMD apt-get ...
+        # 如果是 root，变量为空，执行：apt-get update
+        # 如果是普通用户，变量为 sudo，执行：sudo apt-get update
+        $SUDO_CMD apt-get update -qq
+        $SUDO_CMD apt-get install -y "$pkg" || return 1
+        
+    elif is_rhel; then
+        if command -v dnf >/dev/null 2>&1; then
+            $SUDO_CMD dnf install -y "$pkg" || return 1
+        else
+            $SUDO_CMD yum install -y "$pkg" || return 1
+        fi
+        
+    elif is_alpine; then
+        $SUDO_CMD apk add --no-cache "$pkg" || return 1
+        
     else
         print_warn -m "当前系统不支持自动安装: $pkg"
         return 1

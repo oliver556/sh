@@ -149,7 +149,10 @@ is_debian() {
 #   is_debian_like
 # ------------------------------------------------------------------------------
 is_debian_like() {
-    get_os_like | grep -qw debian
+    # 1. 获取 ID (debian) 和 ID_LIKE (可能为空)
+    # 2. tr -d '\r' 移除可能存在的 Windows 回车符 (关键！)
+    # 3. grep -iq 进行不区分大小写的模糊匹配
+    echo "$(get_os_id) $(get_os_like)" | tr -d '\r' | grep -iq "debian"
 }
 
 # ******************************************************************************

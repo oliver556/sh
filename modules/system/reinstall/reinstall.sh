@@ -74,7 +74,7 @@ reinstall_Leitbogioro() {
     chmod a+x InstallNET.sh
     
     print_step "正在启动安装脚本，请稍后..."
-    bash InstallNET.sh "${system_param}"
+    bash InstallNET.sh ${system_param}
     
     # 返回 InstallNET.sh 的执行状态码
     return $?
@@ -103,9 +103,9 @@ reinstall_Bin456789() {
     curl -sLO "$url" || wget -qO reinstall.sh "$url"
 
     print_step "正在启动安装脚本，请稍后..."
-    bash reinstall.sh "${system_param}"
 
-    # 返回 reinstall.sh 的执行状态码
+    bash reinstall.sh ${system_param}
+
     return $?
 }
 
@@ -127,36 +127,47 @@ reinstall_Bin456789() {
 run_mollylau_install() {
     local system_version_name="$1"
     local system_param="$2"
+    local log_file="/tmp/dd_install_leitbogioro.log" # 定义临时日志文件
 
     print_step "正在检查系统是否安装有必要环境..."
     # 检查必要环境
     ensure_cmd "update-ca-certificates" "ca-certificates" || return 1
     ensure_cmd wget || return 1
-    ensure_cmd "xz" "xz-utils"
+    ensure_cmd "xz" "xz-utils" || return 1
 
     print_step "正在准备: [Leitbogioro] DD 脚本..."
     print_step "目标系统: ${system_version_name}" 
-    print_line
-    sleep 1
 
-    # 执行安装脚本
-    reinstall_Leitbogioro "${system_param}"
+    # 开启 pipefail: 确保管道中的输出能被捕获
+    set -o pipefail
+
+    # 执行安装脚本，使用 tee 同时输出到屏幕和日志文件
+    # 2>&1 确保错误输出也能被 grep 抓到
+    reinstall_Leitbogioro "${system_param}" 2>&1 | tee "$log_file"
 
     # 获取执行结果
     local ret_code=$?
 
+    # 关闭 pipefail
+    set +o pipefail
+
     # 智能判断
-    if [[ $ret_code -eq 0 ]]; then
-        # 成功: DD 脚本跑完了，返回了 0 (成功)，但它自己没触发重启 (或者被我们捕获了)
-        print_success "DD 脚本预处理完成！"
+    # 条件 A: 退出码为 0 (标准成功)
+    # 条件 B: 日志里包含 "Input 'reboot'"
+    if [[ $ret_code -eq 0 ]] || grep -aE "Input.*reboot" "$log_file" >/dev/null 2>&1; then
+        print_blank
+        print_success "检测到 DD 脚本执行完毕，自动接管并重启"
         reinstall_finish_reboot
     else
-        # 失败: 抛出错误信息
+        # 失败
         print_error "DD 脚本执行失败 (错误码: $ret_code)！"
-        print_error "请检查上方报错信息 (通常是网络问题或缺少依赖)。"
-        print_error "系统未做任何更改，未重启。"
+        print_error "未在日志中检测到成功标识，系统未重启。"
+        print_warn "你可以查看日志文件诊断问题: cat $log_file"
+        
+        read -r -p "按回车键返回主菜单..."
         return 1
     fi
+    # ==============================================
 }
 
 # ------------------------------------------------------------------------------
@@ -176,35 +187,33 @@ run_mollylau_install() {
 run_bin456789_install() {
     local system_version_name="$1"
     local system_param="$2"
+    local log_file="/tmp/dd_install_bin.log" # 定义临时日志文件
 
     print_step "正在检查系统是否安装有必要环境..."
     # 检查必要环境
     ensure_cmd "update-ca-certificates" "ca-certificates" || return 1
     ensure_cmd curl || return 1
-    ensure_cmd "xz" "xz-utils"
+    ensure_cmd "xz" "xz-utils" || return 1
 
     print_step "正在准备: [Bin456789] DD 脚本..."
     print_step "目标系统: ${system_version_name}"
-    print_line
-    sleep 1
 
     # 执行安装脚本
-    reinstall_Bin456789 "${system_param}"
-
+    set -o pipefail
+    reinstall_Bin456789 "${system_param}" 2>&1 | tee "$log_file"
     # 获取执行结果
     local ret_code=$?
-
+    set +o pipefail
 
     # 智能判断
     if [[ $ret_code -eq 0 ]]; then
-        # 成功: DD 脚本跑完了，返回了 0 (成功)，但它自己没触发重启 (或者被我们捕获了)
-        print_success "DD 脚本预处理完成！"
+        print_blank
+        print_success "检测到 DD 脚本执行完毕，自动接管并重启"
         reinstall_finish_reboot
     else
-        # 5. 失败处理：报错并停止，防止误重启回旧系统
         print_error "DD 脚本执行失败 (错误码: $ret_code)！"
-        print_error "请检查上方报错信息 (通常是网络问题或缺少依赖)。"
-        print_error "系统未做任何更改，未重启。"
+        print_warn "请检查上方报错信息。"
+        read  -r -p "按回车键返回主菜单..."
         return 1
     fi
 }
@@ -232,33 +241,31 @@ reinstall_info_config() {
     local name="$1"
     local user pass port func param
 
-    # --- 配置查找表 ---
     case "$name" in
         "Debian 13"|"CentOS 10"|"CentOS 9")
             user="root"; pass="123@@@"; port="22"; func="run_bin456789_install"
             local os_low
-            os_low=$(print_echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
             local ver_num
-            ver_num=$(print_echo "$name" | awk '{print $2}')
+            ver_num=$(echo "$name" | awk '{print $2}')
             param="${os_low} ${ver_num} --password ${pass} --ssh-port ${port}"
             ;;
         "Debian 12"|"Debian 11"|"Debian 10"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"
             local os_low
-            os_low=$(print_echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+            os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
             local ver_num
-            ver_num=$(print_echo "$name" | awk '{print $2}')
+            ver_num=$(echo "$name" | awk '{print $2}')
             param="-${os_low} ${ver_num} -pwd ${pass} -port ${port}"
             ;;
         "Windows"*)
             user="Administrator"; pass="Teddysun.com"; port="3389"; func="run_mollylau_install"
             if [[ "$name" == *"Server"* ]]; then
-                # param="-windows $(print_echo "$name" | awk '{print $NF}') -lang cn"
                 local win_ver
-                win_ver=$(print_echo "$name" | awk '{print $NF}')
+                win_ver=$(echo "$name" | awk '{print $NF}')
                 param="-windows ${win_ver} -lang cn -pwd ${pass}"
             else
-                param="-windows ${name#Windows } -lang cn"
+                param="-windows ${name#Windows } -lang cn -pwd ${pass}"
             fi
             ;;
         "Alpine Linux")
@@ -293,7 +300,15 @@ reinstall_info_config() {
     sleep 1
 
     # 动态调用传入的安装函数名，并将系统名称作为参数传递给它
-    "${func}" "${name}" "${param}"
+    # "${func}" "${name}" "${param}"
+    if [[ "$func" == *"run_bin456789_install"* ]]; then
+        run_bin456789_install "${name}" "${param}"
+    elif [[ "$func" == *"run_mollylau_install"* ]]; then
+        run_mollylau_install "${name}" "${param}"
+    else
+        print_error "严重错误：未知的安装函数指令 [$func]"
+        return 1
+    fi
 
     return $?
 }
