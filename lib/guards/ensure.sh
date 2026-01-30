@@ -28,14 +28,14 @@
 # ------------------------------------------------------------------------------
 ensure_cmd() {
   	local cmd="$1"
-    # local tip="false"
+    local pkg="${2:-$1}"  # 如果 $2 为空，则 pkg = cmd
 
   	has_cmd "$cmd" && return 0
 
   	print_warn -m "未检测到命令: $cmd，正在尝试安装..."
 
-	install_cmd "$cmd" || {
-        print_error -m "安装 $cmd 失败，请手动检查网络或源设置。"
+    install_cmd "$cmd" "$pkg" || {
+        print_error -m "安装 $pkg 失败，请手动检查网络或源设置。"
         return 1
     }
 
@@ -58,19 +58,20 @@ ensure_cmd() {
 # ------------------------------------------------------------------------------
 install_cmd() {
     local cmd="$1"
+    local pkg="${2:-$1}"
 
     # 已安装直接返回
     has_cmd "$cmd" && return 0
 
     if is_debian_like; then
         sudo apt-get update -qq
-        sudo apt-get install -y "$cmd" || return 1
+        sudo apt-get install -y "$pkg" || return 1
     # elif is_rhel; then
     #     sudo yum install -y "$cmd" || return 1
     # elif is_alpine; then
     #     sudo apk add --no-cache "$cmd" || return 1
     else
-        print_warn -m "当前系统不支持自动安装: $cmd"
+        print_warn -m "当前系统不支持自动安装: $pkg"
         return 1
     fi
 

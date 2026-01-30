@@ -129,8 +129,10 @@ run_mollylau_install() {
     local system_param="$2"
 
     print_step "正在检查系统是否安装有必要环境..."
-    # 检查必要环境 (wget)
+    # 检查必要环境
+    ensure_cmd "update-ca-certificates" "ca-certificates" || return 1
     ensure_cmd wget || return 1
+    ensure_cmd "xz" "xz-utils"
 
     print_step "正在准备: [Leitbogioro] DD 脚本..."
     print_step "目标系统: ${system_version_name}" 
@@ -176,8 +178,10 @@ run_bin456789_install() {
     local system_param="$2"
 
     print_step "正在检查系统是否安装有必要环境..."
-    # 检查必要环境 (curl)
+    # 检查必要环境
+    ensure_cmd "update-ca-certificates" "ca-certificates" || return 1
     ensure_cmd curl || return 1
+    ensure_cmd "xz" "xz-utils"
 
     print_step "正在准备: [Bin456789] DD 脚本..."
     print_step "目标系统: ${system_version_name}"
