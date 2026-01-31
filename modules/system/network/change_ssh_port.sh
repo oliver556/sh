@@ -18,7 +18,7 @@
 # 参数:
 #   $1 (string): 目标端口号
 #
-# 返回值:
+# 返回值:a
 #   0 - 成功
 #   1 - 失败
 #
@@ -39,8 +39,6 @@ set_ssh_port() {
         return 1
     fi
 
-    print_step "正在修改 SSH 配置文件..."
-    
     # 确保 sshd_config 存在
     if [[ ! -f /etc/ssh/sshd_config ]]; then
         print_error "找不到 /etc/ssh/sshd_config"
@@ -54,14 +52,12 @@ set_ssh_port() {
     sed -i "s/^Port .*/Port $target_port/" /etc/ssh/sshd_config
 
     # 重启服务
-    print_step "正在重启 SSH 服务..."
     if systemctl restart sshd 2>/dev/null || service ssh restart 2>/dev/null; then
-        print_success "SSH 端口已成功修改为: ${BOLD_GREEN}$target_port${NC}"
-        print_echo "${YELLOW}提示：${NC}请确保您的防火墙/安全组已放行该端口，否则您将无法连接！"
+        print_success "SSH 端口已修改为: ${BOLD_GREEN}$target_port${NC}"
+        sleep 1
         return 0
     else
         print_error "SSH 服务重启失败！请手动检查配置。"
-        # 尝试回滚? 这里暂不回滚，保留现场供检查
         return 1
     fi
 }
@@ -96,8 +92,8 @@ change_ssh_port() {
 
     while true; do
         print_clear
-        print_box_header "修改SSH端口"
-        # 获取当前 SSH 端口用于展示
+        print_box_header "修改 SSH 端口"
+
         local current_port
         current_port=$(grep -E '^Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
         print_echo "当前的 SSH 端口号是: ${BOLD_YELLOW}${current_port}${NC}"
@@ -118,5 +114,6 @@ change_ssh_port() {
             print_blank
             return 2
         fi
+        set_ssh_port "$choice"
     done
 }

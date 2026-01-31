@@ -399,7 +399,7 @@ show_current_dns() {
     if [ -f /etc/resolv.conf ]; then
         while IFS= read -r line; do
             if [[ $line == nameserver* ]]; then
-                dns_ip=$(echo $line | awk '{print $2}')
+                dns_ip=$(echo "$line" | awk '{print $2}')
                 print_info "${WHITE}$line${NC}"
             fi
         done < /etc/resolv.conf

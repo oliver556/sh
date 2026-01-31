@@ -109,7 +109,7 @@ set_timezone() {
     new_time=$(date +"%Y-%m-%d %H:%M:%S")
     print_key_value -k "当前时间" -v "${new_time}"
     
-    print_wait_enter
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -176,36 +176,36 @@ timezone_menu() {
 
         case "$choice" in
             # 亚洲
-            1) set_timezone "Asia/Shanghai" ;;
-            2) set_timezone "Asia/Hong_Kong" ;;
-            3) set_timezone "Asia/Tokyo" ;;
-            4) set_timezone "Asia/Seoul" ;;
-            5) set_timezone "Asia/Singapore" ;;
-            6) set_timezone "Asia/Kolkata" ;;
-            7) set_timezone "Asia/Dubai" ;;
-            9) set_timezone "Asia/Bangkok" ;;
+            1) if set_timezone "Asia/Shanghai"; then print_wait_enter; fi ;;
+            2) if set_timezone "Asia/Hong_Kong"; then print_wait_enter; fi ;;
+            3) if set_timezone "Asia/Tokyo"; then print_wait_enter; fi ;;
+            4) if set_timezone "Asia/Seoul"; then print_wait_enter; fi ;;
+            5) if set_timezone "Asia/Singapore"; then print_wait_enter; fi ;;
+            6) if set_timezone "Asia/Kolkata"; then print_wait_enter; fi ;;
+            7) if set_timezone "Asia/Dubai"; then print_wait_enter; fi ;;
+            9) if set_timezone "Asia/Bangkok"; then print_wait_enter; fi ;;
 
             # 澳洲
-            8) set_timezone "Australia/Sydney" ;;
+            8) if set_timezone "Australia/Sydney"; then print_wait_enter; fi ;;
             
             # 欧洲
-            11) set_timezone "Europe/London" ;;
-            12) set_timezone "Europe/Paris" ;;
-            13) set_timezone "Europe/Berlin" ;;
-            14) set_timezone "Europe/Moscow" ;;
-            15) set_timezone "Europe/Amsterdam" ;;
-            16) set_timezone "Europe/Madrid" ;;
+            11) if set_timezone "Europe/London"; then print_wait_enter; fi ;;
+            12) if set_timezone "Europe/Paris"; then print_wait_enter; fi ;;
+            13) if set_timezone "Europe/Berlin"; then print_wait_enter; fi ;;
+            14) if set_timezone "Europe/Moscow"; then print_wait_enter; fi ;;
+            15) if set_timezone "Europe/Amsterdam"; then print_wait_enter; fi ;;
+            16) if set_timezone "Europe/Madrid"; then print_wait_enter; fi ;;
             
             # 美洲
-            21) set_timezone "America/Los_Angeles" ;;
-            22) set_timezone "America/New_York" ;;
-            23) set_timezone "America/Vancouver" ;;
-            24) set_timezone "America/Mexico_City" ;;
-            25) set_timezone "America/Sao_Paulo" ;;
-            26) set_timezone "America/Argentina/Buenos_Aires" ;;
+            21) if set_timezone "America/Los_Angeles"; then print_wait_enter; fi ;;
+            22) if set_timezone "America/New_York"; then print_wait_enter; fi ;;
+            23) if set_timezone "America/Vancouver"; then print_wait_enter; fi ;;
+            24) if set_timezone "America/Mexico_City"; then print_wait_enter; fi ;;
+            25) if set_timezone "America/Sao_Paulo"; then print_wait_enter; fi ;;
+            26) if set_timezone "America/Argentina/Buenos_Aires"; then print_wait_enter; fi ;;
             
             # UTC
-            31) set_timezone "UTC" ;;
+            31) if set_timezone "UTC"; then print_wait_enter; fi ;;
             
             0) return ;;
             *) print_error -m "无效选项" ;;

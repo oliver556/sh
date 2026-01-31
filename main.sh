@@ -23,6 +23,17 @@
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib/env.sh"
 
+# ==============================================================================
+# 引入断点续传模块
+source "${BASE_DIR}/lib/resume.sh"
+
+# 加载业务逻辑库
+source "${BASE_DIR}/modules/system/tuning/system_tune.sh"
+
+# 接盘检查 (Check Resume Entry) 如果是重启自动回来的，这里会直接跳走去执行任务，不会往下走
+check_resume_entry "$@"
+# ==============================================================================
+
 # 检测系统是否支持本脚本
 # check_supported_os
 

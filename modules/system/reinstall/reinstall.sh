@@ -73,7 +73,7 @@ reinstall_Leitbogioro() {
     wget --no-check-certificate -qO InstallNET.sh "$url" || curl -sLO "$url"
     chmod a+x InstallNET.sh
     
-    print_step "正在启动安装脚本，请稍后..."
+    print_step "正在启动 [Leitbogioro] DD 脚本，请稍后..."
     bash InstallNET.sh ${system_param}
     
     # 返回 InstallNET.sh 的执行状态码
@@ -102,7 +102,7 @@ reinstall_Bin456789() {
     # 采用作者文档推荐的多路下载兼容方式，且由于使用 bash 运行，无需 chmod
     curl -sLO "$url" || wget -qO reinstall.sh "$url"
 
-    print_step "正在启动安装脚本，请稍后..."
+    print_step "正在启动 [Bin456789] DD 脚本，请稍后..."
 
     bash reinstall.sh ${system_param}
 
@@ -242,7 +242,7 @@ reinstall_info_config() {
     local user pass port func param
 
     case "$name" in
-        "Debian 13"|"CentOS 10"|"CentOS 9")
+        "Debian 13"|"Debian 10"|"CentOS 10"|"CentOS 9")
             user="root"; pass="123@@@"; port="22"; func="run_bin456789_install"
             local os_low
             os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
@@ -250,7 +250,7 @@ reinstall_info_config() {
             ver_num=$(echo "$name" | awk '{print $2}')
             param="${os_low} ${ver_num} --password ${pass} --ssh-port ${port}"
             ;;
-        "Debian 12"|"Debian 11"|"Debian 10"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
+        "Debian 12"|"Debian 11"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"
             local os_low
             os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
@@ -295,7 +295,7 @@ reinstall_info_config() {
 
     print_box_info -C "$BOLD_GREEN" -m "确认完毕，准备开始 DD！"
 
-    print_tip "马上开始重装系统"
+    print_step "马上开始重装系统"
 
     sleep 1
 

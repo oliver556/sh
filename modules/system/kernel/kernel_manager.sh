@@ -8,6 +8,10 @@
 # 内部函数: 实际执行 XanMod 安装
 # ------------------------------------------------------------------------------
 _install_xanmod_action() {
+    # 接收可选的回调函数名
+    local is_auto="${1:-false}"
+    local resume_callback="${1:-}"
+
     print_step "正在初始化安装环境..."
     local arch
     arch=$(uname -m)
@@ -51,7 +55,27 @@ _install_xanmod_action() {
         apt-get update -y
         if apt-get install -y "linux-xanmod-x64v${cpu_level}"; then
             print_success "内核安装成功！"
-            _prompt_reboot
+            if [[ -n "$resume_callback" ]]; then
+                set_resume_point "$resume_callback"
+                
+                print_box_success -m "内核更新完成，即将自动重启"
+                print_warn "系统将在重启后自动继续执行后续任务。"
+                print_warn "如果当前窗口长时间未重连，请直接关闭并重新打开一个 SSH 窗口即可。"
+                
+                # 倒计时
+                for i in {3..1}; do echo -n "$i... "; sleep 1; done
+                echo
+                
+                # 尝试杀死所有 sshd 进程，强制客户端断开连接，不等待超时
+                killall sshd 2>/dev/null
+                
+                # 立即重启
+                reboot
+                exit 0
+            else
+                # 如果没有回调，走原来的询问逻辑
+                _prompt_reboot
+            fi
         else
             print_error "安装失败，请检查网络连接。"
         fi
@@ -123,7 +147,7 @@ _remove_xanmod_action() {
 # 辅助函数: 重启提示
 # ------------------------------------------------------------------------------
 _prompt_reboot() {
-    print_echo "${YELLOW}注意：${NC}必须重启 VPS，新内核才会生效。"
+    print_warn "注意: 必须重启 VPS，新内核才会生效。"
     local reboot_now
     reboot_now=$(read_choice -s 1 -m "是否立即重启? [y/N]")
     if [[ "$reboot_now" == "y" || "$reboot_now" == "Y" ]]; then
@@ -149,6 +173,9 @@ get_kernel_info() {
 # [新增] 智能逻辑: 一键开启 BBRv3
 # ==============================================================================
 enable_bbrv3_smart() {
+    # 接收参数：如果是 "true" 或 "auto" 则为自动模式，否则为手动模式
+    local is_auto="${1:-false}"
+
     print_clear
     print_box_info -s start -m "BBRv3 加速"
     local arch
@@ -207,15 +234,25 @@ EOF
     else
         # 2. 不是 XanMod，提示安装
         print_warn "当前内核 ($current_kernel) 不支持原生 BBRv3。"
-        
-        local confirm
-        confirm=$(read_choice -s 1 -m "是否自动安装 XanMod 内核并开启? [y/N]")
-        
-        if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+
+        if [[ "$is_auto" == "true" ]]; then
+            # 分支 B.1: 自动模式 -> 强制安装
+            print_tip "检测到一键调优模式，正在自动安装 XanMod 内核并开启..."
+            # 这里的 sleep 是为了让用户看清提示，非必须
+            sleep 1 
             _install_xanmod_action
         else
-            print_info "操作已取消。"
-            print_wait_enter
+        # 分支 B.2: 手动模式 -> 询问用户
+            local confirm
+            confirm=$(read_choice -s 1 -m "是否自动安装 XanMod 内核并开启? [y/N]")
+            
+            if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+                print_tip "正在自动安装 XanMod 内核并开启"
+                _install_xanmod_action
+            else
+                print_info "操作已取消。"
+                print_wait_enter
+            fi
         fi
     fi
 }

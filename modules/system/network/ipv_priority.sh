@@ -107,17 +107,26 @@ set_ipv4_prefer() {
     print_box_info -m "正在设置 IPv4 为优先网络..." -s start
 
     local gai_file="/etc/gai.conf"
-    if [[ ! -f "$gai_file" ]]; then touch "$gai_file"; fi
+    # 1. 检查文件创建是否成功
+    if [[ ! -f "$gai_file" ]]; then 
+        if ! touch "$gai_file"; then
+            print_error -m "无法创建配置文件 $gai_file，权限不足？"
+            return 1  # 返回非 0，表示失败
+        fi
+    fi
 
     if grep -q '^precedence ::ffff:0:0/96  100' "$gai_file"; then
         print_info -m "配置已存在，无需修改。"
     else
         print_step -m "写入优先级规则..."
-        echo 'precedence ::ffff:0:0/96  100' >> "$gai_file"
+        if ! echo 'precedence ::ffff:0:0/96  100' >> "$gai_file"; then
+            print_error -m "写入配置失败！请检查磁盘空间或文件权限。"
+            return 1  # 遇到错误，立即中断并返回失败状态
+        fi
     fi
 
     print_box_success -m "设置完成！系统现在会优先使用 IPv4。"
-    print_wait_enter
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -150,7 +159,7 @@ set_ipv6_prefer() {
     fi
 
     print_box_success -m "设置完成！已恢复系统默认优先级。"
-    print_wait_enter
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -212,8 +221,8 @@ ipv_priority_menu() {
         choice=$(read_choice)
 
         case "$choice" in
-            1) set_ipv4_prefer ;;
-            2) set_ipv6_prefer ;;
+            1) if set_ipv4_prefer; then print_wait_enter; fi ;;
+            2) if set_ipv6_prefer; then print_wait_enter; fi ;;
             3) run_ipv6_fix ;;
             9) 
                 G_NET_CHECKED=false
