@@ -242,7 +242,7 @@ reinstall_info_config() {
     local user pass port func param
 
     case "$name" in
-        "Debian 13"|"Debian 10"|"CentOS 10"|"CentOS 9")
+        "Debian 13"|"Debian 10"|"Ubuntu 18.04"|"CentOS 10"|"CentOS 9")
             user="root"; pass="123@@@"; port="22"; func="run_bin456789_install"
             local os_low
             os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
@@ -250,7 +250,7 @@ reinstall_info_config() {
             ver_num=$(echo "$name" | awk '{print $2}')
             param="${os_low} ${ver_num} --password ${pass} --ssh-port ${port}"
             ;;
-        "Debian 12"|"Debian 11"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04"|"Ubuntu 18.04")
+        "Debian 12"|"Debian 11"|"Ubuntu 24.04"|"Ubuntu 22.04"|"Ubuntu 20.04")
             user="root"; pass="LeitboGi0ro"; port="22"; func="run_mollylau_install"
             local os_low
             os_low=$(echo "$name" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
