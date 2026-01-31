@@ -11,10 +11,6 @@
 # @创建日期: 2026-01-12
 # ==============================================================================
 
-# ******************************************************************************
-# 网络扩展信息（外部 API）
-# ******************************************************************************
-
 # ------------------------------------------------------------------------------
 # 函数名: net_get_isp
 # 功能:   获取 ISP / 运营商
@@ -57,23 +53,22 @@ net_get_geo() {
     
     if [[ -n "$ipinfo" && $(echo "$ipinfo" | wc -l) -eq 2 ]]; then
         # 结果转换为单行输出，例如: US Los Angeles
-        print_echo "$ipinfo" | tr '\n' ' ' | sed 's/ $//'
+        echo "$ipinfo" | tr '\n' ' ' | sed 's/ $//'
         return 0
     fi
 
     # 方案 2: 使用 ipinfo.io (作为备选)
     ipinfo=$(curl -s --max-time 3 https://ipinfo.io/json)
     if [[ -n "$ipinfo" ]]; then
-        # 改进的正则提取，比传统的 awk 更能容错
-        country=$(print_echo "$ipinfo" | sed -n 's/.*"country": "\(.*\)".*/\1/p')
+        country=$(echo "$ipinfo" | sed -n 's/.*"country": "\(.*\)".*/\1/p')
         city=$(echo "$ipinfo" | sed -n 's/.*"city": "\(.*\)".*/\1/p')
         
         if [[ -n "$country" && -n "$city" ]]; then
-            print_echo "${country} ${city}"
+            echo "${country} ${city}"
             return 0
         fi
     fi
 
-    print_echo "未获取到地理位置"
+    echo "未获取到地理位置"
     return 1
 }

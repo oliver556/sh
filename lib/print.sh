@@ -152,23 +152,6 @@ print_line() {
         esac
     done
 
-    # # 获取屏幕宽度
-    # local width
-    # width=$(tput cols 2>/dev/null || echo 80)
-    
-
-    # # 如果指定了边缘符号 (比如 +)，中间的线就要变短 2 格
-    # if [[ -n "$edge" ]]; then
-    #     (( width = width - 2 ))
-    # fi
-
-    # local line_str
-    # printf -v line_str "%*s" "$width" ""
-    # line_str="${line_str// /$char}"
-    
-    # # 颜色 + 左边缘 + 中间线 + 右边缘 + 结束颜色
-    # print_echo "${color}${edge}${line_str}${edge}${NC}"
-
     # 获取屏幕宽度
     local width=""
 

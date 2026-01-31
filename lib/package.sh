@@ -232,6 +232,31 @@ _pkg_exec() {
 }
 
 # ------------------------------------------------------------------------------
+# 内部函数: _pkg_is_installed
+# 功能:     精准检查包是否已安装 (查询包管理器数据库，而非检查命令)
+# ------------------------------------------------------------------------------
+_pkg_is_installed() {
+    local pkg="$1"
+    
+    if command -v dpkg &>/dev/null; then
+        # Debian/Ubuntu: status 为 install ok installed 表示已安装
+        dpkg -s "$pkg" 2>/dev/null | grep -q "Status: install ok installed"
+        
+    elif command -v rpm &>/dev/null; then
+        # RHEL/CentOS: rpm -q 返回 0 表示已安装
+        rpm -q "$pkg" &>/dev/null
+        
+    elif command -v apk &>/dev/null; then
+        # Alpine: apk info -e 返回包名表示已安装
+        [[ -n $(apk info -e "$pkg" 2>/dev/null) ]]
+        
+    else
+        # 兜底：如果不支持的系统，回退到 command -v (虽然不完美，但也比没有强)
+        command -v "$pkg" &>/dev/null
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # 对外函数: pkg_install
 # 功能:     安装软件包（已存在则跳过）
 # ------------------------------------------------------------------------------
@@ -240,23 +265,18 @@ pkg_install() {
 
     local pkg
     for pkg in "$@"; do
-        if ! command -v "$pkg" &>/dev/null; then
+        # 优先使用包管理器查询，更精准
+        if ! _pkg_is_installed "$pkg"; then
+            # 双重检查。如果 _pkg_is_installed 失败，但 command -v 成功，也视为已安装 (针对一些特殊二进制)
+            if command -v "$pkg" &>/dev/null; then
+                 print_box_info -m "$pkg 已安装 (检测到命令)，跳过"
+                 continue
+            fi
+
             print_box_info -s start -m "安装 $pkg..."
-            print_step -m "正在安装 $pkg ..."
-            if _pkg_exec install "$pkg"; then
-                print_box_success -s finish -m "$pkg 安装！"
-            else
-                return 1
-            fi
+            _pkg_exec install "$pkg"
         else
-            if [[ "$pkg" == 'tmux' ]]; then
-                print_box_info -m  "$pkg 已安装，跳过安装"
-                print_echo "当前版本: $(tmux -V)"
-            else
-                print_box_info -m  "$pkg 已安装，跳过安装"
-                # print_info -m "输入 $pkg -h 可查看该包的使用帮助"
-                # $pkg -h
-            fi
+            print_box_info -m "$pkg 已安装，跳过"
         fi
     done
 }

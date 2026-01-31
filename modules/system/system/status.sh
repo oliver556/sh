@@ -215,16 +215,9 @@ _get_sys_info() {
     _sys_get_disk_usage=$(sys_get_disk_usage)
 
     _net_get_isp=$(net_get_isp)
-    # _net_get_ipv4=$(net_get_ipv4)
-    # _net_get_ipv6=$(net_get_ipv6)
     _net_get_ipv4=$(get_public_ip 4)
     _net_get_ipv6=$(get_public_ip 6)
-    # _net_get_private_ipv4=$(net_get_private_ipv4)
-    # _net_get_private_ipv6=$(net_get_private_ipv6)
-    # _net_get_dns=$(net_get_dns | tr '\n' ', ' | sed 's/, $//')
     _net_get_dns=$(net_get_dns | xargs | sed 's/ /, /g')
-    # _net_get_gateway=$(net_get_gateway)
-    # _check_net_connectivity=$(check_net_connectivity)
 
     _net_get_total_rx=$(net_get_total_rx)
     _net_get_total_tx=$(net_get_total_tx)

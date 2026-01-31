@@ -80,7 +80,7 @@ error_exit() {
 }
 
 # ------------------------------------------------------------------------------
-# 函数名: command_exists
+# 函数名: has_cmd
 # 功能:   检查命令是否存在
 # 
 # 参数:
@@ -89,9 +89,9 @@ error_exit() {
 # 返回值: 失败给出相应提示
 # 
 # 示例:
-#   command_exists "curl"
+#   has_cmd "curl"
 # ------------------------------------------------------------------------------
-command_exists() {
+has_cmd() {
     command -v "$1" >/dev/null 2>&1
 }
 
@@ -113,7 +113,7 @@ check() {
     fi
 
     # 系统是否安装 curl tar
-    if ! command_exists "curl" || ! command_exists "tar"; then
+    if ! has_cmd "curl" || ! has_cmd "tar"; then
         echo -e "${BOLD_RED}Ubuntu/Debian: apt-get install -y curl tar${NC}" >&2
         error_exit "系统中缺少 curl 或 tar，请先安装。"
     fi

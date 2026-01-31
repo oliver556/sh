@@ -329,7 +329,7 @@ sys_get_load_avg() {
 # 功能:   获取磁盘使用情况
 # 
 # 参数:
-#   无
+#   $1 - 挂载点 (默认 /)
 # 
 # 返回值:
 #   成功 - 磁盘使用情况
@@ -339,10 +339,13 @@ sys_get_load_avg() {
 #   sys_get_disk_usage
 # ------------------------------------------------------------------------------
 sys_get_disk_usage() {
+    local mount_point="${1:-/}"
+
     # df -h 获取根分区的使用情况
+    # df -P 防止长行换行导致 awk 读错列
     # $3: 已用, $2: 总量, $5: 百分比
     local disk_info
-    disk_info=$(df -h / | awk 'NR==2 {print $3, $2, $5}')
+    disk_info=$(df -hP "$mount_point" | awk 'NR==2 {print $3, $2, $5}')
     
     if [[ -n "$disk_info" ]]; then
         read -r used total percent <<< "$disk_info"

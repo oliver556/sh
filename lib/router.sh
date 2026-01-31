@@ -25,45 +25,51 @@
 # ------------------------------------------------------------------------------
 router_main() {
     local choice="$1"
+    local module_script=""
+    local entry_function=""
 
     case "$choice" in
         1)
             # 系统工具
             # shellcheck disable=SC1091
-            source "${BASE_DIR}/modules/system/menu.sh"
-            system_menu
+            module_script="${BASE_DIR}/modules/system/menu.sh"
+            entry_function="system_menu"
             ;;
         2)
             # 常用工具箱 (Tools Manager)
             # shellcheck disable=SC1091
-            source "${BASE_DIR}/modules/basic/menu.sh"
-            basic_menu 
+            module_script="${BASE_DIR}/modules/basic/menu.sh"
+            entry_function="basic_menu" 
             ;;
         3)
             # 进阶工具模块
             # shellcheck disable=SC1091
-            source "${BASE_DIR}/modules/advanced/menu.sh"
-            advanced_menu
+            module_script="${BASE_DIR}/modules/advanced/menu.sh"
+            entry_function="advanced_menu"
             ;;
         4)
             # Docker 管理模块
-            source "${BASE_DIR}/modules/docker/menu.sh"
-            docker_menu
+            # shellcheck disable=SC1091
+            module_script="${BASE_DIR}/modules/docker/menu.sh"
+            entry_function="docker_menu"
             ;;
         8)
             # 测试脚本合集
-            source "${BASE_DIR}/modules/test/menu.sh"
-            test_menu
+            # shellcheck disable=SC1091
+            module_script="${BASE_DIR}/modules/test/menu.sh"
+            entry_function="test_menu"
             ;;
         9)
             # 节点搭建脚本
-            source "${BASE_DIR}/modules/node/menu.sh"
-            node_menu
+            # shellcheck disable=SC1091
+            module_script="${BASE_DIR}/modules/node/menu.sh"
+            entry_function="node_menu"
             ;;
 		99)
 			# 脚本自管理
-            source "${BASE_DIR}/modules/system/maintain/menu.sh"
-            maintain_menu
+            # shellcheck disable=SC1091
+            module_script="${BASE_DIR}/modules/system/maintain/menu.sh"
+            entry_function="maintain_menu"
 			;;	
 		0)
 			print_exit
@@ -73,4 +79,18 @@ router_main() {
       		sleep 1
             ;;
     esac
+
+    # 统一加载与执行逻辑 (DRY 原则)
+    if [[ -f "$module_script" ]]; then
+        # shellcheck disable=SC1090
+        source "$module_script"
+        
+        if declare -f "$entry_function" > /dev/null; then
+            "$entry_function"
+        else
+            print_error "模块入口函数丢失: $entry_function"
+        fi
+    else
+        print_error "模块文件丢失: $module_script"
+    fi
 }

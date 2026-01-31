@@ -12,26 +12,34 @@
 # ==============================================================================
 
 run_precheck() {
-    echo -e "${BOLD_BLUE}环境预检...${NC}"
+    print_blank
+    print_info -I "$ICON_GEAR" -C "$BOLD_BLUE" "正在进行环境预检..."
+    print_blank
 
-    # 检测是否 root
-    echo -n "检查 root 权限..."
+    print_echo -n "$(print_spaces 2)检查 Root 权限... "
     if check_root; then
-        echo -e "[${GREEN}${ICON_OK}${NC}]"
+        print_echo "${GREEN}${ICON_OK} Pass${NC}"
     else
-        echo -e "[${RED}${ICON_FAIL}${NC}]"
-        exit 1
+        print_echo "${RED}${ICON_FAIL} Fail (需 Root)${NC}"
+        return 1
     fi
 
-    # 检测操作系统
-    echo -n "检查操作系统..."
-
+    # 2. 检测操作系统
+    print_echo -n "$(print_spaces 2)检查操作系统...  "
     if check_supported_os; then
-        echo -e "[${GREEN}${ICON_OK}${NC}]"
+        print_echo "${GREEN}${ICON_OK} Pass${NC}"
     else
-        echo -e "[${RED}${ICON_FAIL}${NC}]"
-        exit 1
+        print_echo "${RED}${ICON_FAIL} Fail (不支持)${NC}"
+        return 1
     fi
 
-    sleep 2
+    print_echo -n "$(print_spaces 2)检查网络连通...  "
+    if has_internet; then
+         print_echo "${GREEN}${ICON_OK} Pass${NC}"
+    else
+         print_echo "${YELLOW}${ICON_WARNING} Warning (离线?)${NC}"
+         # 网络不通未必致死，可以不 return
+    fi
+
+    sleep 1
 }

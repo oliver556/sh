@@ -43,12 +43,13 @@ net_get_ipv4() {
         # 尝试获取 IP，过滤掉可能的 HTML 标签（万一 API 抽风返回了错误页）
         ip=$(curl -s4f --max-time 2 "$api" | tr -d '[:space:]')
         if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            print_echo "$ip"
+            echo "$ip"
             return 0
         fi
     done
 
-    print_echo "未检测到公网 IPv4" >&2
+    # 错误信息输出到 stderr，避免被变量捕获
+    echo "未检测到公网 IPv4" >&2
     return 1
 }
 

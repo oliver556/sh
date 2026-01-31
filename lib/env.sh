@@ -11,7 +11,7 @@
 # @创建日期: 2026-01-011
 # ==============================================================================
 
-# 链接路径
+# 链接路径 (用于安装和卸载时的定位)
 export BIN_PATHS=(
     "/usr/local/bin/v"
     "/usr/local/bin/vsk"
@@ -109,11 +109,9 @@ LIBS=(
     # 核心基础库
     "os.sh"              # 系统识别
     "color.sh"           # 颜色定义
-    # "ui.sh"              # UI 渲染 (依赖颜色定义)
-    "print.sh"
-    "read.sh"
+    "print.sh"           # UI 渲染 (依赖颜色定义)
+    "interact.sh"        # 交互逻辑 (依赖 print)
     "utils.sh"           # 全局通用工具 (最基础)
-    # "interact.sh"        # 交互逻辑 (依赖 UI)
     "check.sh"           # 环境检测 (依赖 UI 和 utils)
     "network.sh"         # 网络信息 & 统计
     "geo.sh"             # ISP / 地理位置
@@ -129,7 +127,11 @@ LIBS=(
 # 循环加载并检查，避免 source 不存在的文件导致报错退出
 for lib in "${LIBS[@]}"; do
     if [[ -f "${BASE_DIR}/lib/$lib" ]]; then
+        # shellcheck disable=SC1090
         source "${BASE_DIR}/lib/$lib"
+    else
+        echo -e "\033[31m[FATAL] 核心库丢失: lib/$lib\033[0m" >&2
+        exit 1
     fi
 done
 

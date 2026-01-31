@@ -16,7 +16,8 @@
 # 全局常量定义
 # ******************************************************************************
 # 定义用于存储断点状态（函数名及参数）的文件路径
-RESUME_STATE_FILE="/root/.vsk_resume_state"
+: "${HOME:=/root}"
+RESUME_STATE_FILE="${HOME}/.vsk_resume_state"
 
 # 定义注入到系统配置文件中的起始标记（用于定位和清理）
 RESUME_MARK_START="#_VSK_AUTO_RESUME_START_"
@@ -142,16 +143,16 @@ set_resume_point() {
     
     # 1. 处理 Login Shell 配置 (profile)
     # 如果用户有 .bash_profile，bash 会忽略 .profile，所以优先写 .bash_profile
-    if [ -f "/root/.bash_profile" ]; then
-        _inject_hook_append "/root/.bash_profile" "$hook_content"
+    if [ -f "${HOME}/.bash_profile" ]; then
+        _inject_hook_append "${HOME}/.bash_profile" "$hook_content"
     else
-        _inject_hook_append "/root/.profile" "$hook_content"
+        _inject_hook_append "${HOME}/.profile" "$hook_content"
     fi
     
     # 2. 处理 Interactive Shell 配置 (bashrc)
     # 使用 _inject_hook_prepend 把它放到第一行
     # 防止因为文件中间的 'return' 导致钩子失效
-    _inject_hook_prepend "/root/.bashrc" "$hook_content"
+    _inject_hook_prepend "${HOME}/.bashrc" "$hook_content"
     
     # print_success "[系统] 已设置断点续传 (路径: $main_script_path)"
 }
@@ -166,9 +167,9 @@ set_resume_point() {
 # ------------------------------------------------------------------------------
 clear_resume_point() {
     rm -f "$RESUME_STATE_FILE"
-    _clean_hook "/root/.bashrc"
-    _clean_hook "/root/.profile"
-    _clean_hook "/root/.bash_profile"
+    _clean_hook "${HOME}/.bashrc"
+    _clean_hook "${HOME}/.profile"
+    _clean_hook "${HOME}/.bash_profile"
 }
 
 # ------------------------------------------------------------------------------
