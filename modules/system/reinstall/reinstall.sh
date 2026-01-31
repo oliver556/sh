@@ -41,7 +41,7 @@ reinstall_finish_reboot() {
         sleep 1
     done
 
-    print_step -m "脚本正在重启..."
+    print_step -m "开始 DD，终端即将断开..."
     
     # 同步磁盘数据并重启
     sync
@@ -294,10 +294,6 @@ reinstall_info_config() {
     fi
 
     print_box_info -C "$BOLD_GREEN" -m "确认完毕，准备开始 DD！"
-
-    print_step "马上开始重装系统"
-
-    sleep 1
 
     # 动态调用传入的安装函数名，并将系统名称作为参数传递给它
     # "${func}" "${name}" "${param}"

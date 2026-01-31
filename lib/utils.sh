@@ -142,8 +142,6 @@ fix_dpkg() {
 
     # 4. 修复环境：处理刚才可能中断的安装包
     DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-
-    # 5. 执行更新：此时环境已经干净且修复完毕
 }
 
 # 刷新 hash
@@ -239,8 +237,13 @@ run_step() {
     local spinner_pid=$!
 
     # 3. 执行真正的命令
-    "${cmd[@]}" >/dev/null 2>&1
-    local exit_code=$?
+    local exit_code=0
+    if "${cmd[@]}" >/dev/null 2>&1; then
+        exit_code=0
+    else
+        # 捕捉原本的错误码
+        exit_code=$?
+    fi
 
     sleep "$sleep"
 
