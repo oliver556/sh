@@ -23,6 +23,8 @@ declare -rx REPO="oliver556/sh"                 # GitHub 仓库
 declare -rx BIN_LINK="/usr/local/bin/vsk"       # 链接路径
 declare -rx BIN_SHORT_LINK="/usr/local/bin/v"   # 存放路径
 declare -rx AGREEMENT_ACCEPTED="false"          # 用户许可协议同意
+declare -rx ICON_OK="✓"                         # 成功 (成功提示)
+declare -rx ICON_NAV="▶"                        # 引导
 SKIP_AGREEMENT="false"                          # 初始化，防止 set -u 报错
 
 # ******************************************************************************
@@ -441,11 +443,10 @@ install_success() {
         cat "$INSTALL_DIR/banner"
     fi
 
-    echo -e "${BOLD_GREEN}✔$(print_spaces 1)安装完成！${BOLD_WHITE} "
-    echo -e "${BOLD_GREEN}⚡$(print_spaces 1)正在自动启动 VpsScriptKit...${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}${ICON_OK}$(print_spaces 1)安装完成！${BOLD_WHITE} "
+    echo -e "${BOLD_GREEN}${ICON_NAV}$(print_spaces 1)正在自动启动 VpsScriptKit...${BOLD_WHITE}"
     echo
     sleep 2
-    # echo -e "${BOLD_GREEN}⚡$(print_spaces 1)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
