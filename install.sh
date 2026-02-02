@@ -529,15 +529,28 @@ print_line() {
 #   self_start
 # ------------------------------------------------------------------------------
 self_start() {
-    # 使用 exec 替换当前进程，让用户感觉是“无缝进入”
+    local target_bin=""
+
+    # 1. 确定要启动的目标
     if [[ -x "$BIN_SHORT_LINK" ]]; then
-        exec "$BIN_SHORT_LINK"
+        target_bin="$BIN_SHORT_LINK"
     elif [[ -x "$BIN_LINK" ]]; then
-        exec "$BIN_LINK"
+        target_bin="$BIN_LINK"
     elif [[ -x "$INSTALL_DIR/v" ]]; then
-        exec "$INSTALL_DIR/v"
+        target_bin="$INSTALL_DIR/v"
     else
         echo -e "${BOLD_RED}无法自动启动，请手动输入 v 运行。${NC}"
+        return
+    fi
+
+    # 2. 检测是否在终端中，并重定向输入流
+    # 如果当前是在管道 (curl | bash) 中运行，/dev/tty 代表真正的终端设备
+    if [[ -c /dev/tty ]]; then
+        # < /dev/tty : 将标准输入强行指向键盘/屏幕终端，而不是之前的 curl 管道
+        exec "$target_bin" < /dev/tty
+    else
+        # 如果找不到 tty (比如在 CI/CD 机器人里)，就普通执行，虽然大概率也没法交互
+        exec "$target_bin"
     fi
 }
 
