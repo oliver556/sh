@@ -92,7 +92,6 @@ LIBS=(
     # 辅助/守护库
     "guards/check.sh"    # 检查 + 提示（不修复）
     "guards/ensure.sh"   # 尝试安装保障（可失败）
-    "guards/require.sh"  # 强制满足（会修复）
     "guards/network.sh"  # 网络状态检测
 )
 
