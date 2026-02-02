@@ -18,7 +18,7 @@ trap 'error_exit "脚本在第 $LINENO 行执行失败"' ERR
 # ******************************************************************************
 # 基础常量定义
 # ******************************************************************************
-declare -rx INSTALL_DIR="/opt/VpsScriptKit"    # 安装目录
+declare -rx INSTALL_DIR="/opt/VpsScriptKit"     # 安装目录
 declare -rx REPO="oliver556/sh"                 # GitHub 仓库
 declare -rx BIN_LINK="/usr/local/bin/vsk"       # 链接路径
 declare -rx BIN_SHORT_LINK="/usr/local/bin/v"   # 存放路径
@@ -140,7 +140,7 @@ clear_version() {
         
         sleep 1
         echo
-        echo -e "${BOLD_GREEN}✔$(ui_spaces 1)脚本已清理，即将覆盖安装！${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✔$(print_spaces 1)脚本已清理，即将覆盖安装！${BOLD_WHITE}"
         sleep 1
         clear
     fi
@@ -227,7 +227,7 @@ verify_sha256() {
         error_exit "SHA256 校验失败，可能遭到劫持！"
     fi
 
-    echo -e "${BOLD_GREEN}✔$(ui_spaces 1)SHA256 校验通过${BOLD_WHITE}"
+    echo -e "${BOLD_GREEN}✔$(print_spaces 1)SHA256 校验通过${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
@@ -392,7 +392,7 @@ setup_system() {
         # 核心: 无论 v 还是 vsk，全部指向 bin/v 包装器
         ln -sf "$INSTALL_DIR/v" "$BIN_LINK"
         ln -sf "$INSTALL_DIR/v" "$BIN_SHORT_LINK"
-        echo -e "${BOLD_GREEN}✔$(ui_spaces 1)启动器链接已创建${BOLD_WHITE}"
+        echo -e "${BOLD_GREEN}✔$(print_spaces 1)启动器链接已创建${BOLD_WHITE}"
     else
         # 兜底逻辑: 如果包装器没找到，尝试链接到 main.sh
         if [ -f "$INSTALL_DIR/main.sh" ]; then
@@ -406,7 +406,7 @@ setup_system() {
 }
 
 # ------------------------------------------------------------------------------
-# 函数名: ui_spaces
+# 函数名: print_spaces
 # 功能:   生成指定数量的空格字符串
 # 
 # 参数:
@@ -415,9 +415,9 @@ setup_system() {
 # 返回值: 需要的空格数量
 # 
 # 示例:
-#   "A$(ui_spaces 2)B"
+#   "A$(print_spaces 2)B"
 # ------------------------------------------------------------------------------
-ui_spaces() {
+print_spaces() {
     local count="${1:-2}"
     ((count < 0)) && count=0
     printf "%*s" "$count" ""
@@ -441,9 +441,11 @@ install_success() {
         cat "$INSTALL_DIR/banner"
     fi
 
-    echo -e "${BOLD_GREEN}✔$(ui_spaces 1)安装完成！${BOLD_WHITE} "
+    echo -e "${BOLD_GREEN}✔$(print_spaces 1)安装完成！${BOLD_WHITE} "
+    echo -e "${BOLD_GREEN}⚡$(print_spaces 1)正在自动启动 VpsScriptKit...${BOLD_WHITE}"
     echo
-    echo -e "${BOLD_GREEN}⚡$(ui_spaces 1)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
+    sleep 2
+    # echo -e "${BOLD_GREEN}⚡$(print_spaces 1)现在你可以通过输入 ${BOLD_YELLOW}v${BOLD_GREEN} 或 ${BOLD_YELLOW}vsk${BOLD_GREEN} 命令来启动工具。${BOLD_WHITE}"
 }
 
 # ------------------------------------------------------------------------------
@@ -513,6 +515,32 @@ print_line() {
 }
 
 # ------------------------------------------------------------------------------
+# 函数名: self_start
+# 功能:   自动启动
+# 
+# 参数:
+#   无
+# 
+# 返回值:
+#   无
+# 
+# 示例:
+#   self_start
+# ------------------------------------------------------------------------------
+self_start() {
+    # 使用 exec 替换当前进程，让用户感觉是“无缝进入”
+    if [[ -x "$BIN_SHORT_LINK" ]]; then
+        exec "$BIN_SHORT_LINK"
+    elif [[ -x "$BIN_LINK" ]]; then
+        exec "$BIN_LINK"
+    elif [[ -x "$INSTALL_DIR/v" ]]; then
+        exec "$INSTALL_DIR/v"
+    else
+        echo -e "${BOLD_RED}无法自动启动，请手动输入 v 运行。${NC}"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: main
 # 功能:   主流程
 # 
@@ -527,7 +555,7 @@ main() {
     clear
 
     print_line -c "=" -C "$BOLD_CYAN"
-    echo -e "${BOLD_WHITE}     🚀$(ui_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${NC}"
+    echo -e "${BOLD_WHITE}     🚀$(print_spaces)欢迎安装 VpsScriptKit 脚本工具箱      ${NC}"
     print_line -c "=" -C "$BOLD_CYAN"
 
     # 1. 前置检查
@@ -547,6 +575,9 @@ main() {
 
     # 8. 成功提示
     install_success
+
+    # 9. 自启动
+    self_start
 }
 
 main

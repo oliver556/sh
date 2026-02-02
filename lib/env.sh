@@ -55,34 +55,6 @@ declare -rx ICON_SWAP="▥"           # Swap
 declare -rx ICON_NODE="⑆"           # 节点搭建
 declare -rx ICON_TEST="⧗"           # 测试脚本
 
-# # ******************************************************************************
-# # 颜色定义
-# # ******************************************************************************
-# # shellcheck disable=SC2155
-# {
-#     declare -rx RED=$(tput setaf 1)       # 红色 (错误/危险)
-#     declare -rx GREEN=$(tput setaf 2)     # 绿色 (成功/通过)
-#     declare -rx YELLOW=$(tput setaf 3)    # 黄色 (警告/注意)
-#     declare -rx BLUE=$(tput setaf 4)      # 蓝色 (信息/普通)
-#     declare -rx PURPLE=$(tput setaf 5)    # 紫色 (强调/特殊)
-#     declare -rx CYAN=$(tput setaf 6)      # 青色 (调试/路径)
-#     declare -rx WHITE=$(tput setaf 7)     # 白色 (正文)
-#     declare -rx GRAY=$(tput setaf 8)     # 灰色 (正文)
-
-#     declare -rx BOLD=$(tput bold)         # 加粗 (用于标题/重点)
-#     declare -rx DIM=$(tput dim)           # 暗淡 (用于次要信息/注释)
-#     declare -rx NC=$(tput sgr0)           # 重置 (No Color，清除所有格式)
-
-#     # 组合样式
-#     declare -rx BOLD_RED="${BOLD}${RED}"
-#     declare -rx BOLD_GREEN="${BOLD}${GREEN}"
-#     declare -rx BOLD_YELLOW="${BOLD}${YELLOW}"
-#     declare -rx BOLD_BLUE="${BOLD}${BLUE}"
-#     declare -rx BOLD_CYAN="${BOLD}${CYAN}"
-#     declare -rx BOLD_WHITE="${BOLD}${WHITE}"
-#     declare -rx BOLD_GREY="${BOLD}${GRAY}"
-# }
-
 # ******************************************************************************
 # 支持的系统版本
 # ******************************************************************************
