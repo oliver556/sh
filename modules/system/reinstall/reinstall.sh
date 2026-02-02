@@ -74,6 +74,8 @@ reinstall_Leitbogioro() {
     chmod a+x InstallNET.sh
     
     print_step "正在启动 [Leitbogioro] DD 脚本，请稍后..."
+
+    # shellcheck disable=2086
     bash InstallNET.sh ${system_param}
     
     # 返回 InstallNET.sh 的执行状态码
@@ -104,6 +106,7 @@ reinstall_Bin456789() {
 
     print_step "正在启动 [Bin456789] DD 脚本，请稍后..."
 
+    # shellcheck disable=2086
     bash reinstall.sh ${system_param}
 
     return $?

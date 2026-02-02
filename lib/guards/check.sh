@@ -13,7 +13,7 @@
 
 # ------------------------------------------------------------------------------
 # 函数名: require_supported_os
-# 功能:   检测是否为所支持的系统版本
+# 功能:   检测是否为所支持的系统版本 (强校验)
 # 
 # 参数:
 #   无
@@ -30,8 +30,8 @@ check_supported_os() {
     os=$(get_os_type)
     if [[ "$os" != "debian" ]]; then
         print_error -m "当前系统不受支持: $os"
-        ptint_info -m "仅支持 Debian 系列系统（Debian / Ubuntu）"
-        exit 1
+        print_error -m "仅支持 Debian 系列系统（Debian / Ubuntu）"
+        return 1
     fi
 }
 
@@ -103,14 +103,16 @@ check_root() {
 # ------------------------------------------------------------------------------
 check_cmd() {
     local cmd="$1"
-    local tip="{$2:-false}"
+    local tip="${2:-false}"
 
     if [ -z "$cmd" ]; then
         print_error -m "check_cmd: 缺少命令名称参数"
         return 1
     fi
 
-    has_cmd "$cmd" && return 0
+    if has_cmd "$cmd"; then
+        return 0
+    fi
 
     if [ "$tip" = true ]; then
         print_error -m "未检测到命令: $cmd"
@@ -122,7 +124,7 @@ check_cmd() {
 
 # ------------------------------------------------------------------------------
 # 函数名: check_docker
-# 功能:   检查 Docker 是否就绪
+# 功能:   检查 Docker 引擎是否可用 (不仅仅是命令存在，还要看服务是否活著)
 # 
 # 参数:
 #   无
@@ -136,14 +138,16 @@ check_cmd() {
 # ------------------------------------------------------------------------------
 
 check_docker() {
-    has_cmd "docker" && return 0
+    if has_cmd "docker" && docker ps >/dev/null 2>&1; then
+        return 0
+    fi
 
     return 1
 }
 
 # ------------------------------------------------------------------------------
 # 函数名: check_docker_compose
-# 功能:   检查 Docker Compose 是否就绪 (同时支持新版插件模式和旧版独立模式)
+# 功能:   检查 Docker Compose (优先检测插件版)
 # 
 # 参数:
 #   无
@@ -156,7 +160,15 @@ check_docker() {
 #   check_docker_compose
 # ------------------------------------------------------------------------------
 check_docker_compose() {
-    docker compose version >/dev/null 2>&1 || has_cmd "docker-compose" && return 0
+    # 检查插件版 (docker compose)
+    if docker compose version >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # 检查独立版 (docker-compose)
+    if has_cmd "docker-compose"; then
+        return 0
+    fi
 
     return 1
 }

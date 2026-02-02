@@ -101,11 +101,6 @@ status_show_network_info() {
     print_key_value -k "IPv4公网" -v "$_net_get_ipv4"
     print_key_value -k "IPv6公网" -v "$_net_get_ipv6"
     print_key_value -k "DNS服务器" -v "$_net_get_dns"
-
-    # print_key_value -k "IPv4内网" -v "$_net_get_private_ipv4"
-    # print_key_value -k "IPv6内网" -v "$_net_get_private_ipv6"
-    # print_key_value -k "默认网关" -v "$_net_get_gateway"
-    # print_key_value -k "网络连通性" -v "$_check_net_connectivity"
     print_line -c "-"
 }
 
