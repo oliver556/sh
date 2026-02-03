@@ -20,12 +20,12 @@
 # ------------------------------------------------------------------------------
 _draw_mirror_status() {
     local source_file=""
-    local current_mirror="${GRAY}未知 / 检测失败${NC}"
+    local current_mirror="${GREY}未知 / 检测失败${NC}"
     local check_content=""
     
     # 备份检测变量
     local bak_file=""
-    local bak_status="${GRAY}无备份${NC}"
+    local bak_status="${GREY}无备份${NC}"
 
     # 1. 确定配置文件路径 & 备份文件路径
     if [[ -f "/etc/apt/sources.list" ]]; then
@@ -117,7 +117,7 @@ run_linuxmirrors() {
             ;;
         smart)
             print_step -m "模式: 智能切换"
-            print_echo "${GRAY}正在检测网络连通性...${NC}"
+            print_echo "${GREY}正在检测网络连通性...${NC}"
             
             local region
             region=$(net_region)

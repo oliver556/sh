@@ -51,7 +51,7 @@ tcp_tuning_menu() {
         if [[ -f "$SYSCTL_CUSTOM_FILE" ]]; then
             print_echo "优化状态: ${GREEN}已应用 (Custom Profile)${NC}"
         else
-            print_echo "优化状态: ${GRAY}系统默认 (Default)${NC}"
+            print_echo "优化状态: ${GREY}系统默认 (Default)${NC}"
         fi
 
         print_line

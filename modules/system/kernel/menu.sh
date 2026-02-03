@@ -40,13 +40,13 @@ kernel_menu() {
         bbr_status=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null)
         
         # 内核显示逻辑
-        local k_display="${GRAY}系统默认 ($k_ver)${NC}"
+        local k_display="${GREY}系统默认 ($k_ver)${NC}"
         if [[ "$k_ver" == *"xanmod"* ]]; then
             k_display="${GREEN}XanMod 高性能内核 ($k_ver)${NC}"
         fi
         
         # BBR 显示逻辑
-        local bbr_display="${GRAY}未开启${NC}"
+        local bbr_display="${GREY}未开启${NC}"
         if [[ "$bbr_status" == "bbr" ]]; then
             bbr_display="${GREEN}已开启 (BBR)${NC}"
         fi

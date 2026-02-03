@@ -103,7 +103,7 @@ set_hostname_logic() {
         print_key_value -k "旧主机名" -v "${old_hostname}"
         print_key_value -k "新主机名" -v "${new_hostname}"
         print_blank
-        print_box_header_tip "$(print_spaces 1)${ICON_TIP}$(print_spaces 1)可能需要重新连接 SSH 终端才会显示新的主机名提示符。"
+        print_box_header_tip "可能需要重新连接 SSH 终端才会显示新的主机名提示符。"
     else
         print_box_error -m "主机名修改似乎未生效，请手动检查。"
     fi

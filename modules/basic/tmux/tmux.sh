@@ -34,7 +34,7 @@ _get_session_list_formatted() {
     
     # 检查是否有会话 (使用指定 Socket)
     if ! tmux -S "$TMUX_SOCK" list-sessions 2>/dev/null | grep -q ":"; then
-        echo "${GRAY}   (当前无运行中的会话)${NC}"
+        echo "${GREY}   (当前无运行中的会话)${NC}"
         return
     fi
 
@@ -46,18 +46,18 @@ _get_session_list_formatted() {
         if [[ "$is_attached" == "1" ]]; then
             status_str="${GREEN}[● 活跃]${NC}"
         else
-            status_str="${GRAY}[○ 后台]${NC}"
+            status_str="${GREY}[○ 后台]${NC}"
         fi
 
         # --- 2. 窗口显示 ---
-        local win_str="${GRAY}[${win_count} windows]${NC}"
+        local win_str="${GREY}[${win_count} windows]${NC}"
 
         # --- 3. 时间显示 ---
         local date_str="-"
         if [[ -n "$created_ts" ]]; then
             date_str=$(date -d "@$created_ts" "+%Y-%m-%d %H:%M:%S" 2>/dev/null)
         fi
-        local time_display="${GRAY}${date_str}${NC}"
+        local time_display="${GREY}${date_str}${NC}"
 
         # --- 4. 名字与虚线处理 ---
         local left_width=30
@@ -69,7 +69,7 @@ _get_session_list_formatted() {
         if [[ $dot_count -lt 2 ]]; then dot_count=2; fi
         local dots=""
         for ((i=0; i<dot_count; i++)); do dots="${dots}."; done
-        local dots_display="${GRAY}${dots}${NC}"
+        local dots_display="${GREY}${dots}${NC}"
 
         # --- 5. 输出 ---
         printf "   ${CYAN}%s${NC} %s %s %s %s\n" "$display_name" "$dots_display" "$status_str" "$win_str" "$time_display"
@@ -100,7 +100,7 @@ tmux_ssh_persistent_ui() {
     if _check_ssh_persistent_status; then
         current_status="${GREEN}已开启${NC}"
     else
-        current_status="${GRAY}已关闭${NC}"
+        current_status="${GREY}已关闭${NC}"
     fi
     print_echo "当前状态: ${current_status}"
     print_line
@@ -327,7 +327,7 @@ tmux_ui_menu() {
         print_clear
         print_box_header "${ICON_GEAR}$(print_spaces 1)Tmux 终端复用管理 (Tmux Manager)"
         print_line
-        print_box_header_tip "$(print_spaces 1)${ICON_TIP}$(print_spaces 1)进入会话后使用 Ctrl+b 再单独按 d，退出当前会话！"
+        print_box_header_tip "进入会话后使用 Ctrl+b 再单独按 d，退出当前会话！"
         print_line
         
         print_echo "${BOLD_CYAN}当前运行中的会话列表:${NC}"
@@ -338,7 +338,7 @@ tmux_ui_menu() {
         if _check_ssh_persistent_status; then
             ssh_status_icon="${GREEN}[开启]${NC}"
         else
-            ssh_status_icon="${GRAY}[关闭]${NC}"
+            ssh_status_icon="${GREY}[关闭]${NC}"
         fi
         
         print_menu_item -r 21 -p 0 -i 21 -m "SSH 常驻模式 ${ssh_status_icon}"

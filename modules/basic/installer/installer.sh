@@ -37,7 +37,7 @@ APPS_LIST=(
 # ------------------------------------------------------------------------------
 _draw_software_status() {
     # 1. 顶部包管理器信息
-    local pm_display="${GRAY}未知${NC}"
+    local pm_display="${GREY}未知${NC}"
     if command -v apt-get &>/dev/null; then pm_display="${BOLD_CYAN}apt (Debian/Ubuntu)${NC}";
     elif command -v dnf &>/dev/null; then pm_display="${BOLD_CYAN}dnf (CentOS 8+/Fedora)${NC}";
     elif command -v yum &>/dev/null; then pm_display="${BOLD_CYAN}yum (CentOS 7)${NC}";
@@ -47,7 +47,7 @@ _draw_software_status() {
     # 顶部渲染
     print_status_item -l "包管理器:" -v "${pm_display}" -w 12
     print_status_done
-    print_line -c "─" -C "${GRAY}"
+    print_line -c "─" -C "${GREY}"
 
     # 2. 定义双列布局参数
     local L_W=12  # 左侧标签宽度
@@ -68,7 +68,7 @@ _draw_software_status() {
 
         # --- 处理第一列 ---
         local label1="${cmd1^}"  # 【自动首字母大写
-        local status1="${GRAY}✘ 未安装${NC}"
+        local status1="${GREY}✘ 未安装${NC}"
         if command -v "$cmd1" &>/dev/null; then status1="${GREEN}✔ 已安装${NC}"; fi
         
         # 第一列总是有 -W 参数
@@ -77,7 +77,7 @@ _draw_software_status() {
         # --- 处理第二列 (如果存在) ---
         if [[ -n "$cmd2" ]]; then
             local label2="${cmd2^}" # 自动首字母大写
-            local status2="${GRAY}✘ 未安装${NC}"
+            local status2="${GREY}✘ 未安装${NC}"
             if command -v "$cmd2" &>/dev/null; then status2="${GREEN}✔ 已安装${NC}"; fi
             
             # 第二列不需要 -W

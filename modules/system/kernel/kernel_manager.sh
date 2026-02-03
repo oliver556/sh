@@ -165,7 +165,7 @@ get_kernel_info() {
     if [[ "$kernel_release" == *"xanmod"* ]]; then
         print_echo "${GREEN}XanMod BBRv3 ($kernel_release)${NC}"
     else
-        print_echo "${GRAY}系统默认 ($kernel_release)${NC}"
+        print_echo "${GREY}系统默认 ($kernel_release)${NC}"
     fi
 }
 

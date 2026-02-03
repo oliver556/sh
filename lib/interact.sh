@@ -111,51 +111,76 @@ read_choice() {
 
 # ------------------------------------------------------------------------------
 # 函数名: read_confirm
-# 功能:   Y/N 确认框
+# 功能:   Y/N 确认框 (智能后缀管理)
 # 
 # 参数:
-#   $1             (字符串): [必须] 接收结果的变量名
-#   -m | --msg     (字符串): 提示文本 (默认: "请输入您的选择")
+#   $1             (字符串): [可选] 提示文本
+#   -m | --msg     (字符串): 提示文本
+#   -n | --no-exit (开关)  : 使用短后缀 "(y/n)"，不显示退出选项
+#   --clean        (开关)  : 不显示任何后缀
 # 
 # 示例:
-#   read_confirm
+#   read_confirm "继续?"              -> 继续? (y/n/0=退出)
+#   read_confirm -n -m "清空吗?"      -> 清空吗? (y/n)
+#   read_confirm --clean -m "自定义"  -> 自定义
 # ------------------------------------------------------------------------------
 read_confirm() {
+    local msg="确认继续？"
+    local suffix="(y/n/0=退出)" # 默认后缀 (包含退出提示)
+
     # 1. 参数解析
-    local prompt="${1:-确认继续？(y/n/0=退出)}"
-    
-    # 如果第一个参数不是 -m 开头，且不为空，说明直接传了提示语
-    # 为了避免 shift 导致后续逻辑混乱
-    local args=("$@")
-    local idx=0
-    while [[ $idx -lt $# ]]; do
-        case "${args[$idx]}" in
-            -m|--message)
-                prompt="${args[$((idx+1))]}"
-                ((idx+=2))
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -m|--msg|--message)
+                msg="$2"
+                shift 2
+                ;;
+            -n|--no-exit|--short) 
+                # [模式1] 短后缀：只显示 y/n，用于子流程确认
+                suffix="(y/n)"
+                shift 1
+                ;;
+            --clean|--no-suffix)
+                # [模式2] 无后缀：完全隐藏，用于自定义或极其简洁的场景
+                suffix=""
+                shift 1
                 ;;
             *)
-                if [[ $idx -eq 0 && "${args[$idx]}" != -* ]]; then
-                    prompt="${args[$idx]}"
-                fi
-                ((idx++))
+                msg="$1"
+                shift 1
                 ;;
         esac
     done
 
     print_blank
 
-    # 2. 循环直到获得有效输入
+    # 2. 循环读取
     while true; do
-        local display_prompt="$prompt"
-        local answer
+        local display_prompt
+        
+        # 智能拼接：如果有后缀，加上颜色和空格；如果没有，保持原样
+        if [[ -n "$suffix" ]]; then
+            display_prompt="${msg} ${BOLD_CYAN}${suffix}${NC}"
+        else
+            display_prompt="${msg}"
+        fi
 
+        local answer
         answer=$(read_choice -s 1 -m "$display_prompt")
 
         case "$answer" in
-            y|yes|Y) return 0 ;;
-            n|no|N)  return 1 ;;
-            0)       return 1 ;;
+            y|yes|Y|YES) 
+                return 0 
+                ;;
+            n|no|N|NO)  
+                return 1 
+                ;;
+            0)
+                # 只有在默认模式(显示了0=退出)下，0 才作为“退出”处理
+                # 但为了逻辑统一，通常返回 1 (由上层决定是否 exit) 
+                # 或者在这里直接 exit (取决于你的设计，通常建议 return 1 让上层处理)
+                return 1 
+                ;;
             *)
                 print_error -m "无效选项，请重新输入"
                 sleep 1

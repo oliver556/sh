@@ -65,7 +65,7 @@ _draw_ipv_status() {
     local priority
     priority=$(_check_ipv_priority)
     
-    local display_priority="${GRAY}检测中...${NC}"
+    local display_priority="${GREY}检测中...${NC}"
     
     if [[ "$priority" == "IPv4" ]]; then
         display_priority="${GREEN}IPv4 优先${NC}"

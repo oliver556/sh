@@ -53,7 +53,7 @@ _perform_backup() {
              print_success "备份已创建: ${filename}"
         else
              # 自动备份静默执行，只打印一行小字
-             print_echo "${GRAY}   [系统] 已自动创建配置备份: ${filename}${NC}"
+             print_echo "${GREY}   [系统] 已自动创建配置备份: ${filename}${NC}"
         fi
     fi
 }
@@ -498,7 +498,7 @@ view_tuning_status() {
     print_status_item -r 1 -l "快速打开:" -v "${CYAN}${fastopen}${NC}" -w "$L_W"
     # 结束块
     print_status_done
-    print_line -c "─" -C "${GRAY}"
+    print_line -c "─" -C "${GREY}"
 
     # ▶ 容量限制
     print_echo "${BOLD_YELLOW}${ICON_NAV} 容量限制 (Capacity & Limits)${NC}"
@@ -510,7 +510,7 @@ view_tuning_status() {
     print_status_item -r 1 -l "本地端口范围:" -v "${CYAN}${port_range}${NC}" -w "$L_W"
     # 结束块
     print_status_done
-    print_line -c "─" -C "${GRAY}"
+    print_line -c "─" -C "${GREY}"
 
     # ▶ 内存与缓冲
     print_echo "${BOLD_YELLOW}${ICON_NAV} 内存与缓冲 (Memory & Buffers)${NC}"
@@ -522,7 +522,7 @@ view_tuning_status() {
     print_status_item -r 1 -l "Swap积极性:" -v "${CYAN}${swappiness}${NC}" -w "$L_W"
     # 结束块
     print_status_done
-    print_line -c "─" -C "${GRAY}"
+    print_line -c "─" -C "${GREY}"
 
     # ▶ 协议特性
     print_echo "${BOLD_YELLOW}${ICON_NAV} 协议特性 (Features & Recycle)${NC}"
@@ -534,7 +534,7 @@ view_tuning_status() {
     print_status_item -r 1 -l "TW桶最大值:" -v "${CYAN}${tw_buckets}${NC}" -w "$L_W"
     # 结束块
     print_status_done
-    print_line -c "─" -C "${GRAY}"
+    print_line -c "─" -C "${GREY}"
 
     # 底部状态检查
     if [[ "$cc" == *bbr* ]]; then
@@ -558,13 +558,13 @@ manage_backups() {
     
     # 检查目录下是否有匹配 sysctl_ 的文件，避免 ls 报错
     if ! ls "$BACKUP_DIR"/sysctl_* 1> /dev/null 2>&1; then
-        print_echo "${GRAY}   (暂无备份文件)${NC}"
+        print_echo "${GREY}   (暂无备份文件)${NC}"
     else
         # --- 1. 打印表头 ---
         printf "   ${BOLD_CYAN}%-45s %-10s %-20s${NC}\n" "文件名" "大小" "创建时间"
         
         # --- 2. 打印分割线 ---
-        print_line -c "-" -C "${GRAY}"
+        print_line -c "-" -C "${GREY}"
         
         # --- 3. 打印数据 ---
         (cd "$BACKUP_DIR" && ls -lh --time-style=long-iso sysctl_* 2>/dev/null) | \
@@ -574,7 +574,7 @@ manage_backups() {
         print_line
         
         # --- 4. 底部提示 ---
-        print_box_header_tip "$(print_spaces 1)${ICON_TIP}$(print_spaces 1)如需恢复特定备份，请使用 cat 命令覆盖 /etc/sysctl.conf"
+        print_box_header_tip "如需恢复特定备份，请使用 cat 命令覆盖 /etc/sysctl.conf"
         print_echo "   例如: cat .../文件名 > /etc/sysctl.conf && sysctl -p"
     fi
     
@@ -590,7 +590,7 @@ delete_backup() {
     
     # 检查是否有文件 (使用 glob 防止 ls 报错)
     if ! ls "$BACKUP_DIR"/sysctl_* 1> /dev/null 2>&1; then
-        print_echo "${GRAY}   (暂无备份文件，无需删除)${NC}"
+        print_echo "${GREY}   (暂无备份文件，无需删除)${NC}"
         print_wait_enter
         return
     fi

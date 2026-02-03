@@ -136,13 +136,13 @@ timezone_menu() {
         print_menu_item -r 7 -p 0 -i 7 -m "阿联酋迪拜"
         print_menu_item -r 7 -p 16 -i 9 -m "泰国曼谷"
         print_menu_item_done
-        print_line -c "─" -C "${GRAY}"
+        print_line -c "─" -C "${GREY}"
 
         # --- 澳洲区域 ---
         print_step -m "澳洲 (Australia)"
         print_menu_item -r 8 -p 0 -i 8 -m "澳大利亚悉尼"
         print_menu_item_done
-        print_line -c "─" -C "${GRAY}"
+        print_line -c "─" -C "${GREY}"
 
         # --- 欧洲区域 ---
         print_step -m "欧洲 (Europe)"
@@ -153,7 +153,7 @@ timezone_menu() {
         print_menu_item -r 15 -p 0 -i 15 -m "荷兰阿姆斯特丹" # Utrecht 较少用，改用标准 Amsterdam
         print_menu_item -r 15 -p 10 -i 16 -m "西班牙马德里"
         print_menu_item_done
-        print_line -c "─" -C "${GRAY}"
+        print_line -c "─" -C "${GREY}"
 
         # --- 美洲区域 ---
         print_step -m "美洲 (Americas)"
@@ -164,7 +164,7 @@ timezone_menu() {
         print_menu_item -r 25 -p 0 -i 25 -m "巴西圣保罗"
         print_menu_item -r 25 -p 14 -i 26 -m "阿根廷"
         print_menu_item_done
-        print_line -c "─" -C "${GRAY}"
+        print_line -c "─" -C "${GREY}"
 
         # --- 全球标准 ---
         print_menu_item -r 31 -p 0 -i 31 -m "UTC 全球标准时间" -I star

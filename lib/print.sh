@@ -895,9 +895,9 @@ print_box_header_tip() {
 
     # 3. 输出
     if [[ "$show_hash" == "true" ]]; then
-        print_echo "${BOLD_YELLOW}# ${tip}${NC}"
+        print_echo "${BOLD_YELLOW}# $(print_spaces 1)${ICON_TIP}$(print_spaces 1)${tip}${NC}"
     else
-        print_echo "${BOLD_YELLOW}${tip}${NC}"
+        print_echo "${BOLD_YELLOW}$(print_spaces 1)${ICON_TIP}$(print_spaces 1)${tip}${NC}"
     fi
 }
 
