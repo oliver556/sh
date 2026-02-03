@@ -39,8 +39,8 @@ _system_tune_process_steps_6_to_10() {
     # run_step -S 2 -m "10.  安装基础工具..." -- 函数名
     
     # # shellcheck disable=SC1091
-    # source "${BASE_DIR}/modules/system/network/change_ssh_port.sh"
-    # run_step -S 2 -m "4.  设置 SSH 端口号为${BOLD_YELLOW} 5566 ${NC}" -- set_ssh_port 5566
+    # source "${BASE_DIR}/modules/system/ssh/ssh_config.sh"
+    # run_step -S 2 -m "4.  设置 SSH 端口号为${BOLD_YELLOW} 5566 ${NC}" -- ssh_set_port 5566
 
     print_box_success -s finish -m "一条龙调优全部完成！"
     print_wait_enter

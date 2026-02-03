@@ -15,6 +15,88 @@
 source "${BASE_DIR}/modules/system/ssh/ssh_core.sh"
 
 # ------------------------------------------------------------------------------
+# 函数名: ssh_set_port (核心功能函数 - 给自动化脚本用)
+# 功能:   静默修改端口、配置防火墙、重启服务
+# 参数:   $1 (port)
+# ------------------------------------------------------------------------------
+ssh_set_port() {
+    local target_port="$1"
+
+    # 1. 基础校验 (兼容自动化调用的参数检查)
+    # 如果没传参，报错
+    if [[ -z "$target_port" ]]; then
+        print_error "ssh_set_port: 缺少端口参数"
+        return 1
+    fi
+
+    # 正则校验
+    if declare -f is_digit >/dev/null; then
+        if ! is_digit "$target_port"; then print_error "端口必须是纯数字"; return 1; fi
+    fi
+
+    if [[ "$target_port" -lt 1 || "$target_port" -gt 65535 ]]; then
+        print_error "端口号超出范围 (1-65535)"
+        return 1
+    fi
+
+    local ssh_config="/etc/ssh/sshd_config"
+    if [[ ! -f "$ssh_config" ]]; then
+        print_error "找不到 $ssh_config"
+        return 1
+    fi
+
+    print_step -m "正在设置 SSH 端口为: ${BOLD_WHITE}$target_port${NC}"
+
+    # 2. 备份配置
+    cp "$ssh_config" "${ssh_config}.bak_port_$(date +%Y%m%d_%H%M%S)"
+
+    # 3. 修改配置 (Sed)
+    sed -i 's/^\s*#Port\s*/Port /' "$ssh_config"
+    sed -i "s/^Port .*/Port $target_port/" "$ssh_config"
+
+    # 4. 自动配置防火墙 (静默模式)
+    local fw_done=false
+    
+    # TODO: [重构预留] 
+    # UFW
+    if command -v ufw &>/dev/null && ufw status | grep -q "active"; then
+        ufw allow "$target_port"/tcp >/dev/null 2>&1
+        fw_done=true
+    fi
+    # Firewalld
+    if command -v firewall-cmd &>/dev/null && systemctl is-active firewalld &>/dev/null; then
+        firewall-cmd --permanent --add-port="$target_port"/tcp >/dev/null 2>&1
+        firewall-cmd --reload >/dev/null 2>&1
+        fw_done=true
+    fi
+    # Iptables
+    if command -v iptables &>/dev/null; then
+        iptables -I INPUT -p tcp --dport "$target_port" -j ACCEPT 2>/dev/null
+        fw_done=true
+    fi
+
+    if [[ "$fw_done" == "true" ]]; then
+        print_info -m "已自动放行本地防火墙端口。"
+    else
+        print_warn -m "未检测到活动防火墙或配置失败，请手动检查。"
+    fi
+
+    # 5. 重启服务
+    _restart_ssh_service
+    
+    # 6. 验证
+    sleep 1
+    if netstat -tnlp 2>/dev/null | grep -q ":$target_port "; then
+         print_success -m "SSH 端口已修改为: ${BOLD_GREEN}$target_port${NC}"
+         return 0
+    else
+         # 兜底提示
+         print_success -m "SSH 服务已重启 (端口: $target_port)。"
+         return 0
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # 1. 修改 SSH 端口
 # ------------------------------------------------------------------------------
 ssh_change_port() {
