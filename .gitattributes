@@ -17,4 +17,4 @@ art_word.toml export-ignore
 modules/check_sh_syntax.sh
 
 # 忽略安装引导脚本
-install.sh export-ignore
+/install.sh export-ignore
