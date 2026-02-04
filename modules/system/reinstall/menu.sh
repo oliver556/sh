@@ -41,38 +41,38 @@ reinstall_menu() {
         print_echo "${GREY}Bin456789   项目地址: https://github.com/bin456789/reinstall${BOLD_WHITE} "
 
         print_line
-        print_menu_item -r 1 -p 0 -i 1 -m "$(print_spaces 1)Debian 13"
-        print_menu_item -r 1 -p 16 -i 2 -m "Debian 12" -I star
-        print_menu_item -r 2 -p 0 -i 3 -m "$(print_spaces 1)Debian 11"
-        print_menu_item -r 2 -p 16 -i 4 -m "Debian 10"
+        print_menu_item -r 1  -p 0  -i 1 -s 2 -m "Debian 13"
+        print_menu_item -r 1  -p 15 -i 2 -s 2 -m "Debian 12" -I star
+        print_menu_item -r 3  -p 0  -i 3 -s 2 -m "Debian 11"
+        print_menu_item -r 3  -p 15 -i 4 -s 2 -m "Debian 10"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 3 -p 0 -i 11 -m "Ubuntu 24.04"
-        print_menu_item -r 3 -p 12 -i 12 -m "Ubuntu 22.04" -I star
+        print_menu_item -r 11 -p 0  -i 11     -m "Ubuntu 24.04"
+        print_menu_item -r 11 -p 12 -i 12     -m "Ubuntu 22.04" -I star
         print_menu_item_done
-        print_menu_item -r 4 -p 0 -i 13 -m "Ubuntu 20.04"
-        print_menu_item -r 4 -p 12 -i 14 -m "Ubuntu 18.04"
-        print_menu_item_done
-
-        print_line
-        print_menu_item -r 5 -p 0 -i 21 -m "CentOS 10"
-        print_menu_item -r 5 -p 15 -i 22 -m "CentOS 9"
+        print_menu_item -r 13 -p 0  -i 13     -m "Ubuntu 20.04"
+        print_menu_item -r 13 -p 12 -i 14     -m "Ubuntu 18.04"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 6 -p 0 -i 31 -m "Alpine Linux"
+        print_menu_item -r 21 -p 0  -i 21     -m "CentOS 10"
+        print_menu_item -r 21 -p 15 -i 22     -m "CentOS 9"
         print_menu_item_done
 
         print_line
-        print_menu_item -r 7 -p 0 -i 41 -m "Windows 11"
-        print_menu_item -r 7 -p 14 -i 42 -m "Windows 10"
+        print_menu_item -r 31 -p 0  -i 31      -m "Alpine Linux"
         print_menu_item_done
-        print_menu_item -r 8 -p 0 -i 43 -m "Windows 7"
-        print_menu_item -r 8 -p 15 -i 44 -m "Windows Server 2025"
+
+        print_line
+        print_menu_item -r 41 -p 0  -i 41      -m "Windows 11"
+        print_menu_item -r 41 -p 14 -i 42      -m "Windows 10"
         print_menu_item_done
-        print_menu_item -r 9 -p 0 -i 45 -m "Windows Server 2022"
-        print_menu_item -r 9 -p 5 -i 46 -m "Windows Server 2019"
+        print_menu_item -r 43 -p 0  -i 43      -m "Windows 7"
+        print_menu_item -r 43 -p 15 -i 44      -m "Windows Server 2025"
+        print_menu_item_done
+        print_menu_item -r 45 -p 0  -i 45      -m "Windows Server 2022"
+        print_menu_item -r 45 -p 5  -i 46      -m "Windows Server 2019"
         print_menu_item_done
 
         print_menu_go_level

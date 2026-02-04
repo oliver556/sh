@@ -4,7 +4,7 @@
 
 ### vps 一键脚本工具 的支持列表:
 
-> `Debian 9+`、 `Ubuntu 18.04+`、`CentOS9+`、`Alpine`
+> `Debian 10+`、 `Ubuntu 18.04+`
 
 ### 一键脚本
 

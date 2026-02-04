@@ -117,8 +117,8 @@ system_menu() {
         print_menu_item -r 21 -p 0  -i 21      -m "内核与拥塞控制(BBR)" -I "${ICON_NAV}" -T 2
         print_menu_item -r 21 -p 4  -i 22      -m "虚拟内存管理(SWAP)" -I "${ICON_NAV}" -T 2
 
-        print_menu_item -r 23 -p 0  -i 23      -m "优化DNS地址" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 23 -p 12 -i 24      -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 23 -p 0  -i 23      -m "优化 DNS 地址" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 23 -p 10 -i 24      -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 25 -p 0  -i 25      -m "切换优先ipv4/ipv6" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         # print_menu_item -r 25 -p 6  -i 26      -m "${BOLD_GREY}开放所有端口 (风险)"
@@ -175,13 +175,13 @@ system_menu() {
             # 修改登录密码
             14)  guard_change_password; print_wait_enter ;;
 
-            # 虚拟内存管理(SWAP)
+            # 内核与拥塞控制(BBR)
             21) kernel_menu ;;
             
             # 虚拟内存管理(SWAP)
             22) system_memory_menu ;;
 
-            # 优化DNS地址
+            # 优化 DNS 地址
             23)  guard_change_dns ;;
 
             # TCP 参数调优
