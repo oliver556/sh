@@ -93,19 +93,19 @@ system_menu() {
         print_box_header "${ICON_GEAR}$(print_spaces 1)系统工具 (System Utilities)"
 
         print_line
-        print_echo "[基础运维]"
+        # print_echo "[基础运维]"
         print_menu_item -r 1  -p 0  -i 1  -s 2 -m "系统信息查询" -I star
-        print_menu_item -r 1  -p 12 -i 2       -m "系统更新 & 维护"
+        print_menu_item -r 1  -p 11 -i 2  -s 2 -m "系统更新 & 维护"
         
         print_menu_item -r 3  -p 0  -i 3  -s 2 -m "系统垃圾清理"
-        print_menu_item -r 3  -p 13 -i 4       -m "切换系统更新源" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 3  -p 12 -i 4  -s 2 -m "切换系统更新源" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 5  -p 0  -i 5  -s 2 -m "系统时区调整" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 5  -p 12 -i 6       -m "修改主机名" -I "${ICON_NAV}"
+        print_menu_item -r 5  -p 11 -i 6  -s 2 -m "修改主机名" -I "${ICON_NAV}"
         print_menu_item_done
 
         print_line
-        print_echo "[安全与访问控制]"
+        # print_echo "[安全与访问控制]"
         print_menu_item -r 11 -p 0  -i 11      -m "SSH 服务全能管理" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         print_menu_item -r 11 -p 7  -i 12      -m "高级防火墙管理" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 0  -i 13      -m "${BOLD_GREY}用户账户管理${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
@@ -113,24 +113,24 @@ system_menu() {
         print_menu_item_done
 
         print_line
-        print_echo "[网络与内核优化]"
+        # print_echo "[网络与内核优化]"
         print_menu_item -r 21 -p 0  -i 21      -m "内核与拥塞控制(BBR)" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 21 -p 4  -i 22      -m "虚拟内存(SWAP)管理" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 21 -p 4  -i 22      -m "虚拟内存管理(SWAP)" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 23 -p 0  -i 23      -m "优化DNS地址" -I "${ICON_NAV}" -T 2
         print_menu_item -r 23 -p 12 -i 24      -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 25 -p 0  -i 25      -m "切换优先ipv4/ipv6" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 25 -p 6  -i 26      -m "${BOLD_GREY}开放所有端口 (风险)"
+        # print_menu_item -r 25 -p 6  -i 26      -m "${BOLD_GREY}开放所有端口 (风险)"
         print_menu_item_done
 
         print_line
-        print_echo "[终端与工具箱]"
+        # print_echo "[终端与工具箱]"
         print_menu_item -r 31 -p 0  -i 31      -m "命令行美化工具" "${ICON_NAV}"
         print_menu_item -r 31 -p 8  -i 32      -m "${BOLD_GREY}设置系统回收站${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 33 -p 0  -i 33      -m "命令收藏夹"
-        print_menu_item -r 33 -p 14  -i 34      -m "${BOLD_GREY}命令行历史记录${NC}"
+        print_menu_item -r 33 -p 14 -i 34      -m "${BOLD_GREY}命令行历史记录${NC}"
 
 
         print_menu_item_done
@@ -175,10 +175,10 @@ system_menu() {
             # 修改登录密码
             14)  guard_change_password; print_wait_enter ;;
 
-            # 虚拟内存(SWAP)管理
+            # 虚拟内存管理(SWAP)
             21) kernel_menu ;;
             
-            # 虚拟内存(SWAP)管理
+            # 虚拟内存管理(SWAP)
             22) system_memory_menu ;;
 
             # 优化DNS地址

@@ -11,6 +11,7 @@
 # @创建日期: 2026-01-08
 # ==============================================================================
 
+# shellcheck disable=1091
 source "${BASE_DIR}/modules/docker/install.sh"
 source "${BASE_DIR}/modules/docker/uninstall.sh"
 

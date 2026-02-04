@@ -127,31 +127,31 @@ timezone_menu() {
 
         # --- 亚洲区域 ---
         print_step -m "亚洲 (Asia)"
-        print_menu_item -r 1 -p 0 -i 1 -m "中国上海"
-        print_menu_item -r 1 -p 18 -i 2 -m "中国香港"
-        print_menu_item -r 2 -p 0 -i 3 -m "日本东京"
-        print_menu_item -r 2 -p 18 -i 4 -m "韩国首尔"
-        print_menu_item -r 5 -p 0 -i 5 -m "新加坡"
-        print_menu_item -r 5 -p 20 -i 6 -m "印度加尔各答"
-        print_menu_item -r 7 -p 0 -i 7 -m "阿联酋迪拜"
-        print_menu_item -r 7 -p 16 -i 9 -m "泰国曼谷"
+        print_menu_item -r 1  -p 0  -i 1 -s 2 -m "中国上海"
+        print_menu_item -r 1  -p 16 -i 2 -s 2 -m "中国香港"
+        print_menu_item -r 3  -p 0  -i 3 -s 2 -m "日本东京"
+        print_menu_item -r 3  -p 16 -i 4 -s 2 -m "韩国首尔"
+        print_menu_item -r 5  -p 0  -i 5 -s 2 -m "新加坡"
+        print_menu_item -r 5  -p 18 -i 6 -s 2 -m "印度加尔各答"
+        print_menu_item -r 7  -p 0  -i 7 -s 2 -m "阿联酋迪拜"
+        print_menu_item -r 7  -p 14 -i 9 -s 2 -m "泰国曼谷"
         print_menu_item_done
         print_line -c "─" -C "${GREY}"
 
         # --- 澳洲区域 ---
         print_step -m "澳洲 (Australia)"
-        print_menu_item -r 8 -p 0 -i 8 -m "澳大利亚悉尼"
+        print_menu_item -r 8  -p 0  -i 8 -s 2 -m "澳大利亚悉尼"
         print_menu_item_done
         print_line -c "─" -C "${GREY}"
 
         # --- 欧洲区域 ---
         print_step -m "欧洲 (Europe)"
-        print_menu_item -r 11 -p 0 -i 11 -m "英国伦敦"
-        print_menu_item -r 11 -p 16 -i 12 -m "法国巴黎"
-        print_menu_item -r 13 -p 0 -i 13 -m "德国柏林"
-        print_menu_item -r 13 -p 16 -i 14 -m "莫斯科"
-        print_menu_item -r 15 -p 0 -i 15 -m "荷兰阿姆斯特丹" # Utrecht 较少用，改用标准 Amsterdam
-        print_menu_item -r 15 -p 10 -i 16 -m "西班牙马德里"
+        print_menu_item -r 11 -p 0  -i 11     -m "英国伦敦"
+        print_menu_item -r 11 -p 16 -i 12     -m "法国巴黎"
+        print_menu_item -r 13 -p 0  -i 13     -m "德国柏林"
+        print_menu_item -r 13 -p 16 -i 14     -m "莫斯科"
+        print_menu_item -r 15 -p 0  -i 15     -m "荷兰阿姆斯特丹" # Utrecht 较少用，改用标准 Amsterdam
+        print_menu_item -r 15 -p 10 -i 16     -m "西班牙马德里"
         print_menu_item_done
         print_line -c "─" -C "${GREY}"
 

@@ -36,47 +36,47 @@ firewall_menu() {
 
         # --- 第一组：端口基础 ---
         print_line
-        print_menu_item -r 1 -p 0 -s 2 -i 1 -m "开放指定端口"
-        print_menu_item -r 1 -p 12 -i 2 -m "关闭指定端口"
+        print_menu_item -r 1  -p 0   -i 1 -s 2 -m "开放指定端口"
+        print_menu_item -r 1  -p 12  -i 2 -s 2 -m "关闭指定端口"
         print_menu_item_done
-        print_menu_item -r 2 -p 0 -s 2 -i 3 -m "开放所有端口"
-        print_menu_item -r 2 -p 12 -i 4 -m "重置防火墙规则"
+        print_menu_item -r 3  -p 0   -i 3 -s 2 -m "开放所有端口"
+        print_menu_item -r 3  -p 12  -i 4 -s 2 -m "重置防火墙规则"
         print_menu_item_done
-        print_menu_item -r 3 -p 0 -s 2 -i 5 -m "查看当前开放端口"
+        print_menu_item -r 5  -p 0   -i 5 -s 2 -m "查看当前开放端口"
         print_menu_item_done
 
         # --- 第二组：Ping ---
         print_line
-        print_menu_item -r 7 -p 0 -s 2 -i 6 -m "允许PING"
-        print_menu_item -r 7 -p 16 -i 7 -m "禁止PING"
+        print_menu_item -r 6  -p 0   -i 6 -s 2 -m "允许PING"
+        print_menu_item -r 6  -p 16  -i 7 -s 2 -m "禁止PING"
         print_menu_item_done
 
         # --- 第三组：DDoS ---
         print_line
-        print_menu_item -r 11 -p 0 -s 2 -i 8 -m "启动DDOS防御"
-        print_menu_item -r 11 -p 12 -i 9 -m "关闭DDOS防御"
+        print_menu_item -r 8  -p 0  -i 8 -s 2 -m "启动DDOS防御"
+        print_menu_item -r 8  -p 12 -i 9 -s 2 -m "关闭DDOS防御"
         print_menu_item_done
 
         # --- 第四组：指定 IP (11-15) ---
         print_line
-        print_menu_item -r 4 -p 0 -i 11 -m "[黑名单] 封禁指定IP"
-        print_menu_item -r 4 -p 4 -i 12 -m "[白名单] 放行指定IP"
+        print_menu_item -r 11 -p 0 -i 11      -m "[黑名单] 封禁指定IP"
+        print_menu_item -r 11 -p 5 -i 12      -m "[白名单] 放行指定IP"
         print_menu_item_done
-        print_menu_item -r 5 -p 0 -i 13 -m "[全  局] 解封指定IP"
-        print_menu_item -r 5 -p 4 -i 14 -m "[全  局] 清空所有IP"
+        print_menu_item -r 13 -p 0 -i 13      -m "[全  局] 解封指定IP"
+        print_menu_item -r 13 -p 5 -i 14      -m "[全  局] 清空所有IP"
         print_menu_item_done
-        print_menu_item -r 6 -p 0 -i 15 -m "[全  局] 查看IP名单"
+        print_menu_item -r 15 -p 0 -i 15      -m "[全  局] 查看IP名单"
         print_menu_item_done
 
         # --- 第五组：国家/GeoIP (21-25) ---
         print_line
-        print_menu_item -r 12 -p 0 -i 21 -m "[黑名单] 屏蔽指定国家"
-        print_menu_item -r 12 -p 2 -i 22 -m "[白名单] 仅许指定国家"
+        print_menu_item -r 21 -p 0 -i 21      -m "[黑名单] 屏蔽指定国家"
+        print_menu_item -r 21 -p 3 -i 22      -m "[白名单] 仅许指定国家"
         print_menu_item_done
-        print_menu_item -r 13 -p 0 -i 23 -m "[黑名单] 解封指定国家"
-        print_menu_item -r 13 -p 2 -i 24 -m "[全  局] 清空所有规则"
+        print_menu_item -r 23 -p 0 -i 23      -m "[黑名单] 解封指定国家"
+        print_menu_item -r 23 -p 3 -i 24      -m "[全  局] 清空所有规则"
         print_menu_item_done
-        print_menu_item -r 14 -p 0 -i 25 -m "[全  局] 查看规则状态"
+        print_menu_item -r 25 -p 0 -i 25      -m "[全  局] 查看规则状态"
         print_menu_item_done
 
         print_menu_go_level

@@ -30,29 +30,29 @@ ssh_menu() {
         ssh_get_status_view
 
         # --- 第一部分: 核心开关 ---
-        print_menu_item -r 1 -p 0 -i 1 -s 2 -m "开启密钥模式 (禁用密码登录)"
-        print_menu_item -r 1 -p 1 -i 2 -s 2 -m "关闭密钥模式 (恢复密码登录)"
+        print_menu_item -r 1 -p 0  -i 1 -s 2 -m "开启密钥模式 (禁用密码登录)"
+        print_menu_item -r 1 -p 2  -i 2 -s 2 -m "关闭密钥模式 (恢复密码登录)"
         print_menu_item_done
 
         # --- 第二部分: 导入公钥 ---
         print_line
-        print_menu_item -r 3 -p 0 -i 3 -s 2 -m "手动输入已有公钥"
-        print_menu_item -r 3 -p 12 -i 4 -s 2 -m "从GitHub导入已有公钥"
-        print_menu_item -r 5 -p 0 -i 5 -s 2 -m "从URL导入已有公钥"
+        print_menu_item -r 3 -p 0  -i 3 -s 2 -m "手动输入已有公钥"
+        print_menu_item -r 3 -p 13 -i 4 -s 2 -m "从GitHub导入已有公钥"
+        print_menu_item -r 5 -p 0  -i 5 -s 2 -m "从URL导入已有公钥"
         print_menu_item_done
 
         # --- 第三部分: 高级配置 (这里集成了端口修改) ---
         print_line
-        print_menu_item -r 6 -p 0 -i 6 -s 2 -m "修改 SSH 端口 (防爆破)"
-        print_menu_item -r 6 -p 6 -i 7 -s 2 -m "开启连接防断开 (KeepAlive)"
-        print_menu_item -r 8 -p 0 -i 8 -s 2 -m "生成本地连接配置 (Config)"
+        print_menu_item -r 6 -p 0  -i 6 -s 2 -m "修改 SSH 端口 (防爆破)"
+        print_menu_item -r 6 -p 7  -i 7 -s 2 -m "开启连接防断开 (KeepAlive)"
+        print_menu_item -r 8 -p 0  -i 8 -s 2 -m "生成本地连接配置 (Config)"
         print_menu_item_done
 
         # --- 第四部分: 查看与审计 ---
         print_line
-        print_menu_item -r 11 -p 0 -i 11 -m "查看本机密钥"
-        print_menu_item -r 11 -p 16 -i 12 -m "编辑公钥文件"
-        print_menu_item -r 13 -p 0 -i 13 -m "查看登录日志 (审计)"
+        print_menu_item -r 11 -p 0  -i 11 -m "查看本机密钥"
+        print_menu_item -r 11 -p 17 -i 12 -m "编辑公钥文件"
+        print_menu_item -r 13 -p 0  -i 13 -m "查看登录日志 (审计)"
         print_menu_item_done
 
         print_menu_go_level
