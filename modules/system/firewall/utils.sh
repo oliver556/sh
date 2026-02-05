@@ -78,6 +78,125 @@ _iptables_save_persistence() {
 }
 
 # ------------------------------------------------------------------------------
+# API: 统一开放端口接口 (供 SSH、Web 等其他模块调用)
+# ------------------------------------------------------------------------------
+firewall_api_open_port() {
+    local port="$1"
+    local protocol="${2:-tcp}" # 默认 TCP，也可以传 udp 或 tcp/udp
+
+    if [[ -z "$port" ]]; then return 1; fi
+
+    local backend
+    backend=$(_get_firewall_backend)
+
+    case "$backend" in
+        ufw)
+            if [[ "$protocol" == "tcp/udp" ]]; then
+                ufw allow "$port" >/dev/null 2>&1
+            else
+                ufw allow proto "$protocol" from any to any port "$port" >/dev/null 2>&1
+            fi
+            print_success "UFW: 已添加规则放行端口 ${BOLD_WHITE}${port}${NC} (${protocol})"
+            ;;
+            
+        firewalld)
+            if [[ "$protocol" == "tcp/udp" ]]; then
+                firewall-cmd --zone=public --add-port="${port}/tcp" --permanent >/dev/null 2>&1
+                firewall-cmd --zone=public --add-port="${port}/udp" --permanent >/dev/null 2>&1
+            else
+                firewall-cmd --zone=public --add-port="${port}/${protocol}" --permanent >/dev/null 2>&1
+            fi
+            firewall-cmd --reload >/dev/null 2>&1
+            print_success "Firewalld: 已添加规则放行端口 ${BOLD_WHITE}${port}${NC} (${protocol})"
+            ;;
+            
+        iptables)
+            # 纯 IPTables 逻辑
+            if [[ "$protocol" == "tcp/udp" ]] || [[ "$protocol" == "tcp" ]]; then
+                if ! iptables -C INPUT -p tcp --dport "$port" -j ACCEPT 2>/dev/null; then
+                    iptables -I INPUT -p tcp --dport "$port" -j ACCEPT
+                fi
+            fi
+            if [[ "$protocol" == "tcp/udp" ]] || [[ "$protocol" == "udp" ]]; then
+                if ! iptables -C INPUT -p udp --dport "$port" -j ACCEPT 2>/dev/null; then
+                    iptables -I INPUT -p udp --dport "$port" -j ACCEPT
+                fi
+            fi
+            _iptables_save_persistence
+            print_success "Iptables: 已添加临时规则放行端口 ${BOLD_WHITE}${port}${NC} (${protocol})"
+            print_info "          (提示: Iptables 规则已尝试自动保存)"
+            ;;
+    esac
+    return 0
+}
+
+# ------------------------------------------------------------------------------
+# [新增] 防火墙状态仪表盘 (供菜单调用)
+# ------------------------------------------------------------------------------
+firewall_get_status_view() {
+    local backend
+    backend=$(_get_firewall_backend)
+    
+    local status_display=""
+    local policy_display=""
+    local count_display=""
+
+    case "$backend" in
+        ufw)
+            # UFW 状态检测
+            if systemctl is-active --quiet ufw; then
+                if ufw status | grep -q "Status: active"; then
+                    status_display="${GREEN}运行中 (Active)${NC}"
+                    
+                    # 获取默认策略
+                    local incoming
+                    incoming=$(ufw status verbose | grep "Default:" | grep -o "deny (incoming)" || echo "allow")
+                    if [[ "$incoming" == *"deny"* ]]; then
+                        policy_display="${GREEN}拒绝入站 (安全)${NC}"
+                    else
+                        policy_display="${RED}允许入站 (风险)${NC}"
+                    fi
+                else
+                    status_display="${YELLOW}运行但未启用 (Inactive)${NC}"
+                fi
+            else
+                status_display="${RED}未运行${NC}"
+            fi
+            ;;
+
+        firewalld)
+            if systemctl is-active --quiet firewalld; then
+                status_display="${GREEN}运行中 (Active)${NC}"
+                local zone
+                zone=$(firewall-cmd --get-default-zone 2>/dev/null)
+                policy_display="Zone: ${GREEN}${zone}${NC}"
+            else
+                status_display="${RED}未运行${NC}"
+            fi
+            ;;
+
+        iptables)
+            status_display="${GREEN}内核级接管${NC}"
+            # 检测 INPUT 链默认策略
+            local policy
+            policy=$(iptables -L INPUT | grep "Chain INPUT" | awk '{print $4}' | tr -d ')')
+            if [[ "$policy" == "DROP" ]]; then
+                policy_display="${GREEN}DROP (默认拒绝)${NC}"
+            else
+                policy_display="${RED}ACCEPT (默认允许)${NC}"
+            fi
+            ;;
+    esac
+
+    # 渲染仪表盘
+    print_line -c "-" -C "$BOLD_GREY"
+    print_key_value -k "当前后端 (Backend)" -v "${BOLD_CYAN}${backend^^}${NC}" -w 20
+    print_key_value -k "运行状态 (Status)"  -v "${status_display}" -w 20
+    print_key_value -k "安全策略 (Policy)"  -v "${policy_display}" -w 20
+    print_line -c "-" -C "$BOLD_GREY"
+}
+
+# ------------------------------------------------------------------------------
 # 函数名: _iptables_flush_all_logic
 # 功能:   [内部函数] 彻底清空 iptables 规则并将默认策略设为 ACCEPT
 #         (即裸奔模式，用于解决 Oracle 等机器无法连接的问题)

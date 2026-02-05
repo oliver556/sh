@@ -156,7 +156,20 @@ ssh_change_port() {
     # 尝试放行防火墙
     # TODO: [重构预留] 未来此处应调用高级防火墙模块的统一接口 
     # 例如: firewall_manager_allow "$target_port" "tcp"
-    print_step -m "正在配置防火墙..."
+    print_step -m "正在通知防火墙放行端口 ${target_port}..."
+
+    # 引入防火墙 API
+    if [ -f "${BASE_DIR}/modules/system/firewall/utils.sh" ]; then
+        source "${BASE_DIR}/modules/system/firewall/utils.sh"
+        
+        # 直接调用 API，不用管是 UFW 还是 Firewalld
+        firewall_api_open_port "$target_port" "tcp"
+        
+        print_info -m "已通过防火墙 API 请求放行。"
+    else
+        print_warn -m "未找到防火墙模块，请手动放行端口！"
+    fi
+    
     local fw_done=false
     
     # UFW 支持

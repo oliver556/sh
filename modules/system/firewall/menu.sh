@@ -28,14 +28,20 @@
 #   firewall_menu
 # ------------------------------------------------------------------------------
 firewall_menu() {
+    # 引入依赖 (确保 utils.sh 被加载)
+    # shellcheck disable=1091
+    source "${BASE_DIR}/modules/system/firewall/utils.sh"
+
     while true; do
 
         print_clear
         
         print_box_header "${ICON_GEAR}$(print_spaces 1)高级防火墙管理 (Firewall Manager)"
 
+        firewall_get_status_view
+
         # --- 第一组：端口基础 ---
-        print_line
+        # print_line
         print_menu_item -r 1  -p 0   -i 1 -s 2 -m "开放指定端口"
         print_menu_item -r 1  -p 12  -i 2 -s 2 -m "关闭指定端口"
         print_menu_item_done
@@ -77,6 +83,16 @@ firewall_menu() {
         print_menu_item -r 23 -p 3 -i 24      -m "[全  局] 清空所有规则"
         print_menu_item_done
         print_menu_item -r 25 -p 0 -i 25      -m "[全  局] 查看规则状态"
+        print_menu_item_done
+
+        # --- 第六组：后端服务管理 ---
+        print_line -c "-" -C "$BOLD_GREY"
+        # 动态获取当前后端，显示在菜单上会很酷
+        local current_backend
+        current_backend=$(_get_firewall_backend 2>/dev/null || echo "Unknown")
+        
+        print_menu_item -r 90 -p 0  -i 90      -m "切换防火墙后端"
+        print_menu_item -r 90 -p 10 -i 91      -m "查看服务运行日志"
         print_menu_item_done
 
         print_menu_go_level
@@ -140,6 +156,38 @@ firewall_menu() {
                         print_wait_enter
                         ;;
                 esac
+                ;;
+            # 后端管理
+            90)
+                # shellcheck disable=1091
+                source "${BASE_DIR}/modules/system/firewall/backend_manager.sh"
+                firewall_switch_backend_ui
+                ;;
+            91)
+                print_clear
+                print_box_info -m "服务运行状态详情"
+                
+                local backend
+                backend=$(_get_firewall_backend) # 1. 先查清楚是谁
+                
+                print_echo "当前后端: ${BOLD_GREEN}${backend}${NC}"
+                print_line -c "-"
+                
+                # 2. 精准打击，不吞报错，不分页
+                case "$backend" in
+                    ufw) systemctl status ufw -l --no-pager ;;
+                    firewalld) systemctl status firewalld -l --no-pager ;;
+                    iptables) 
+                        # 尝试查找常见的 iptables 服务名
+                        if systemctl is-active --quiet iptables; then
+                             systemctl status iptables -l --no-pager
+                        else
+                             print_warn "当前运行在纯内核模式，无守护进程。"
+                             print_info "请使用 [5. 查看当前开放端口] 来检查规则。"
+                        fi
+                        ;;
+                esac
+                print_wait_enter
                 ;;
             0)
                 return

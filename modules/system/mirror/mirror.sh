@@ -260,7 +260,7 @@ restore_source() {
 mirror_menu() {
     while true; do
         print_clear
-        print_box_header "切换系统更新源 (LinuxMirrors)"
+        print_box_header "系统更新源切换 (LinuxMirrors)"
         print_box_header_tip "基于 LinuxMirrors 开源项目"
         print_line
         _draw_mirror_status

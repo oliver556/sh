@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# VpsScriptKit - 修改主机名
+# VpsScriptKit - 系统主机名修改
 #
 # @文件路径: modules/system/network/change_hostname.sh
 # @功能描述: 修改系统 Hostname，自动同步 /etc/hosts，支持 Alpine/Systemd
@@ -37,7 +37,7 @@ _draw_hostname_status() {
 
 # ------------------------------------------------------------------------------
 # 函数名: set_hostname_logic
-# 功能:   执行修改主机名的核心逻辑
+# 功能:   执行系统主机名修改的核心逻辑
 # 参数:   $1 (string) - 新主机名
 # ------------------------------------------------------------------------------
 set_hostname_logic() {
@@ -113,7 +113,7 @@ set_hostname_logic() {
 
 # ------------------------------------------------------------------------------
 # 函数名: change_hostname
-# 功能:   修改主机名主菜单
+# 功能:   系统主机名修改主菜单
 # ------------------------------------------------------------------------------
 change_hostname() {
     # 权限检查
@@ -126,7 +126,7 @@ change_hostname() {
         print_line
         _draw_hostname_status
 
-        print_box_info -s start -m "修改主机名"
+        print_box_info -s start -m "系统主机名修改"
         print_info -m "请遵循域名命名规范 (仅允许字母、数字、连字符)（输入 0 退出）"
         
         local input

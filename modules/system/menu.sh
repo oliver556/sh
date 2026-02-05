@@ -41,7 +41,7 @@
     # 系统时区调整
     source "${BASE_DIR}/modules/system/timezone/timezone.sh"
 
-    # 切换系统更新源
+    # 系统更新源切换
     source "${BASE_DIR}/modules/system/mirror/mirror.sh"
 
     # 虚拟内存管理
@@ -53,7 +53,7 @@
     # TCP 参数调优
     source "${BASE_DIR}/modules/system/tcp/menu.sh"
 
-    # 修改主机名
+    # 系统主机名修改
     source "${BASE_DIR}/modules/system/network/change_hostname.sh"
 
     # 切换优先ipv4/ipv6
@@ -86,7 +86,7 @@ system_menu() {
     while true; do
 
         print_clear
-        # print_menu_item -r 3 -p 0 -s 2 -i 5 -m "${BOLD_GREY}开启ROOT密码登录${NC}"
+        # print_menu_item -r 3  -p 0  -i 5  -s 2 -m "${BOLD_GREY}开启ROOT密码登录${NC}"
         # print_menu_item -r 9  -p 0  -i 9  -s 2 -m "${BOLD_GREY}禁用ROOT账户创建新账户${NC}"
         # print_menu_item -r 19 -p 0  -i 20      -m "${BOLD_GREY}SSH防御程序 (fail2ban)${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
         
@@ -95,21 +95,21 @@ system_menu() {
         print_line
         # print_echo "[基础运维]"
         print_menu_item -r 1  -p 0  -i 1  -s 2 -m "系统信息查询" -I star
-        print_menu_item -r 1  -p 11 -i 2  -s 2 -m "系统更新 & 维护"
+        print_menu_item -r 1  -p 11 -i 2  -s 2 -m "系统更新或维护"
         
         print_menu_item -r 3  -p 0  -i 3  -s 2 -m "系统垃圾清理"
-        print_menu_item -r 3  -p 12 -i 4  -s 2 -m "切换系统更新源" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 3  -p 12 -i 4  -s 2 -m "系统更新源切换" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 5  -p 0  -i 5  -s 2 -m "系统时区调整" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 5  -p 11 -i 6  -s 2 -m "修改主机名" -I "${ICON_NAV}"
+        print_menu_item -r 5  -p 11 -i 6  -s 2 -m "系统主机名修改" -I "${ICON_NAV}"
         print_menu_item_done
 
         print_line
         # print_echo "[安全与访问控制]"
-        print_menu_item -r 11 -p 0  -i 11      -m "SSH 服务全能管理" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 11 -p 7  -i 12      -m "高级防火墙管理" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 11 -p 0  -i 11      -m "SSH 服务管理" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 11 -p 11 -i 12      -m "高级防火墙管理" -I "${ICON_NAV}" -T 2
         print_menu_item -r 13 -p 0  -i 13      -m "${BOLD_GREY}用户账户管理${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
-        print_menu_item -r 13 -p 11 -i 14      -m "修改登录密码"
+        print_menu_item -r 13 -p 11 -i 14      -m "系统登录密码修改"
         print_menu_item_done
 
         print_line
@@ -121,13 +121,12 @@ system_menu() {
         print_menu_item -r 23 -p 10 -i 24      -m "TCP 参数调优" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 25 -p 0  -i 25      -m "切换优先ipv4/ipv6" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
-        # print_menu_item -r 25 -p 6  -i 26      -m "${BOLD_GREY}开放所有端口 (风险)"
         print_menu_item_done
 
         print_line
         # print_echo "[终端与工具箱]"
-        print_menu_item -r 31 -p 0  -i 31      -m "命令行美化工具" "${ICON_NAV}"
-        print_menu_item -r 31 -p 8  -i 32      -m "${BOLD_GREY}设置系统回收站${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
+        print_menu_item -r 31 -p 0  -i 31      -m "命令行美化" "${ICON_NAV}"
+        print_menu_item -r 31 -p 12  -i 32      -m "${BOLD_GREY}设置系统回收站${NC}" -I "${ICON_NAV}" -I "${ICON_NAV}" -T 2
 
         print_menu_item -r 33 -p 0  -i 33      -m "命令收藏夹"
         print_menu_item -r 33 -p 14 -i 34      -m "${BOLD_GREY}命令行历史记录${NC}"
@@ -148,19 +147,19 @@ system_menu() {
             # 系统信息查询
             1)  status_show_all ;;
 
-            # 系统更新 & 维护
+            # 系统更新与维护
             2)  guard_system_update; print_wait_enter ;;
 
             # 系统垃圾清理
             3)  guard_system_clean; print_wait_enter ;;
 
-            # 切换系统更新源
+            # 系统更新源切换
             4)  mirror_menu ;;   
 
             # 系统时区调整
             5) timezone_menu ;;
 
-            # 修改主机名
+            # 系统主机名修改
             6) change_hostname ;;
 
             # SSH 服务全能管理
